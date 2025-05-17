@@ -3,11 +3,6 @@ using UnityEngine.UI; // UI elemanları için
 
 public class Zeplin : MonoBehaviour
 {
-    // Zeplin özellikleri
-    [Header("Zeplin Özellikleri")]
-    public int maxHealth = 100;
-    private int currentHealth;
-    
     // UI elemanları
     [Header("UI Elemanları")]
     public Slider healthSlider; // Opsiyonel sağlık çubuğu
@@ -25,16 +20,11 @@ public class Zeplin : MonoBehaviour
     {
         // PlayerData referansını bul
         playerData = FindObjectOfType<PlayerData>();
-        
-        // PlayerData'dan başlangıç sağlık değerini al
-        if (playerData != null)
+        if (playerData == null)
         {
-            maxHealth = playerData.zeplinSaglik;
-            Debug.Log("Zeplin sağlığı PlayerData'dan alındı: " + maxHealth);
+            Debug.LogError("PlayerData bulunamadı! Zeplin düzgün çalışmayabilir.");
+            return;
         }
-        
-        // Başlangıç sağlık değerini ayarla
-        currentHealth = maxHealth;
         
         // UI elemanlarını güncelle
         UpdateUI();
@@ -43,8 +33,18 @@ public class Zeplin : MonoBehaviour
     // Zeplin'e hasar verme metodu
     public void TakeDamage(int damage)
     {
-        // Sağlık değerini azalt
-        currentHealth -= damage;
+        if (playerData == null)
+        {
+            playerData = FindObjectOfType<PlayerData>();
+            if (playerData == null)
+            {
+                Debug.LogError("PlayerData bulunamadı! Hasar uygulanamıyor.");
+                return;
+            }
+        }
+        
+        // PlayerData'daki sağlık değerini azalt
+        playerData.zeplinSaglik -= damage;
         
         // Hasar efekti göster (eğer varsa)
         if (damageEffect != null)
@@ -55,10 +55,10 @@ public class Zeplin : MonoBehaviour
         // UI elemanlarını güncelle
         UpdateUI();
         
-        Debug.Log("Zeplin hasar aldı! Kalan sağlık: " + currentHealth + "/" + maxHealth);
+        Debug.Log("Zeplin hasar aldı! Kalan sağlık: " + playerData.zeplinSaglik + "/" + playerData.zeplinSaglik);
         
         // Eğer sağlık sıfırın altına düştüyse
-        if (currentHealth <= 0)
+        if (playerData.zeplinSaglik <= 0)
         {
             Die();
         }
@@ -85,17 +85,19 @@ public class Zeplin : MonoBehaviour
     // UI elemanlarını güncelleme metodu
     void UpdateUI()
     {
+        if (playerData == null) return;
+        
         // Sağlık çubuğunu güncelle (eğer varsa)
         if (healthSlider != null)
         {
-            healthSlider.maxValue = maxHealth;
-            healthSlider.value = currentHealth;
+            healthSlider.maxValue = playerData.zeplinSaglik;
+            healthSlider.value = playerData.zeplinSaglik;
         }
         
         // Sağlık metnini güncelle (eğer varsa)
         if (healthText != null)
         {
-            healthText.text = currentHealth + " / " + maxHealth;
+            healthText.text = playerData.zeplinSaglik + " / " + playerData.zeplinSaglik;
         }
     }
     
@@ -111,7 +113,7 @@ public class Zeplin : MonoBehaviour
             
             if (enemy != null)
             {
-                damage = enemy.damageAmount;
+                damage = enemy.GetDamageAmount();
             }
             
             // Zeplin'e hasar ver
@@ -136,7 +138,7 @@ public class Zeplin : MonoBehaviour
             
             if (enemy != null)
             {
-                damage = enemy.damageAmount;
+                damage = enemy.GetDamageAmount();
             }
             
             // Zeplin'e hasar ver
@@ -146,16 +148,6 @@ public class Zeplin : MonoBehaviour
             Destroy(collision.gameObject);
             
             Debug.Log("Düşman Zeplin'e çarptı ve yok edildi!");
-        }
-    }
-    
-    // PlayerData'ya sağlık değerini kaydet
-    void OnDestroy()
-    {
-        if (playerData != null)
-        {
-            playerData.zeplinSaglik = currentHealth > 0 ? currentHealth : 0;
-            Debug.Log("Zeplin sağlığı PlayerData'ya kaydedildi: " + playerData.zeplinSaglik);
         }
     }
 } 

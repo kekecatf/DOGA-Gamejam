@@ -18,17 +18,19 @@ public class Player : MonoBehaviour
     // Joystick Referansı
     public Joystick joystick; // Dynamic Joystick referansı buraya sürüklenecek
     
+    // UI Butonları
+    [Header("UI Butonları")]
+    public Button minigunButton; // Minigun ateşleme butonu
+    
     // Mermi ayarları
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public float fireRate = 0.3f;
     public float firePointXOffset = 1f; // FirePoint'in x ekseni ofset değeri
     private float nextFireTime = 0f;
     
     // Roket ayarları
     public GameObject rocketPrefab; // Roket prefabı
     public Transform rocketFirePoint; // Roket fırlatma noktası
-    public float rocketCooldown = 3f; // Roket bekleme süresi
     private float nextRocketTime = 0f; // Bir sonraki roket fırlatma zamanı
     
     // Bileşenler
@@ -42,11 +44,6 @@ public class Player : MonoBehaviour
     // Dikey hareket kontrolü
     private float verticalInput = 0f;
     private float horizontalInput = 0f;
-    
-    // Mermi hasarı (PlayerData'dan gelecek)
-    private int bulletDamage = 10;
-    // Roket hasarı (PlayerData'dan gelecek)
-    private int rocketDamage = 50;
     
     private void Start()
     {
@@ -103,23 +100,23 @@ public class Player : MonoBehaviour
             }
         }
         
-        // PlayerData değerlerini kullanarak bazı özellikleri ayarla (örnek)
+        // Minigun butonu kontrolü ve listener ekleme
+        if (minigunButton != null)
+        {
+            // Butona tıklama olayı ekle
+            minigunButton.onClick.AddListener(MobileFireButton);
+        }
+        else
+        {
+            Debug.LogWarning("MinigunButton atanmamış! Inspector'dan atayın.");
+        }
+        
+        // Oyuncu bilgilerini logla
         if (playerData != null)
         {
-            // Oyuncunun sağlık değerini al
-            int playerHealth = playerData.anaGemiSaglik;
-            Debug.Log("Oyuncu Sağlık: " + playerHealth);
-            
-            // Mermi özellikleri için PlayerData'daki değerleri kullan
-            bulletDamage = playerData.anaGemiMinigunDamage;
-            fireRate = playerData.anaGemiMinigunCooldown;
-            
-            // Roket özellikleri için PlayerData'daki değerleri kullan
-            rocketDamage = playerData.anaGemiRoketDamage;
-            rocketCooldown = playerData.anaGemiRoketDelay;
-            
-            Debug.Log("Mermi hasarı: " + bulletDamage + ", Ateş hızı: " + fireRate);
-            Debug.Log("Roket hasarı: " + rocketDamage + ", Roket bekleme süresi: " + rocketCooldown);
+            Debug.Log("Oyuncu Sağlık: " + playerData.anaGemiSaglik);
+            Debug.Log("Mermi hasarı: " + playerData.anaGemiMinigunDamage + ", Ateş hızı: " + playerData.anaGemiMinigunCooldown);
+            Debug.Log("Roket hasarı: " + playerData.anaGemiRoketDamage + ", Bekleme süresi: " + playerData.anaGemiRoketDelay);
         }
     }
     
@@ -129,8 +126,13 @@ public class Player : MonoBehaviour
         Movement();
         RotateSmooth();
         
-        // Ateş etme (space veya ekstra buton)
-        HandleShooting();
+        // Ateş etme (space tuşu veya ekstra buton)
+        // Space tuşu sadece test için kullanılacak, asıl ateş etme butona bağlı
+        if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
+        {
+            FireBullet();
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+        }
         
         // Roket fırlatma (R tuşu veya ekstra buton)
         if (Input.GetKeyDown(KeyCode.R))
@@ -170,9 +172,6 @@ public class Player : MonoBehaviour
             playerData.anaGemiMinigunLevel++;
             playerData.anaGemiMinigunDamage += 5;
             
-            // Yükseltme sonrası değerleri güncelle
-            bulletDamage = playerData.anaGemiMinigunDamage;
-            
             Debug.Log("Silah yükseltildi! Yeni seviye: " + playerData.anaGemiMinigunLevel + 
                      ", Yeni hasar: " + playerData.anaGemiMinigunDamage);
         }
@@ -190,12 +189,11 @@ public class Player : MonoBehaviour
             playerData.metalPara -= 150;
             playerData.anaGemiRoketLevel++;
             playerData.anaGemiRoketDamage += 10;
-            
-            // Yükseltme sonrası değerleri güncelle
-            rocketDamage = playerData.anaGemiRoketDamage;
+            playerData.anaGemiRoketSpeed += 2f;
             
             Debug.Log("Roket yükseltildi! Yeni seviye: " + playerData.anaGemiRoketLevel + 
-                     ", Yeni hasar: " + playerData.anaGemiRoketDamage);
+                     ", Yeni hasar: " + playerData.anaGemiRoketDamage +
+                     ", Yeni hız: " + playerData.anaGemiRoketSpeed);
         }
         else if (playerData != null)
         {
@@ -230,17 +228,11 @@ public class Player : MonoBehaviour
         // Roketi oluştur
         GameObject rocket = Instantiate(rocketPrefab, rocketFirePoint.position, rocketFirePoint.rotation);
         
-        // Roket bileşenini al
-        Rocket rocketComponent = rocket.GetComponent<Rocket>();
-        if (rocketComponent != null)
-        {
-            // Roket hasarını ayarla
-            rocketComponent.SetDamage(rocketDamage);
-            Debug.Log("Roket fırlatıldı! Hasar: " + rocketDamage);
-        }
+        // Log that a rocket was fired
+        Debug.Log("Roket fırlatıldı! (Hasar PlayerData'dan otomatik alınıyor)");
         
         // Bekleme süresini ayarla
-        nextRocketTime = Time.time + rocketCooldown;
+        nextRocketTime = Time.time + (playerData != null ? playerData.anaGemiRoketDelay : 3f);
     }
     
     private void Movement()
@@ -398,24 +390,22 @@ public class Player : MonoBehaviour
         }
     }
     
-    private void HandleShooting()
-    {
-        // Space tuşuna basılınca veya mobil ateş butonuna basılınca 
-        // (mobil ateş butonu için public bir metot oluşturun)
-        if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
-        {
-            FireBullet();
-            nextFireTime = Time.time + fireRate;
-        }
-    }
-    
     // Mobil ateş butonu için public metot
     public void MobileFireButton()
     {
         if (Time.time >= nextFireTime)
         {
             FireBullet();
-            nextFireTime = Time.time + fireRate;
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+            
+            // Buton basıldığında görsel geri bildirim (opsiyonel)
+            Debug.Log("Minigun butonu ile ateş edildi!");
+        }
+        else
+        {
+            // Henüz ateş edilemiyorsa, kalan süreyi göster (opsiyonel)
+            float remainingTime = nextFireTime - Time.time;
+            Debug.Log("Minigun hazır değil! " + remainingTime.ToString("F1") + " saniye kaldı.");
         }
     }
     
@@ -443,9 +433,6 @@ public class Player : MonoBehaviour
         {
             // Yön bilgisini ayarla (sağa veya sola hareket için)
             bulletComponent.SetDirection(isFacingLeft);
-            
-            // PlayerData'dan gelen hasar değerini mermiye aktar
-            bulletComponent.SetDamage(bulletDamage);
         }
     }
 } 

@@ -1,20 +1,28 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Rocket : MonoBehaviour
 {
-    public float speed = 5f;
     public float rotationSpeed = 200f;
     public float lifetime = 5f;
-    public int damage = 50;
     public float explosionRadius = 2f;
     public GameObject explosionEffect;
     
     private Transform target;
     private bool targetLocked = false;
+    private PlayerData playerData;
+    private List<Collider2D> damagedEnemies = new List<Collider2D>(); // Hasar verilen düşmanları takip etmek için
     
     void Start()
     {
+        // Find PlayerData reference
+        playerData = FindObjectOfType<PlayerData>();
+        if (playerData == null)
+        {
+            Debug.LogError("PlayerData bulunamadı! Roket düzgün çalışmayabilir.");
+        }
+        
         // Belirli bir süre sonra roketi yok et (hedef bulamazsa)
         Destroy(gameObject, lifetime);
         
@@ -46,7 +54,7 @@ public class Rocket : MonoBehaviour
             // Hedef hala bulunamadıysa düz ilerle
             if (target == null)
             {
-                transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
+                transform.Translate(Vector2.right * playerData.anaGemiRoketSpeed * Time.deltaTime, Space.Self);
                 return;
             }
         }
@@ -58,7 +66,7 @@ public class Rocket : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
         
         // İleri doğru hareket et
-        transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
+        transform.Translate(Vector2.right * playerData.anaGemiRoketSpeed * Time.deltaTime, Space.Self);
     }
     
     void FindClosestEnemy()
@@ -150,8 +158,11 @@ public class Rocket : MonoBehaviour
         if (enemy != null)
         {
             // Doğrudan çarpışan düşmana tam hasar ver
-            enemy.TakeDamage(damage);
-            Debug.Log("Roket doğrudan düşmana çarptı: " + enemyCollider.name + ", " + damage + " hasar verildi!");
+            enemy.TakeDamage(playerData.anaGemiRoketDamage);
+            Debug.Log("Roket doğrudan düşmana çarptı: " + enemyCollider.name + ", " + playerData.anaGemiRoketDamage + " hasar verildi!");
+            
+            // Bu düşmanı hasarlı düşmanlar listesine ekle
+            damagedEnemies.Add(enemyCollider);
         }
         else
         {
@@ -194,16 +205,23 @@ public class Rocket : MonoBehaviour
             // Düşmanlara hasar ver
             if (hit.CompareTag("Enemy"))
             {
+                // Eğer bu düşmana zaten doğrudan hasar verildiyse, tekrar hasar verme
+                if (damagedEnemies.Contains(hit))
+                {
+                    Debug.Log("Bu düşmana zaten doğrudan hasar verildi, patlama hasarı atlanıyor: " + hit.name);
+                    continue;
+                }
+                
                 Enemy enemy = hit.GetComponent<Enemy>();
                 if (enemy != null)
                 {
                     // Uzaklığa göre hasar hesapla (merkezde tam hasar, kenarlarda daha az)
                     float distance = Vector2.Distance(transform.position, hit.transform.position);
                     float damagePercent = 1f - (distance / explosionRadius);
-                    int calculatedDamage = Mathf.RoundToInt(damage * damagePercent);
+                    int calculatedDamage = Mathf.RoundToInt(playerData.anaGemiRoketDamage * damagePercent);
                     
                     // Minimum hasar garantisi
-                    calculatedDamage = Mathf.Max(calculatedDamage, damage / 4);
+                    calculatedDamage = Mathf.Max(calculatedDamage, playerData.anaGemiRoketDamage / 4);
                     
                     // Hasarı uygula
                     enemy.TakeDamage(calculatedDamage);
@@ -218,11 +236,5 @@ public class Rocket : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, explosionRadius);
-    }
-    
-    // Roket hasarını ayarla
-    public void SetDamage(int newDamage)
-    {
-        damage = newDamage;
     }
 } 

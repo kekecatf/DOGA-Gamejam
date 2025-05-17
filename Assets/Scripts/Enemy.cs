@@ -10,24 +10,48 @@ public class Enemy : MonoBehaviour
     public Vector2 targetPosition = Vector2.zero; // Varsayılan olarak (0,0) hedefi
     
     private SpriteRenderer spriteRenderer;
+    private PlayerData playerData;
     
-    public int maxHealth = 50;
     private int currentHealth;
-    
-    // İsteğe bağlı düşman özellikleri
-    public int damageAmount = 10;
+    private int damage;
     public int scoreValue = 25;
     public GameObject deathEffect; // Ölüm efekti (isteğe bağlı)
     
     private void Start()
     {
+        // PlayerData referansını bul
+        playerData = FindObjectOfType<PlayerData>();
+        
         spriteRenderer = GetComponent<SpriteRenderer>();
         
         // Rastgele başlangıç hızı varyasyonu (daha doğal görünüm için)
         moveSpeed = Random.Range(moveSpeed * 0.8f, moveSpeed * 1.2f);
         
-        // Sağlık değerini maksimuma ayarla
-        currentHealth = maxHealth;
+        // Düşman değerlerini PlayerData'dan al
+        InitializeEnemyStats();
+    }
+    
+    // Düşman değerlerini PlayerData'dan alma
+    private void InitializeEnemyStats()
+    {
+        if (playerData != null)
+        {
+            // PlayerData'dan düşman sağlığı, hasarı ve ödül değerini al
+            currentHealth = playerData.CalculateEnemyHealth();
+            damage = playerData.CalculateEnemyDamage();
+            scoreValue = playerData.CalculateEnemyScoreValue();
+            
+            Debug.Log("Düşman değerleri PlayerData'dan alındı: Sağlık=" + currentHealth + 
+                     ", Hasar=" + damage + ", Ödül=" + scoreValue);
+        }
+        else
+        {
+            // PlayerData bulunamazsa varsayılan değerleri kullan
+            currentHealth = 50;
+            damage = 10;
+            scoreValue = 25;
+            Debug.LogWarning("PlayerData bulunamadı! Varsayılan düşman değerleri kullanılıyor.");
+        }
     }
     
     private void Update()
@@ -79,10 +103,10 @@ public class Enemy : MonoBehaviour
     }
     
     // Düşmana hasar verme metodu (Bullet tarafından çağrılacak)
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damageAmount)
     {
         // Sağlık değerini azalt
-        currentHealth -= damage;
+        currentHealth -= damageAmount;
         
         // Hasar efekti (isteğe bağlı)
         // Örnek: Flash efekti, kısa titreşim, vs.
@@ -106,13 +130,22 @@ public class Enemy : MonoBehaviour
             Instantiate(deathEffect, transform.position, Quaternion.identity);
         }
         
-        // Skor ekle (PlayerData veya GameManager üzerinden)
-        PlayerData playerData = FindObjectOfType<PlayerData>();
+        // Skor ekle (PlayerData üzerinden)
         if (playerData != null)
         {
             // Parasını arttır
             playerData.metalPara += scoreValue;
             Debug.Log("Düşman öldürüldü! Para kazanıldı: " + scoreValue);
+        }
+        else
+        {
+            // PlayerData referansını tekrar bulmayı dene
+            playerData = FindObjectOfType<PlayerData>();
+            if (playerData != null)
+            {
+                playerData.metalPara += scoreValue;
+                Debug.Log("Düşman öldürüldü! Para kazanıldı: " + scoreValue);
+            }
         }
         
         // Düşmanı yok et
@@ -124,7 +157,25 @@ public class Enemy : MonoBehaviour
         // Mermi veya oyuncuyla çarpışma
         if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
         {
-            TakeDamage(damageAmount);
+            TakeDamage(damage);
         }
+    }
+    
+    // Düşmanın verdiği hasar değerini döndür
+    public int GetDamageAmount()
+    {
+        return damage;
+    }
+    
+    // Düşmanın mevcut sağlık değerini döndür
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+    
+    // Düşmanın sağlık değerini ayarla
+    public void SetHealth(int health)
+    {
+        currentHealth = health;
     }
 } 
