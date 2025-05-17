@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI; // UI bileşenleri için
+using UnityEngine.EventSystems; // Joystick için gerekli
 
 public class Player : MonoBehaviour
 {
@@ -10,6 +12,9 @@ public class Player : MonoBehaviour
     public float downRotation = -25f;
     public float rotationSpeed = 1.5f; // Daha da yavaş rotasyon değişimi
     
+    // Joystick Referansı
+    public Joystick joystick; // Dynamic Joystick referansı buraya sürüklenecek
+    
     // Mermi ayarları
     public GameObject bulletPrefab;
     public Transform firePoint;
@@ -20,9 +25,14 @@ public class Player : MonoBehaviour
     // Bileşenler
     private SpriteRenderer spriteRenderer;
     private bool isFacingLeft = false;
-    private float currentRotation = 0f;
-    private float targetRotation = 0f;
+    private float currentRotation = 0f;     // Mevcut gerçek rotasyon
+    private float targetRotation = 0f;      // Hedef rotasyon
+    private float absoluteRotation = 0f;    // Mutlak rotasyon (flip bağımsız)
     private Vector3 originalFirePointLocalPos;
+    
+    // Dikey hareket kontrolü
+    private float verticalInput = 0f;
+    private float horizontalInput = 0f;
     
     private void Start()
     {
@@ -45,8 +55,16 @@ public class Player : MonoBehaviour
             originalFirePointLocalPos = firePoint.localPosition;
         }
         
-        // Debug mesajı
-        Debug.Log("Player başlatıldı. Rotasyon kontrolü hazır.");
+        // Joystick kontrolü
+        if (joystick == null)
+        {
+            // Sahnedeki joystick'i otomatik bul
+            joystick = FindObjectOfType<Joystick>();
+            if (joystick == null)
+            {
+                Debug.LogWarning("Joystick bulunamadı! Inspector'dan atayın veya Dynamic Joystick'in sahnede olduğundan emin olun.");
+            }
+        }
     }
     
     private void Update()
@@ -55,62 +73,101 @@ public class Player : MonoBehaviour
         Movement();
         RotateSmooth();
         
-        // Ateş etme
+        // Ateş etme (space veya ekstra buton)
         HandleShooting();
     }
     
     private void Movement()
     {
-        // Yatay ve dikey girdi al
-        float horizontal = 0;
-        float vertical = 0;
-        
-        // WASD tuşları için kontrol
-        if (Input.GetKey(KeyCode.W))
-            vertical = 1;
-        if (Input.GetKey(KeyCode.S))
-            vertical = -1;
-        if (Input.GetKey(KeyCode.A))
-            horizontal = -1;
-        if (Input.GetKey(KeyCode.D))
-            horizontal = 1;
+        // Joystick girişini al (varsa)
+        if (joystick != null)
+        {
+            horizontalInput = joystick.Horizontal;
+            verticalInput = joystick.Vertical;
+            
+            // Deadzone uygula (çok küçük değerleri yoksay)
+            horizontalInput = Mathf.Abs(horizontalInput) < 0.1f ? 0 : horizontalInput;
+            verticalInput = Mathf.Abs(verticalInput) < 0.1f ? 0 : verticalInput;
+        }
+        else
+        {
+            // Joystick yoksa klavye girişini al (test için)
+            horizontalInput = 0;
+            verticalInput = 0;
+            
+            // WASD tuşları için kontrol
+            if (Input.GetKey(KeyCode.W))
+                verticalInput = 1;
+            else if (Input.GetKey(KeyCode.S))
+                verticalInput = -1;
+                
+            if (Input.GetKey(KeyCode.A))
+                horizontalInput = -1;
+            else if (Input.GetKey(KeyCode.D))
+                horizontalInput = 1;
+        }
             
         // Hareket vektörü oluştur
-        Vector3 direction = new Vector3(horizontal, vertical, 0).normalized;
+        Vector3 direction = new Vector3(horizontalInput, verticalInput, 0).normalized;
         
         // Pozisyonu güncelle
         transform.position += direction * moveSpeed * Time.deltaTime;
         
         // Sprite yönünü ayarla (sağ veya sol) ve FirePoint pozisyonunu güncelle
-        if (horizontal != 0 && spriteRenderer != null)
+        if (horizontalInput != 0 && spriteRenderer != null)
         {
             bool wasFlipped = isFacingLeft;
-            isFacingLeft = horizontal < 0;
+            isFacingLeft = horizontalInput < 0;
             spriteRenderer.flipX = isFacingLeft;
             
             // Eğer yön değiştiyse, FirePoint pozisyonunu güncelle
             if (wasFlipped != isFacingLeft && firePoint != null && firePoint != transform)
             {
                 UpdateFirePointPosition();
+                
+                // ÖNEMLİ: Flip esnasında mevcut rotasyonu koru, hedefi güncelle
+                // Eğer flip değiştiyse, mevcut rotasyonu aynen koru ama işaretini değiştir
+                if (absoluteRotation != 0)
+                {
+                    // İşareti flip durumuna göre değiştir, ama değeri koru
+                    targetRotation = isFacingLeft ? -absoluteRotation : absoluteRotation;
+                    
+                    // Mevcut rotasyonu direk olarak ayarla (Lerp kullanma)
+                    currentRotation = targetRotation;
+                    
+                    // Fiziksel rotasyonu hemen güncelle
+                    transform.rotation = Quaternion.Euler(0, 0, currentRotation);
+                    
+                    Debug.Log("Flip durumu değişti! Rotasyon korundu: " + currentRotation);
+                }
             }
         }
         
         // Hedef rotasyonu belirle (yukarı ve aşağı hareket)
-        if (vertical > 0)
+        UpdateTargetRotation();
+    }
+    
+    private void UpdateTargetRotation()
+    {
+        // Eğer dikey hareket varsa mutlak rotasyonu güncelle
+        if (verticalInput > 0)
         {
-            // Yukarı hareket - yönlü rotasyon
-            targetRotation = isFacingLeft ? -upRotation : upRotation;
+            // Yukarı hareket
+            absoluteRotation = upRotation; // Pozitif değer (yukarı rotasyon)
         }
-        else if (vertical < 0)
+        else if (verticalInput < 0)
         {
-            // Aşağı hareket - yönlü rotasyon
-            targetRotation = isFacingLeft ? -downRotation : downRotation;
+            // Aşağı hareket
+            absoluteRotation = downRotation; // Negatif değer (aşağı rotasyon)
         }
-        else
+        else if (verticalInput == 0)
         {
-            // Hareketsiz - normal dönüş
-            targetRotation = 0f;
+            // Dikey hareket yoksa sıfıra dön
+            absoluteRotation = 0f;
         }
+        
+        // Mutlak rotasyonu yöne göre hedef rotasyona çevir
+        targetRotation = isFacingLeft ? -absoluteRotation : absoluteRotation;
     }
     
     private void UpdateFirePointPosition()
@@ -130,8 +187,6 @@ public class Player : MonoBehaviour
         
         // Yeni pozisyonu uygula
         firePoint.localPosition = newPosition;
-        
-        Debug.Log("FirePoint pozisyonu güncellendi: " + firePoint.localPosition);
     }
     
     private void RotateSmooth()
@@ -145,8 +200,19 @@ public class Player : MonoBehaviour
     
     private void HandleShooting()
     {
-        // Space tuşuna basılınca ve ateş hızı sınırını geçtiyse
+        // Space tuşuna basılınca veya mobil ateş butonuna basılınca 
+        // (mobil ateş butonu için public bir metot oluşturun)
         if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
+        {
+            FireBullet();
+            nextFireTime = Time.time + fireRate;
+        }
+    }
+    
+    // Mobil ateş butonu için public metot
+    public void MobileFireButton()
+    {
+        if (Time.time >= nextFireTime)
         {
             FireBullet();
             nextFireTime = Time.time + fireRate;
@@ -175,8 +241,6 @@ public class Player : MonoBehaviour
             // Geminin yönünü ve rotasyon değerini ayarla
             bulletComponent.SetDirection(isFacingLeft);
             bulletComponent.SetRotation(bulletRotation);
-            
-            Debug.Log("Player flip: " + isFacingLeft + ", Mermi rotasyonu: " + bulletRotation);
         }
         
         // Not: SpriteRenderer.flipX yerine transform.localScale.x kullanıyoruz artık
