@@ -11,6 +11,25 @@ public class Bullet : MonoBehaviour
     {
         // Belirli süre sonra mermiyi yok et
         Destroy(gameObject, lifetime);
+        
+        // Emin olmak için collider'ın trigger olduğundan emin ol
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null && !collider.isTrigger)
+        {
+            collider.isTrigger = true;
+            Debug.Log("Bullet collider trigger yapıldı");
+        }
+        
+        /* Çarpışma Algılama Kuralları:
+         * 1. OnTriggerEnter2D için en az bir objenin Collider'ı trigger olmalıdır
+         * 2. Her iki objenin de Collider bileşeni olmalıdır
+         * 3. Hareketli olan obje (mermi) üzerinde Rigidbody2D olmalıdır
+         *    (Rigidbody2D bileşenini Unity Editor üzerinden ekleyin)
+         * 
+         * NOT: En yaygın kurulum şudur:
+         * - Mermi: IsTrigger = true ve Rigidbody2D (kinematic olabilir)
+         * - Düşman: Normal Collider (IsTrigger = false) ve isteğe bağlı Rigidbody2D
+         */
     }
     
     void Update()
@@ -47,6 +66,12 @@ public class Bullet : MonoBehaviour
     
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // Player ile çarpışmayı görmezden gel (kendi attığımız mermilerden etkilenmemeliyiz)
+        if (other.CompareTag("Player") || other.CompareTag("Bullet"))
+        {
+            return;
+        }
+        
         // Düşmanla çarpışma kontrolü
         if (other.CompareTag("Enemy"))
         {
@@ -57,6 +82,14 @@ public class Bullet : MonoBehaviour
             Destroy(gameObject);
             
             Debug.Log("Mermi düşmana çarptı: " + other.name);
+        }
+        // Diğer objelerle çarpışma (duvarlar, engeller vb.)
+        else if (!other.isTrigger) // Sadece fiziksel nesnelerle çarpışma durumunda
+        {
+            // Mermiyi yok et
+            Destroy(gameObject);
+            
+            Debug.Log("Mermi bir nesneye çarptı: " + other.name);
         }
     }
 } 
