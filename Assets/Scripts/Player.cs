@@ -10,10 +10,8 @@ public class Player : MonoBehaviour
     // Hareket hızı
     public float moveSpeed = 5f;
     
-    // Yönlendirme ayarları
-    public float upRotation = 25f;
-    public float downRotation = -25f;
-    public float rotationSpeed = 1.5f; // Daha da yavaş rotasyon değişimi
+    // Rotasyon ayarları
+    public float rotationSpeed = 5f; // Dönüş hızı
     
     // Joystick Referansı
     public Joystick joystick; // Dynamic Joystick referansı buraya sürüklenecek
@@ -21,6 +19,7 @@ public class Player : MonoBehaviour
     // UI Butonları
     [Header("UI Butonları")]
     public Button minigunButton; // Minigun ateşleme butonu
+    public Button rocketButton; // Roket ateşleme butonu
     
     // Mermi ayarları
     public GameObject bulletPrefab;
@@ -37,16 +36,39 @@ public class Player : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isFacingLeft = false;
     private float currentRotation = 0f;     // Mevcut gerçek rotasyon
-    private float targetRotation = 0f;      // Hedef rotasyon
-    private float absoluteRotation = 0f;    // Mutlak rotasyon (flip bağımsız)
     private Vector3 originalFirePointLocalPos;
     
-    // Dikey hareket kontrolü
-    private float verticalInput = 0f;
-    private float horizontalInput = 0f;
+    // Hareket kontrolü
+    private Vector2 moveDirection = Vector2.zero;
+    private float minJoystickMagnitude = 0.1f; // Minimum joystick hareketi için eşik değeri
+    
+    // Hasar ve efektler
+    [Header("Hasar ve Efektler")]
+    public GameObject damageEffect; // Hasar alınca çıkacak efekt (opsiyonel)
+    public float invincibilityTime = 1.0f; // Hasar aldıktan sonra geçici dokunulmazlık süresi
+    private float invincibilityTimer = 0f; // Dokunulmazlık sayacı
+    private bool isInvincible = false; // Dokunulmazlık durumu
+    
+    // Sağlık UI
+    [Header("Sağlık UI")]
+    public Slider healthSlider; // Can çubuğu
+    public Text healthText; // Can değeri metni (opsiyonel)
+    private int maxHealth; // Maksimum sağlık değeri
+    
+    // Oyuncu durumu
+    public static bool isDead = false; // Oyuncu ölü mü? (Zeplin kontrolü için)
+    
+    // Zeplin referansı
+    private Zeplin zeplin;
     
     private void Start()
     {
+        // Oyuncu başlangıçta canlı
+        isDead = false;
+        
+        // Zeplin referansını bul
+        zeplin = FindObjectOfType<Zeplin>();
+        
         // PlayerData referansını bul
         playerData = FindObjectOfType<PlayerData>();
         if (playerData == null)
@@ -111,6 +133,24 @@ public class Player : MonoBehaviour
             Debug.LogWarning("MinigunButton atanmamış! Inspector'dan atayın.");
         }
         
+        // Roket butonu kontrolü ve listener ekleme
+        if (rocketButton != null)
+        {
+            // Butona tıklama olayı ekle
+            rocketButton.onClick.AddListener(MobileRocketButton);
+        }
+        else
+        {
+            Debug.LogWarning("RocketButton atanmamış! Inspector'dan atayın.");
+        }
+        
+        // Sağlık değerini başlat
+        if (playerData != null)
+        {
+            maxHealth = playerData.anaGemiSaglik;
+            UpdateHealthUI();
+        }
+        
         // Oyuncu bilgilerini logla
         if (playerData != null)
         {
@@ -122,9 +162,11 @@ public class Player : MonoBehaviour
     
     private void Update()
     {
+        // Eğer oyuncu ölmüşse kontrolü devre dışı bırak
+        if (isDead) return;
+        
         // Hareket ve yönlendirme
         Movement();
-        RotateSmooth();
         
         // Ateş etme (space tuşu veya ekstra buton)
         // Space tuşu sadece test için kullanılacak, asıl ateş etme butona bağlı
@@ -150,6 +192,49 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Y))
         {
             UpgradeMinigun();
+        }
+        
+        // Dokunulmazlık süresini güncelle
+        if (isInvincible)
+        {
+            invincibilityTimer -= Time.deltaTime;
+            
+            // Yanıp sönme efekti için sprite'ı aç/kapa
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.enabled = Time.time % 0.2f < 0.1f;
+            }
+            
+            // Dokunulmazlık süresi bittiyse
+            if (invincibilityTimer <= 0)
+            {
+                isInvincible = false;
+                // Sprite'ı tekrar görünür yap
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.enabled = true;
+                }
+                Debug.Log("Dokunulmazlık süresi bitti!");
+            }
+        }
+    }
+    
+    // Sağlık UI'ını güncelle
+    private void UpdateHealthUI()
+    {
+        if (playerData == null) return;
+        
+        // Sağlık çubuğunu güncelle
+        if (healthSlider != null)
+        {
+            healthSlider.maxValue = maxHealth;
+            healthSlider.value = playerData.anaGemiSaglik;
+        }
+        
+        // Sağlık metnini güncelle (eğer varsa)
+        if (healthText != null)
+        {
+            healthText.text = playerData.anaGemiSaglik + " / " + maxHealth;
         }
     }
     
@@ -201,6 +286,15 @@ public class Player : MonoBehaviour
         }
     }
     
+    // Mobil roket butonu için public metot
+    public void MobileRocketButton()
+    {
+        // Eğer oyuncu ölmüşse devre dışı bırak
+        if (isDead) return;
+        
+        FireRocket();
+    }
+    
     // Roket fırlatma metodu - UI butonundan çağrılabilir
     public void FireRocket()
     {
@@ -237,6 +331,9 @@ public class Player : MonoBehaviour
     
     private void Movement()
     {
+        float horizontalInput = 0f;
+        float verticalInput = 0f;
+        
         // Joystick girişini al (varsa)
         if (joystick != null)
         {
@@ -244,14 +341,15 @@ public class Player : MonoBehaviour
             verticalInput = joystick.Vertical;
             
             // Deadzone uygula (çok küçük değerleri yoksay)
-            horizontalInput = Mathf.Abs(horizontalInput) < 0.1f ? 0 : horizontalInput;
-            verticalInput = Mathf.Abs(verticalInput) < 0.1f ? 0 : verticalInput;
+            if (Mathf.Abs(horizontalInput) < minJoystickMagnitude && Mathf.Abs(verticalInput) < minJoystickMagnitude)
+            {
+                horizontalInput = 0;
+                verticalInput = 0;
+            }
         }
         else
         {
             // Joystick yoksa klavye girişini al (test için)
-            horizontalInput = 0;
-            verticalInput = 0;
             
             // WASD tuşları için kontrol
             if (Input.GetKey(KeyCode.W))
@@ -264,135 +362,77 @@ public class Player : MonoBehaviour
             else if (Input.GetKey(KeyCode.D))
                 horizontalInput = 1;
         }
-            
-        // Hareket vektörü oluştur
-        Vector3 direction = new Vector3(horizontalInput, verticalInput, 0).normalized;
+        
+        // Hareket yönünü kaydet
+        moveDirection = new Vector2(horizontalInput, verticalInput).normalized;
         
         // Pozisyonu güncelle
-        transform.position += direction * moveSpeed * Time.deltaTime;
+        transform.position += new Vector3(moveDirection.x, moveDirection.y, 0) * moveSpeed * Time.deltaTime;
         
-        // Sprite yönünü ayarla (sağ veya sol) ve FirePoint pozisyonunu güncelle
-        if (horizontalInput != 0 && spriteRenderer != null)
+        // Eğer hareket varsa rotasyonu güncelle
+        if (moveDirection.sqrMagnitude > 0.01f)
         {
-            bool wasFlipped = isFacingLeft;
-            isFacingLeft = horizontalInput < 0;
-            spriteRenderer.flipX = isFacingLeft;
+            // Hareket yönüne göre rotasyon hesapla
+            float targetAngle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
             
-            // Eğer yön değiştiyse, FirePoint pozisyonunu güncelle
-            if (wasFlipped != isFacingLeft && firePoint != null && firePoint != transform)
+            // Yumuşak rotasyon için Lerp kullan
+            Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            
+            // Mevcut rotasyonu kaydet
+            currentRotation = transform.eulerAngles.z;
+            
+            // FirePoint pozisyonunu güncelle
+            UpdateFirePointPosition(moveDirection.x < 0);
+        }
+    }
+    
+    private void UpdateFirePointPosition(bool isLeft)
+    {
+        // Yön değişimini kontrol et
+        bool wasFlipped = isFacingLeft;
+        isFacingLeft = isLeft;
+        
+        // Sadece yön değiştiyse firePoint'i güncelle
+        if (wasFlipped != isFacingLeft && firePoint != null && firePoint != transform)
+        {
+            // FirePoint'in x değerini yöne göre ayarla, y değerini koru
+            Vector3 newPosition = firePoint.localPosition;
+            
+            // Sadece x değerini yöne göre değiştir
+            if (isFacingLeft)
             {
-                // Pozisyon güncellemesi (sadece x ekseninde yapılacak)
-                UpdateFirePointPosition();
-                
-                // ÖNEMLİ: Flip esnasında mevcut rotasyonu koru, hedefi güncelle
-                // Eğer flip değiştiyse, mevcut rotasyonu aynen koru ama işaretini değiştir
-                if (absoluteRotation != 0)
-                {
-                    // İşareti flip durumuna göre değiştir, ama değeri koru
-                    targetRotation = isFacingLeft ? -absoluteRotation : absoluteRotation;
-                    
-                    // Mevcut rotasyonu direk olarak ayarla (Lerp kullanma)
-                    currentRotation = targetRotation;
-                    
-                    // Fiziksel rotasyonu hemen güncelle
-                    transform.rotation = Quaternion.Euler(0, 0, currentRotation);
-                    
-                    Debug.Log("Flip durumu değişti! Rotasyon korundu: " + currentRotation);
-                }
+                newPosition.x = -Mathf.Abs(originalFirePointLocalPos.x);
             }
-            // FirePoint pozisyonu değişmese bile, sprite'ı flip et
-            else if (firePoint != null && firePoint != transform)
+            else
             {
-                // FirePoint'in sprite'ını flip et (eğer SpriteRenderer bileşeni varsa)
-                SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
-                if (firePointSpriteRenderer != null)
-                {
-                    firePointSpriteRenderer.flipX = isFacingLeft;
-                }
+                newPosition.x = Mathf.Abs(originalFirePointLocalPos.x);
+            }
+            
+            // y değeri korundu, sadece x değeri değişti
+            firePoint.localPosition = newPosition;
+            
+            // FirePoint'in sprite'ını da flip et (eğer SpriteRenderer bileşeni varsa)
+            SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
+            if (firePointSpriteRenderer != null)
+            {
+                firePointSpriteRenderer.flipX = isFacingLeft;
             }
         }
         
-        // Hedef rotasyonu belirle (yukarı ve aşağı hareket)
-        UpdateTargetRotation();
-    }
-    
-    private void UpdateTargetRotation()
-    {
-        // Eğer dikey hareket varsa mutlak rotasyonu güncelle
-        if (verticalInput > 0)
+        // Sprite yönünü ayarla
+        if (spriteRenderer != null)
         {
-            // Yukarı hareket
-            absoluteRotation = upRotation; // Pozitif değer (yukarı rotasyon)
-        }
-        else if (verticalInput < 0)
-        {
-            // Aşağı hareket
-            absoluteRotation = downRotation; // Negatif değer (aşağı rotasyon)
-        }
-        else if (verticalInput == 0)
-        {
-            // Dikey hareket yoksa sıfıra dön
-            absoluteRotation = 0f;
-        }
-        
-        // Mutlak rotasyonu yöne göre hedef rotasyona çevir
-        targetRotation = isFacingLeft ? -absoluteRotation : absoluteRotation;
-    }
-    
-    private void UpdateFirePointPosition()
-    {
-        // FirePoint'in x değerini yöne göre ayarla, y değerini koru
-        Vector3 newPosition = firePoint.localPosition;
-        
-        // Sadece x değerini yöne göre değiştir
-        if (isFacingLeft)
-        {
-            newPosition.x = -Mathf.Abs(originalFirePointLocalPos.x);
-        }
-        else
-        {
-            newPosition.x = Mathf.Abs(originalFirePointLocalPos.x);
-        }
-        
-        // y değeri korundu, sadece x değeri değişti
-        firePoint.localPosition = newPosition;
-        
-        // FirePoint'in sprite'ını da flip et (eğer SpriteRenderer bileşeni varsa)
-        SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
-        if (firePointSpriteRenderer != null)
-        {
-            firePointSpriteRenderer.flipX = isFacingLeft;
-        }
-        
-        // FirePoint rotasyonunu güncelle - y ekseni her zaman yukarı bakacak şekilde
-        UpdateFirePointRotation();
-    }
-    
-    private void UpdateFirePointRotation()
-    {
-        // FirePoint rotasyonu her durumda aynı olmalı - flip edilmiş haliyle bile
-        // Rotasyonu her zaman player rotasyonu ile aynı tut, yön değişimi için sprite flip kullan
-        firePoint.rotation = Quaternion.Euler(0, 0, currentRotation);
-    }
-    
-    private void RotateSmooth()
-    {
-        // Mevcut rotasyonu hedef rotasyona çok yavaş ve kademeli olarak yaklaştır
-        currentRotation = Mathf.Lerp(currentRotation, targetRotation, rotationSpeed * Time.deltaTime);
-        
-        // Rotasyonu uygula
-        transform.rotation = Quaternion.Euler(0, 0, currentRotation);
-        
-        // FirePoint rotasyonunu da güncelle - y ekseni her zaman yukarı bakacak şekilde
-        if (firePoint != null && firePoint != transform)
-        {
-            UpdateFirePointRotation();
+            spriteRenderer.flipX = isFacingLeft;
         }
     }
     
     // Mobil ateş butonu için public metot
     public void MobileFireButton()
     {
+        // Eğer oyuncu ölmüşse devre dışı bırak
+        if (isDead) return;
+        
         if (Time.time >= nextFireTime)
         {
             FireBullet();
@@ -425,7 +465,7 @@ public class Player : MonoBehaviour
         }
         
         // Mermi her zaman aynı rotasyonla oluşturulur - yön değişimi SetDirection ile yapılır
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, transform.rotation);
         
         // Mermi bileşenini al
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
@@ -433,6 +473,151 @@ public class Player : MonoBehaviour
         {
             // Yön bilgisini ayarla (sağa veya sola hareket için)
             bulletComponent.SetDirection(isFacingLeft);
+        }
+    }
+    
+    // Oyuncuya hasar verme metodu
+    public void TakeDamage(int damage)
+    {
+        // Eğer oyuncu zaten ölmüşse işlem yapma
+        if (isDead) return;
+        
+        // Eğer dokunulmazlık süresi aktifse hasarı yoksay
+        if (isInvincible)
+        {
+            Debug.Log("Oyuncu dokunulmaz durumda, hasar yoksayıldı!");
+            return;
+        }
+        
+        // PlayerData kontrolü
+        if (playerData == null)
+        {
+            playerData = FindObjectOfType<PlayerData>();
+            if (playerData == null)
+            {
+                Debug.LogError("PlayerData bulunamadı! Hasar uygulanamıyor.");
+                return;
+            }
+        }
+        
+        // PlayerData'daki sağlık değerini azalt
+        playerData.anaGemiSaglik -= damage;
+        
+        // Hasar efekti göster (eğer varsa)
+        if (damageEffect != null)
+        {
+            Instantiate(damageEffect, transform.position, Quaternion.identity);
+        }
+        
+        // Sağlık UI'ını güncelle
+        UpdateHealthUI();
+        
+        Debug.Log("Oyuncu hasar aldı! Kalan sağlık: " + playerData.anaGemiSaglik + "/" + maxHealth);
+        
+        // Dokunulmazlık süresini başlat
+        isInvincible = true;
+        invincibilityTimer = invincibilityTime;
+        
+        // Eğer sağlık sıfırın altına düştüyse
+        if (playerData.anaGemiSaglik <= 0)
+        {
+            Die();
+        }
+    }
+    
+    // Oyuncunun ölme metodu
+    void Die()
+    {
+        // Ölüm durumunu ayarla
+        isDead = true;
+        
+        Debug.Log("Oyuncu öldü! Kontrol Zeplin'e geçiyor...");
+        
+        // Zeplin'e bilgi ver
+        if (zeplin != null)
+        {
+            zeplin.ActivateZeplinControl();
+        }
+        else
+        {
+            Debug.LogWarning("Zeplin referansı bulunamadı! Kontrol otomatik geçemeyecek.");
+            // Zeplin referansını son bir kez daha bulmayı dene
+            zeplin = FindObjectOfType<Zeplin>();
+            if (zeplin != null)
+            {
+                zeplin.ActivateZeplinControl();
+            }
+        }
+        
+        // Görsel geri bildirim (sprite'ı sönükleştir veya devre dışı bırak)
+        if (spriteRenderer != null)
+        {
+            Color color = spriteRenderer.color;
+            color.a = 0.5f; // Yarı saydam yap
+            spriteRenderer.color = color;
+        }
+        
+        // Collider'ı devre dışı bırak (çarpışmaları engellemek için)
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            collider.enabled = false;
+        }
+        
+        // Burada oyun sonu mantığı eklenebilir, ancak şimdilik sadece 
+        // kontrolü Zeplin'e devrediyoruz, oyun devam edecek
+        
+        // Oyuncu bildirimini göster
+        Debug.LogWarning("Oyuncu öldü! Zeplin kontrolüne geçiliyor!");
+    }
+    
+    // Çarpışma algılama - Trigger için
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // Düşman ile çarpışma kontrolü
+        if (other.CompareTag("Enemy"))
+        {
+            // Düşmandan hasar miktarını al
+            Enemy enemy = other.GetComponent<Enemy>();
+            int damage = 10; // Varsayılan hasar
+            
+            if (enemy != null)
+            {
+                damage = enemy.GetDamageAmount();
+            }
+            
+            // Oyuncuya hasar ver
+            TakeDamage(damage);
+            
+            // Düşmanı yok et
+            Destroy(other.gameObject);
+            
+            Debug.Log("Düşman oyuncuya çarptı ve yok edildi!");
+        }
+    }
+    
+    // Çarpışma algılama - Fiziksel çarpışma için
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // Düşman ile çarpışma kontrolü
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            // Düşmandan hasar miktarını al
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            int damage = 10; // Varsayılan hasar
+            
+            if (enemy != null)
+            {
+                damage = enemy.GetDamageAmount();
+            }
+            
+            // Oyuncuya hasar ver
+            TakeDamage(damage);
+            
+            // Düşmanı yok et
+            Destroy(collision.gameObject);
+            
+            Debug.Log("Düşman oyuncuya çarptı ve yok edildi!");
         }
     }
 } 

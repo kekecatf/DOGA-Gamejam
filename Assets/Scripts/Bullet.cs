@@ -4,6 +4,7 @@ public class Bullet : MonoBehaviour
 {
     public float speed = 10f;
     public float lifetime = 3f;  // Mermi ömrü - belirli süre sonra yok olur
+    public bool isZeplinBullet = false; // Zeplin'den atılan mermi mi?
     
     private bool isMovingLeft = false;
     private PlayerData playerData;
@@ -87,7 +88,18 @@ public class Bullet : MonoBehaviour
             Enemy enemy = other.GetComponent<Enemy>();
             if (enemy != null && playerData != null)
             {
-                int damage = playerData.anaGemiMinigunDamage;
+                int damage;
+                if (isZeplinBullet)
+                {
+                    // Zeplin mermisi ise Zeplin hasarını kullan
+                    damage = playerData.zeplinMinigunDamage;
+                }
+                else
+                {
+                    // Player mermisi ise Player hasarını kullan
+                    damage = playerData.anaGemiMinigunDamage;
+                }
+                
                 enemy.TakeDamage(damage);
                 Debug.Log("Düşmana " + damage + " hasar verildi!");
             }
