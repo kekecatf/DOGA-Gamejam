@@ -6,7 +6,6 @@ public class Bullet : MonoBehaviour
     public float lifetime = 3f;  // Mermi ömrü - belirli süre sonra yok olur
     
     private bool isMovingLeft = false;
-    private float rotation = 0f;
     
     void Start()
     {
@@ -16,8 +15,16 @@ public class Bullet : MonoBehaviour
     
     void Update()
     {
-        // İleri yönde hareket et (sola veya sağa doğru)
-        Vector2 direction = isMovingLeft ? Vector2.left : Vector2.right;
+        // Hareket yönünü belirle (transform.right kullanarak rotasyona göre)
+        Vector2 direction = transform.right;
+        
+        // Eğer sola bakıyorsa, yönü tersine çevir
+        if (isMovingLeft)
+        {
+            direction = -direction;
+        }
+        
+        // Hesaplanan yönde hareket et
         transform.Translate(direction * speed * Time.deltaTime, Space.World);
     }
     
@@ -32,11 +39,10 @@ public class Bullet : MonoBehaviour
         transform.localScale = scale;
     }
     
-    // Oyuncudan rotasyon bilgisini al
+    // Rotasyon bilgisini al (firePoint'in rotasyonu)
     public void SetRotation(float newRotation)
     {
-        rotation = newRotation;
-        transform.rotation = Quaternion.Euler(0, 0, rotation);
+        transform.rotation = Quaternion.Euler(0, 0, newRotation);
     }
     
     private void OnTriggerEnter2D(Collider2D other)
@@ -49,6 +55,8 @@ public class Bullet : MonoBehaviour
             
             // Mermiyi yok et
             Destroy(gameObject);
+            
+            Debug.Log("Mermi düşmana çarptı: " + other.name);
         }
     }
 } 

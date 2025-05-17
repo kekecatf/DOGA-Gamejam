@@ -51,8 +51,16 @@ public class Player : MonoBehaviour
         }
         else
         {
-            // FirePoint'in orijinal pozisyonunu kaydet
-            originalFirePointLocalPos = firePoint.localPosition;
+            // FirePoint'in orijinal pozisyonunu kaydet (sadece x ekseni)
+            // Flip durumunda sadece x değeri değişecek, y değeri korunacak
+            originalFirePointLocalPos = new Vector3(firePoint.localPosition.x, 0, 0);
+            
+            // FirePoint'in sprite'ını başlangıçta ayarla
+            SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
+            if (firePointSpriteRenderer != null)
+            {
+                firePointSpriteRenderer.flipX = isFacingLeft;
+            }
         }
         
         // Joystick kontrolü
@@ -123,6 +131,7 @@ public class Player : MonoBehaviour
             // Eğer yön değiştiyse, FirePoint pozisyonunu güncelle
             if (wasFlipped != isFacingLeft && firePoint != null && firePoint != transform)
             {
+                // Pozisyon güncellemesi (sadece x ekseninde yapılacak)
                 UpdateFirePointPosition();
                 
                 // ÖNEMLİ: Flip esnasında mevcut rotasyonu koru, hedefi güncelle
@@ -139,6 +148,16 @@ public class Player : MonoBehaviour
                     transform.rotation = Quaternion.Euler(0, 0, currentRotation);
                     
                     Debug.Log("Flip durumu değişti! Rotasyon korundu: " + currentRotation);
+                }
+            }
+            // FirePoint pozisyonu değişmese bile, sprite'ı flip et
+            else if (firePoint != null && firePoint != transform)
+            {
+                // FirePoint'in sprite'ını flip et (eğer SpriteRenderer bileşeni varsa)
+                SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
+                if (firePointSpriteRenderer != null)
+                {
+                    firePointSpriteRenderer.flipX = isFacingLeft;
                 }
             }
         }
@@ -172,10 +191,10 @@ public class Player : MonoBehaviour
     
     private void UpdateFirePointPosition()
     {
-        // FirePoint'in x değerini yöne göre ayarla
-        Vector3 newPosition = originalFirePointLocalPos;
+        // FirePoint'in x değerini yöne göre ayarla, y değerini koru
+        Vector3 newPosition = firePoint.localPosition;
         
-        // Sola bakıyorsa x değerini tersine çevir
+        // Sadece x değerini yöne göre değiştir
         if (isFacingLeft)
         {
             newPosition.x = -Mathf.Abs(originalFirePointLocalPos.x);
@@ -185,8 +204,25 @@ public class Player : MonoBehaviour
             newPosition.x = Mathf.Abs(originalFirePointLocalPos.x);
         }
         
-        // Yeni pozisyonu uygula
+        // y değeri korundu, sadece x değeri değişti
         firePoint.localPosition = newPosition;
+        
+        // FirePoint'in sprite'ını da flip et (eğer SpriteRenderer bileşeni varsa)
+        SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
+        if (firePointSpriteRenderer != null)
+        {
+            firePointSpriteRenderer.flipX = isFacingLeft;
+        }
+        
+        // FirePoint rotasyonunu güncelle - y ekseni her zaman yukarı bakacak şekilde
+        UpdateFirePointRotation();
+    }
+    
+    private void UpdateFirePointRotation()
+    {
+        // FirePoint rotasyonu her durumda aynı olmalı - flip edilmiş haliyle bile
+        // Rotasyonu her zaman player rotasyonu ile aynı tut, yön değişimi için sprite flip kullan
+        firePoint.rotation = Quaternion.Euler(0, 0, currentRotation);
     }
     
     private void RotateSmooth()
@@ -196,6 +232,12 @@ public class Player : MonoBehaviour
         
         // Rotasyonu uygula
         transform.rotation = Quaternion.Euler(0, 0, currentRotation);
+        
+        // FirePoint rotasyonunu da güncelle - y ekseni her zaman yukarı bakacak şekilde
+        if (firePoint != null && firePoint != transform)
+        {
+            UpdateFirePointRotation();
+        }
     }
     
     private void HandleShooting()
@@ -219,6 +261,12 @@ public class Player : MonoBehaviour
         }
     }
     
+    // Mermi için mevcut rotasyonu döndüren public metot
+    public float GetCurrentRotation()
+    {
+        return currentRotation;
+    }
+    
     private void FireBullet()
     {
         // Mermi prefabı kontrolü
@@ -228,41 +276,15 @@ public class Player : MonoBehaviour
             return;
         }
         
-        // Ateş edilecek rotasyon hesaplama - sprite yönüne göre
-        float bulletRotation = CalculateBulletRotation();
-        
-        // Mermi oluştur (sadece pozisyon - rotasyon sonra ayarlanacak)
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        // Mermi her zaman aynı rotasyonla oluşturulur - yön değişimi SetDirection ile yapılır
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         
         // Mermi bileşenini al
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
         if (bulletComponent != null)
         {
-            // Geminin yönünü ve rotasyon değerini ayarla
+            // Yön bilgisini ayarla (sağa veya sola hareket için)
             bulletComponent.SetDirection(isFacingLeft);
-            bulletComponent.SetRotation(bulletRotation);
         }
-        
-        // Not: SpriteRenderer.flipX yerine transform.localScale.x kullanıyoruz artık
-        // Bu işlem Bullet.cs içinde yapılıyor
-    }
-    
-    private float CalculateBulletRotation()
-    {
-        // Mermi rotasyonunu player yönüne göre hesapla
-        float rotation = 0f;
-        
-        if (isFacingLeft)
-        {
-            // Sol yöne bakıyorsa, 180 derece rotasyon - player rotasyonu (ters çevir)
-            rotation = 180f - currentRotation; // - ile çeviriyoruz, yukarı/aşağı doğru yönelime dikkat
-        }
-        else
-        {
-            // Sağ yöne bakıyorsa, direkt player rotasyonu
-            rotation = currentRotation;
-        }
-        
-        return rotation;
     }
 } 
