@@ -56,13 +56,6 @@ public class EnemySpawner : MonoBehaviour
         // Düşmanı oluştur
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
         
-        // Düşmanın hedefini ayarla
-        Enemy enemyComponent = newEnemy.GetComponent<Enemy>();
-        if (enemyComponent != null)
-        {
-            enemyComponent.targetPosition = spawnAreaCenter;
-        }
-        
         // Aktif düşmanlar listesine ekle
         activeEnemies.Add(newEnemy);
     }

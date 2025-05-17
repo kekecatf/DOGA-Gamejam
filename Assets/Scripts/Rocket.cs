@@ -14,6 +14,9 @@ public class Rocket : MonoBehaviour
     private PlayerData playerData;
     private List<Collider2D> damagedEnemies = new List<Collider2D>(); // Hasar verilen düşmanları takip etmek için
     
+    // Animator bileşeni referansı
+    private Animator animator;
+    
     void Start()
     {
         // Find PlayerData reference
@@ -21,6 +24,21 @@ public class Rocket : MonoBehaviour
         if (playerData == null)
         {
             Debug.LogError("PlayerData bulunamadı! Roket düzgün çalışmayabilir.");
+        }
+        
+        // Animator bileşenini al veya ekle
+        animator = GetComponent<Animator>();
+        if (animator == null)
+        {
+            // Animator yoksa ekliyoruz
+            animator = gameObject.AddComponent<Animator>();
+            Debug.Log("Roket'e Animator bileşeni eklendi.");
+        }
+        else
+        {
+            // Animasyonu başlat
+            animator.Play("RocketFly");
+            Debug.Log("Roket animasyonu başlatıldı.");
         }
         
         // Belirli bir süre sonra roketi yok et (hedef bulamazsa)
@@ -67,6 +85,12 @@ public class Rocket : MonoBehaviour
         
         // İleri doğru hareket et
         transform.Translate(Vector2.right * playerData.anaGemiRoketSpeed * Time.deltaTime, Space.Self);
+        
+        // Animator bileşeni varsa, animasyonu oynat
+        if (animator != null && !animator.GetCurrentAnimatorStateInfo(0).IsName("RocketFly"))
+        {
+            animator.Play("RocketFly");
+        }
     }
     
     void FindClosestEnemy()

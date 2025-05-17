@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
@@ -7,7 +8,7 @@ public class Enemy : MonoBehaviour
     public float rotationSpeed = 5f;
     
     [Header("Hedef")]
-    public Vector2 targetPosition = Vector2.zero; // Varsayılan olarak (0,0) hedefi
+    private Vector2 targetPosition = Vector2.zero; // Hedef pozisyonu (objenin anlık konumundan alınır)
     
     private SpriteRenderer spriteRenderer;
     private PlayerData playerData;
@@ -56,8 +57,32 @@ public class Enemy : MonoBehaviour
     
     private void Update()
     {
+        UpdateTargetPosition();
         MoveTowardsTarget();
         FlipSpriteBasedOnDirection();
+    }
+    
+    // Hedef pozisyonunu güncelle
+    private void UpdateTargetPosition()
+    {
+        // Player ölmediyse, Player'ı hedef al
+        if (!Player.isDead)
+        {
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                targetPosition = player.transform.position;
+            }
+        }
+        // Player öldüyse, Zeplin'i hedef al
+        else
+        {
+            Zeplin zeplin = FindObjectOfType<Zeplin>();
+            if (zeplin != null)
+            {
+                targetPosition = zeplin.transform.position;
+            }
+        }
     }
     
     private void MoveTowardsTarget()
@@ -97,8 +122,32 @@ public class Enemy : MonoBehaviour
     
     private void OnReachedTarget()
     {
-        // Hedefe ulaşınca oyuncuya zarar verebilir veya oyun mekanikleri tetiklenebilir
-        // Şimdilik sadece düşmanı yok edelim
+        // Player'a ulaştıysa
+        if (!Player.isDead)
+        {
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                Player playerComponent = player.GetComponent<Player>();
+                if (playerComponent != null)
+                {
+                    playerComponent.TakeDamage(damage);
+                    Debug.Log("Düşman Player'a ulaştı ve " + damage + " hasar verdi!");
+                }
+            }
+        }
+        // Zeplin'e ulaştıysa
+        else
+        {
+            Zeplin zeplin = FindObjectOfType<Zeplin>();
+            if (zeplin != null)
+            {
+                zeplin.TakeDamage(damage);
+                Debug.Log("Düşman Zeplin'e ulaştı ve " + damage + " hasar verdi!");
+            }
+        }
+        
+        // Düşmanı yok et
         Die();
     }
     

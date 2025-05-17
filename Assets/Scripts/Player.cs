@@ -549,7 +549,35 @@ public class Player : MonoBehaviour
             }
         }
         
-        // Görsel geri bildirim (sprite'ı sönükleştir veya devre dışı bırak)
+        // Health Slider'ı bul ve devre dışı bırak/yok et
+        if (healthSlider != null)
+        {
+            // Slider'ın parent elementini bul (UI panel/canvas)
+            Transform sliderParent = healthSlider.transform.parent;
+            
+            // Eğer doğrudan slider'ı yok etmek isteniyorsa:
+            Destroy(healthSlider.gameObject);
+            Debug.Log("Player Health Slider sahneden kaldırıldı!");
+            
+            // Alternatif olarak, parent objesini gizleme:
+            // if (sliderParent != null)
+            // {
+            //     sliderParent.gameObject.SetActive(false);
+            //     Debug.Log("Player Health Slider paneli gizlendi!");
+            // }
+        }
+        
+        // Oyun nesnesini belirli bir süre sonra yok et (efektlerin oynatılabilmesi için)
+        // Bu süreyi ölüm animasyonunun süresine göre ayarlayabilirsiniz
+        Destroy(gameObject, 1f);
+        
+        // Ölüm efekti eklemek isterseniz
+        if (damageEffect != null)
+        {
+            Instantiate(damageEffect, transform.position, Quaternion.identity);
+        }
+        
+        // Görsel geri bildirim (sprite'ı sönükleştir)
         if (spriteRenderer != null)
         {
             Color color = spriteRenderer.color;
