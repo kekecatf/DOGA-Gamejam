@@ -6,6 +6,7 @@ public class Bullet : MonoBehaviour
     public float lifetime = 3f;  // Mermi ömrü - belirli süre sonra yok olur
     
     private bool isMovingLeft = false;
+    public int damage = 10;  // Varsayılan hasar değeri
     
     void Start()
     {
@@ -64,6 +65,12 @@ public class Bullet : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, newRotation);
     }
     
+    // Hasar değerini ayarla (Player'dan gelecek)
+    public void SetDamage(int newDamage)
+    {
+        damage = newDamage;
+    }
+    
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Player ile çarpışmayı görmezden gel (kendi attığımız mermilerden etkilenmemeliyiz)
@@ -75,8 +82,19 @@ public class Bullet : MonoBehaviour
         // Düşmanla çarpışma kontrolü
         if (other.CompareTag("Enemy"))
         {
-            // Düşmanı yok et
-            Destroy(other.gameObject);
+            // Düşmana hasar ver (düşman script'i varsa)
+            Enemy enemy = other.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+                Debug.Log("Düşmana " + damage + " hasar verildi!");
+            }
+            else
+            {
+                // Eğer düşman script'i yoksa direkt yok et
+                Destroy(other.gameObject);
+                Debug.Log("Düşman yok edildi!");
+            }
             
             // Mermiyi yok et
             Destroy(gameObject);

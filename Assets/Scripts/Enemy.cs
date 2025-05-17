@@ -11,12 +11,23 @@ public class Enemy : MonoBehaviour
     
     private SpriteRenderer spriteRenderer;
     
+    public int maxHealth = 50;
+    private int currentHealth;
+    
+    // İsteğe bağlı düşman özellikleri
+    public int damageAmount = 10;
+    public int scoreValue = 25;
+    public GameObject deathEffect; // Ölüm efekti (isteğe bağlı)
+    
     private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         
         // Rastgele başlangıç hızı varyasyonu (daha doğal görünüm için)
         moveSpeed = Random.Range(moveSpeed * 0.8f, moveSpeed * 1.2f);
+        
+        // Sağlık değerini maksimuma ayarla
+        currentHealth = maxHealth;
     }
     
     private void Update()
@@ -64,14 +75,47 @@ public class Enemy : MonoBehaviour
     {
         // Hedefe ulaşınca oyuncuya zarar verebilir veya oyun mekanikleri tetiklenebilir
         // Şimdilik sadece düşmanı yok edelim
-        Destroy(gameObject);
+        Die();
     }
     
-    // Düşman vurulduğunda çağrılacak fonksiyon
-    public void TakeDamage()
+    // Düşmana hasar verme metodu (Bullet tarafından çağrılacak)
+    public void TakeDamage(int damage)
     {
-        // Burada düşmana ateş edildiğinde yapılacak işlemleri ekleyebilirsiniz
-        // Örneğin: Efekt oluştur, puan ekle, yok ol, vb.
+        // Sağlık değerini azalt
+        currentHealth -= damage;
+        
+        // Hasar efekti (isteğe bağlı)
+        // Örnek: Flash efekti, kısa titreşim, vs.
+        
+        // Eğer sağlık sıfırın altına düştüyse yok et
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            Debug.Log("Düşman hasar aldı. Kalan sağlık: " + currentHealth);
+        }
+    }
+    
+    void Die()
+    {
+        // Ölüm animasyonu veya efekti (isteğe bağlı)
+        if (deathEffect != null)
+        {
+            Instantiate(deathEffect, transform.position, Quaternion.identity);
+        }
+        
+        // Skor ekle (PlayerData veya GameManager üzerinden)
+        PlayerData playerData = FindObjectOfType<PlayerData>();
+        if (playerData != null)
+        {
+            // Parasını arttır
+            playerData.metalPara += scoreValue;
+            Debug.Log("Düşman öldürüldü! Para kazanıldı: " + scoreValue);
+        }
+        
+        // Düşmanı yok et
         Destroy(gameObject);
     }
     
@@ -80,7 +124,7 @@ public class Enemy : MonoBehaviour
         // Mermi veya oyuncuyla çarpışma
         if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
         {
-            TakeDamage();
+            TakeDamage(damageAmount);
         }
     }
 } 

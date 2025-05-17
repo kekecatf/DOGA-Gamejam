@@ -4,6 +4,9 @@ using UnityEngine.EventSystems; // Joystick için gerekli
 
 public class Player : MonoBehaviour
 {
+    // PlayerData referansı
+    private PlayerData playerData;
+    
     // Hareket hızı
     public float moveSpeed = 5f;
     
@@ -22,6 +25,12 @@ public class Player : MonoBehaviour
     public float firePointXOffset = 1f; // FirePoint'in x ekseni ofset değeri
     private float nextFireTime = 0f;
     
+    // Roket ayarları
+    public GameObject rocketPrefab; // Roket prefabı
+    public Transform rocketFirePoint; // Roket fırlatma noktası
+    public float rocketCooldown = 3f; // Roket bekleme süresi
+    private float nextRocketTime = 0f; // Bir sonraki roket fırlatma zamanı
+    
     // Bileşenler
     private SpriteRenderer spriteRenderer;
     private bool isFacingLeft = false;
@@ -34,8 +43,20 @@ public class Player : MonoBehaviour
     private float verticalInput = 0f;
     private float horizontalInput = 0f;
     
+    // Mermi hasarı (PlayerData'dan gelecek)
+    private int bulletDamage = 10;
+    // Roket hasarı (PlayerData'dan gelecek)
+    private int rocketDamage = 50;
+    
     private void Start()
     {
+        // PlayerData referansını bul
+        playerData = FindObjectOfType<PlayerData>();
+        if (playerData == null)
+        {
+            Debug.LogError("PlayerData bulunamadı! Sahnede PlayerData objesi olduğundan emin olun.");
+        }
+        
         // Sprite Renderer bileşenini al
         spriteRenderer = GetComponent<SpriteRenderer>();
         
@@ -63,6 +84,14 @@ public class Player : MonoBehaviour
             }
         }
         
+        // Roket fırlatma noktası kontrolü
+        if (rocketFirePoint == null)
+        {
+            // Eğer roket fırlatma noktası atanmamışsa, normal ateş noktasını kullan
+            rocketFirePoint = firePoint;
+            Debug.LogWarning("RocketFirePoint atanmamış, normal FirePoint kullanılıyor!");
+        }
+        
         // Joystick kontrolü
         if (joystick == null)
         {
@@ -72,6 +101,25 @@ public class Player : MonoBehaviour
             {
                 Debug.LogWarning("Joystick bulunamadı! Inspector'dan atayın veya Dynamic Joystick'in sahnede olduğundan emin olun.");
             }
+        }
+        
+        // PlayerData değerlerini kullanarak bazı özellikleri ayarla (örnek)
+        if (playerData != null)
+        {
+            // Oyuncunun sağlık değerini al
+            int playerHealth = playerData.anaGemiSaglik;
+            Debug.Log("Oyuncu Sağlık: " + playerHealth);
+            
+            // Mermi özellikleri için PlayerData'daki değerleri kullan
+            bulletDamage = playerData.anaGemiMinigunDamage;
+            fireRate = playerData.anaGemiMinigunCooldown;
+            
+            // Roket özellikleri için PlayerData'daki değerleri kullan
+            rocketDamage = playerData.anaGemiRoketDamage;
+            rocketCooldown = playerData.anaGemiRoketDelay;
+            
+            Debug.Log("Mermi hasarı: " + bulletDamage + ", Ateş hızı: " + fireRate);
+            Debug.Log("Roket hasarı: " + rocketDamage + ", Roket bekleme süresi: " + rocketCooldown);
         }
     }
     
@@ -83,6 +131,116 @@ public class Player : MonoBehaviour
         
         // Ateş etme (space veya ekstra buton)
         HandleShooting();
+        
+        // Roket fırlatma (R tuşu veya ekstra buton)
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            FireRocket();
+        }
+        
+        // Test için: T tuşuna basılınca para ekle
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            AddMoney(50);
+        }
+        
+        // Test için: Y tuşuna basılınca silahı yükselt
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            UpgradeMinigun();
+        }
+    }
+    
+    // PlayerData'daki para değerini arttır
+    public void AddMoney(int amount)
+    {
+        if (playerData != null)
+        {
+            playerData.metalPara += amount;
+            Debug.Log("Yeni para miktarı: " + playerData.metalPara);
+        }
+    }
+    
+    // Silah yükseltme örneği
+    public void UpgradeMinigun()
+    {
+        if (playerData != null && playerData.metalPara >= 100)
+        {
+            playerData.metalPara -= 100;
+            playerData.anaGemiMinigunLevel++;
+            playerData.anaGemiMinigunDamage += 5;
+            
+            // Yükseltme sonrası değerleri güncelle
+            bulletDamage = playerData.anaGemiMinigunDamage;
+            
+            Debug.Log("Silah yükseltildi! Yeni seviye: " + playerData.anaGemiMinigunLevel + 
+                     ", Yeni hasar: " + playerData.anaGemiMinigunDamage);
+        }
+        else if (playerData != null)
+        {
+            Debug.Log("Yeterli para yok! Gerekli: 100, Mevcut: " + playerData.metalPara);
+        }
+    }
+    
+    // Roket yükseltme örneği
+    public void UpgradeRocket()
+    {
+        if (playerData != null && playerData.metalPara >= 150)
+        {
+            playerData.metalPara -= 150;
+            playerData.anaGemiRoketLevel++;
+            playerData.anaGemiRoketDamage += 10;
+            
+            // Yükseltme sonrası değerleri güncelle
+            rocketDamage = playerData.anaGemiRoketDamage;
+            
+            Debug.Log("Roket yükseltildi! Yeni seviye: " + playerData.anaGemiRoketLevel + 
+                     ", Yeni hasar: " + playerData.anaGemiRoketDamage);
+        }
+        else if (playerData != null)
+        {
+            Debug.Log("Yeterli para yok! Gerekli: 150, Mevcut: " + playerData.metalPara);
+        }
+    }
+    
+    // Roket fırlatma metodu - UI butonundan çağrılabilir
+    public void FireRocket()
+    {
+        // Bekleme süresini kontrol et
+        if (Time.time < nextRocketTime)
+        {
+            float remainingTime = nextRocketTime - Time.time;
+            Debug.Log("Roket hazır değil! " + remainingTime.ToString("F1") + " saniye kaldı.");
+            return;
+        }
+        
+        // Roket prefabı kontrolü
+        if (rocketPrefab == null)
+        {
+            Debug.LogError("Roket prefabı atanmamış!");
+            return;
+        }
+        
+        // Roket fırlatma noktasını kontrol et
+        if (rocketFirePoint == null)
+        {
+            rocketFirePoint = firePoint; // Varsayılan olarak normal ateş noktasını kullan
+        }
+        
+        // Roketi oluştur
+        GameObject rocket = Instantiate(rocketPrefab, rocketFirePoint.position, rocketFirePoint.rotation);
+        
+        // Roket bileşenini al
+        Rocket rocketComponent = rocket.GetComponent<Rocket>();
+        if (rocketComponent != null)
+        {
+            // Roket hasarını ayarla
+            rocketComponent.SetDamage(rocketDamage);
+            Debug.Log("Roket fırlatıldı! Hasar: " + rocketDamage);
+        }
+        
+        // Bekleme süresini ayarla
+        nextRocketTime = Time.time + rocketCooldown;
     }
     
     private void Movement()
@@ -285,6 +443,9 @@ public class Player : MonoBehaviour
         {
             // Yön bilgisini ayarla (sağa veya sola hareket için)
             bulletComponent.SetDirection(isFacingLeft);
+            
+            // PlayerData'dan gelen hasar değerini mermiye aktar
+            bulletComponent.SetDamage(bulletDamage);
         }
     }
 } 
