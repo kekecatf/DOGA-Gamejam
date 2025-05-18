@@ -185,13 +185,13 @@ public class Zeplin : MonoBehaviour
         {
             Movement();
             
-            // Test için klavye ile ateş etme (Space = minigun, R = roket)
-            if (Input.GetKey(KeyCode.Space))
+            // Test için klavye ile ateş etme (Space veya Z = minigun, R veya X = roket)
+            if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.Z))
             {
                 FireMinigun();
             }
             
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.X))
             {
                 FireRocket();
             }
@@ -276,15 +276,33 @@ public class Zeplin : MonoBehaviour
     
     void Movement()
     {
-        if (joystick == null) return;
+        // Joystick girişini al (eğer varsa)
+        float horizontalInput = 0f;
+        float verticalInput = 0f;
         
-        // Joystick girişini al
-        float horizontalInput = joystick.Horizontal;
-        float verticalInput = joystick.Vertical;
+        if (joystick != null)
+        {
+            horizontalInput = joystick.Horizontal;
+            verticalInput = joystick.Vertical;
+            
+            // Deadzone uygula (çok küçük değerleri yoksay)
+            if (Mathf.Abs(horizontalInput) < 0.1f && Mathf.Abs(verticalInput) < 0.1f)
+            {
+                horizontalInput = 0;
+                verticalInput = 0;
+            }
+        }
         
-        // Deadzone uygula (çok küçük değerleri yoksay)
-        horizontalInput = Mathf.Abs(horizontalInput) < 0.1f ? 0 : horizontalInput;
-        verticalInput = Mathf.Abs(verticalInput) < 0.1f ? 0 : verticalInput;
+        // Klavye girişi - W,A,S,D veya ok tuşları
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            verticalInput = 1;
+        else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            verticalInput = -1;
+            
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            horizontalInput = -1;
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            horizontalInput = 1;
         
         // Hareket vektörü oluştur
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0).normalized;

@@ -200,6 +200,21 @@ public class Player : MonoBehaviour
         // Hareket ve yönlendirme
         Movement();
         
+        // Klavye tuşları ile ateş etme (Z tuşu ile minigun)
+        if (Input.GetKeyDown(KeyCode.Z) && Time.time >= nextFireTime)
+        {
+            FireBullet();
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+            Debug.Log("Z tuşu ile minigun ateşlendi!");
+        }
+        
+        // X tuşu ile roket fırlatma
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            FireRocket();
+            Debug.Log("X tuşu ile roket fırlatıldı!");
+        }
+        
         // Ateş etme (space tuşu veya ekstra buton)
         // Space tuşu sadece test için kullanılacak, asıl ateş etme butona bağlı
         if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
@@ -382,21 +397,18 @@ public class Player : MonoBehaviour
                 verticalInput = 0;
             }
         }
-        else
-        {
-            // Joystick yoksa klavye girişini al (test için)
+        
+        // Klavye girişini al (her zaman kontrol et)
+        // W,A,S,D tuşları için kontrol
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            verticalInput = 1;
+        else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            verticalInput = -1;
             
-            // WASD tuşları için kontrol
-            if (Input.GetKey(KeyCode.W))
-                verticalInput = 1;
-            else if (Input.GetKey(KeyCode.S))
-                verticalInput = -1;
-                
-            if (Input.GetKey(KeyCode.A))
-                horizontalInput = -1;
-            else if (Input.GetKey(KeyCode.D))
-                horizontalInput = 1;
-        }
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            horizontalInput = -1;
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            horizontalInput = 1;
         
         // Hareket yönünü kaydet
         moveDirection = new Vector2(horizontalInput, verticalInput).normalized;

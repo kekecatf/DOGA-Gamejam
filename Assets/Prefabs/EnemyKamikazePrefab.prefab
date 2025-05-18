@@ -157,12 +157,14 @@ MonoBehaviour:
   rocketPrefab: {fileID: 2671364182073778232, guid: 1d54b5fa6c4456049a83ce73a452621c, type: 3}
   firePoint: {fileID: 4205681661518328292}
   fireRate: 2
-  minigunAttackRange: 12
-  rocketAttackRange: 16
+  minigunAttackRange: 40
+  rocketAttackRange: 60
   minigunSafeDistance: 6
   rocketSafeDistance: 8
   scoreValue: 25
   deathEffect: {fileID: 0}
+  minigunBulletDamage: 5
+  rocketDamage: 30
 --- !u!1 &5049150667301563552
 GameObject:
   m_ObjectHideFlags: 0

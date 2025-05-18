@@ -27,6 +27,21 @@ public class EnemySpawner : MonoBehaviour
     public float minDistanceFromPlayer = 5f; // Oyuncuya minimum mesafe
     public float difficultyScaling = 0.1f; // Zamanla zorluğun artma oranı
     
+    [Header("Spawn Bölgeleri")]
+    public bool useCustomSpawnAreas = true; // Özel spawn bölgelerini kullan
+    
+    [System.Serializable]
+    public class SpawnArea
+    {
+        public float minX;
+        public float maxX;
+        public float minY;
+        public float maxY;
+        public bool isActive = true;
+    }
+    
+    public List<SpawnArea> spawnAreas = new List<SpawnArea>();
+    
     [Header("Dalga Sistemi")]
     public bool useWaveSystem = false; // Dalga sistemini kullanmak için
     public float timeBetweenWaves = 10f; // Dalgalar arası bekleme süresi
@@ -41,6 +56,26 @@ public class EnemySpawner : MonoBehaviour
     
     private void Start()
     {
+        // Varsayılan spawn bölgelerini ekle (eğer henüz eklenmemişse)
+        if (useCustomSpawnAreas && spawnAreas.Count == 0)
+        {
+            // Üst kenar bölgesi (y = 30 ~ 40)
+            spawnAreas.Add(new SpawnArea { minX = -40, maxX = -30, minY = 30, maxY = 40, isActive = true });
+            spawnAreas.Add(new SpawnArea { minX = 30, maxX = 40, minY = 30, maxY = 40, isActive = true });
+            
+            // Alt kenar bölgesi (y = -40 ~ -30)
+            spawnAreas.Add(new SpawnArea { minX = -40, maxX = -30, minY = -40, maxY = -30, isActive = true });
+            spawnAreas.Add(new SpawnArea { minX = 30, maxX = 40, minY = -40, maxY = -30, isActive = true });
+            
+            // Sol kenar bölgesi (x = -40 ~ -30)
+            spawnAreas.Add(new SpawnArea { minX = -40, maxX = -30, minY = -30, maxY = 30, isActive = true });
+            
+            // Sağ kenar bölgesi (x = 30 ~ 40)
+            spawnAreas.Add(new SpawnArea { minX = 30, maxX = 40, minY = -30, maxY = 30, isActive = true });
+            
+            Debug.Log("Varsayılan spawn bölgeleri oluşturuldu.");
+        }
+        
         // Oyun başlangıç zamanını kaydet
         gameStartTime = Time.time;
         
@@ -288,38 +323,94 @@ public class EnemySpawner : MonoBehaviour
     
     private Vector2 GetRandomSpawnPosition()
     {
-        // Oyuncuya minimum mesafede rastgele bir pozisyon hesapla
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        Vector2 playerPosition = (player != null) ? (Vector2)player.transform.position : Vector2.zero;
-        
-        float xPos, yPos;
-        Vector2 spawnPos;
-        int maxAttempts = 10;
-        int attempts = 0;
-        
-        do
+        if (useCustomSpawnAreas && spawnAreas.Count > 0)
         {
-            // Ekranın dışından spawn et (kamera görüş alanının dışından)
-            if (Random.value < 0.5f)
+            // Rastgele bir aktif spawn bölgesi seç
+            List<SpawnArea> activeAreas = spawnAreas.FindAll(area => area.isActive);
+            
+            if (activeAreas.Count == 0)
             {
-                // Yatay ekrandan spawn (sol veya sağ)
-                xPos = (Random.value < 0.5f) ? -playAreaWidth/2 - 2 : playAreaWidth/2 + 2;
-                yPos = Random.Range(-playAreaHeight/2, playAreaHeight/2);
-            }
-            else
-            {
-                // Dikey ekrandan spawn (üst veya alt)
-                xPos = Random.Range(-playAreaWidth/2, playAreaWidth/2);
-                yPos = (Random.value < 0.5f) ? -playAreaHeight/2 - 2 : playAreaHeight/2 + 2;
+                Debug.LogWarning("Aktif spawn bölgesi yok! Rastgele bir konum kullanılacak.");
+                return GetRandomPositionAroundPlayArea();
             }
             
-            spawnPos = new Vector2(xPos, yPos);
-            attempts++;
+            SpawnArea selectedArea = activeAreas[Random.Range(0, activeAreas.Count)];
             
-            // Eğer oyuncu yoksa veya minimum mesafeye uygunsa döngüyü sonlandır
-        } while (player != null && Vector2.Distance(spawnPos, playerPosition) < minDistanceFromPlayer && attempts < maxAttempts);
+            // Seçilen bölge içinde rastgele bir konum belirle
+            float x = Random.Range(selectedArea.minX, selectedArea.maxX);
+            float y = Random.Range(selectedArea.minY, selectedArea.maxY);
+            
+            Vector2 spawnPosition = new Vector2(x, y);
+            
+            // Oyuncuya minimum mesafeyi kontrol et
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                float distanceToPlayer = Vector2.Distance(spawnPosition, player.transform.position);
+                
+                // Eğer oyuncuya çok yakınsa yeni bir konum bul
+                if (distanceToPlayer < minDistanceFromPlayer)
+                {
+                    return GetRandomSpawnPosition(); // Rekursif çağrı
+                }
+            }
+            
+            return spawnPosition;
+        }
+        else
+        {
+            // Eski yöntem (eski yöntemi koruyalım)
+            return GetRandomPositionAroundPlayArea();
+        }
+    }
+    
+    // Eski spawn pozisyonu belirleme yöntemi
+    private Vector2 GetRandomPositionAroundPlayArea()
+    {
+        // Oyun alanının dışında, ama çok uzak olmayan bir konum belirle
+        float edgeOffset = 2f; // Ekranın kenarından ne kadar uzakta spawn edeceğimiz
         
-        return spawnPos;
+        // Kenar seçimi: 0 = Üst, 1 = Sağ, 2 = Alt, 3 = Sol
+        int edge = Random.Range(0, 4);
+        
+        float x = 0, y = 0;
+        
+        switch (edge)
+        {
+            case 0: // Üst kenar
+                x = Random.Range(-playAreaWidth, playAreaWidth);
+                y = playAreaHeight + edgeOffset;
+                break;
+            case 1: // Sağ kenar
+                x = playAreaWidth + edgeOffset;
+                y = Random.Range(-playAreaHeight, playAreaHeight);
+                break;
+            case 2: // Alt kenar
+                x = Random.Range(-playAreaWidth, playAreaWidth);
+                y = -playAreaHeight - edgeOffset;
+                break;
+            case 3: // Sol kenar
+                x = -playAreaWidth - edgeOffset;
+                y = Random.Range(-playAreaHeight, playAreaHeight);
+                break;
+        }
+        
+        Vector2 spawnPosition = new Vector2(x, y);
+        
+        // Oyuncuya minimum mesafeyi kontrol et
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            float distanceToPlayer = Vector2.Distance(spawnPosition, player.transform.position);
+            
+            // Eğer oyuncuya çok yakınsa yeni bir konum bul
+            if (distanceToPlayer < minDistanceFromPlayer)
+            {
+                return GetRandomSpawnPosition(); // Rekursif çağrı
+            }
+        }
+        
+        return spawnPosition;
     }
     
     private void UpdateEnemyCounts()

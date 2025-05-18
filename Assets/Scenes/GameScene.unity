@@ -634,7 +634,7 @@ GameObject:
   - component: {fileID: 625722801}
   m_Layer: 0
   m_Name: Zeplin
-  m_TagString: Player
+  m_TagString: Zeplin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -663,6 +663,7 @@ MonoBehaviour:
   minigunButton: {fileID: 706768783}
   rocketButton: {fileID: 1042393082}
   invincibilityTime: 1
+  useInvincibility: 0
   activationEffect: {fileID: 0}
   activationHighlightDuration: 1.5
 --- !u!61 &625722798
@@ -695,7 +696,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -775,7 +776,7 @@ Transform:
   m_GameObject: {fileID: 625722796}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 4.17, z: 0}
   m_LocalScale: {x: 8, y: 8, z: 8}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -797,7 +798,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -909,7 +910,7 @@ Transform:
   m_GameObject: {fileID: 664835995}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.264, z: 0}
+  m_LocalPosition: {x: 0.115, y: -0.092, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1134,9 +1135,9 @@ Transform:
   m_GameObject: {fileID: 763649946}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.455, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0.061, y: 0.119, z: 0}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1003501140}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1184,15 +1185,15 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -8850841714807302466, guid: 33df6ca8f5040504a8b470e37d66920e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.39038125, y: 0.18}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &887523424
@@ -1283,6 +1284,7 @@ GameObject:
   - component: {fileID: 1003501138}
   - component: {fileID: 1003501137}
   - component: {fileID: 1003501136}
+  - component: {fileID: 1003501141}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1324,17 +1326,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0011351407, y: -0.0077230483}
+  m_Offset: {x: 0.007294297, y: -0.0077230334}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.79, y: 0.3}
+    oldSize: {x: 0.65, y: 0.22}
     newSize: {x: 0.79, y: 0.3}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.829724, y: 0.53146744}
+  m_Size: {x: 0.67047465, y: 0.53146744}
   m_EdgeRadius: 0
 --- !u!50 &1003501137
 Rigidbody2D:
@@ -1389,6 +1391,8 @@ MonoBehaviour:
   invincibilityTime: 1
   healthSlider: {fileID: 317643752}
   healthText: {fileID: 0}
+  animationSpeed: 0.1
+  animationFrames: []
 --- !u!212 &1003501139
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1433,9 +1437,9 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7167971821754250806, guid: d2865864e61391c4aa542dfcf03c3ef1, type: 3}
+  m_Sprite: {fileID: -343259927348419082, guid: 4f60a58c2384a2a4b9d961766876f878, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 0.79, y: 0.3}
@@ -1452,15 +1456,37 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1003501135}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: 0.0023738951, w: -0.9999972}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 1.7638179, z: 1.5541615}
+  m_LocalScale: {x: 6, y: 2.645727, z: 2.3312423}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 763649947}
   - {fileID: 664835996}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -360.272}
+--- !u!95 &1003501141
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003501135}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d12a91abe1061324d9bbe8bb4136aba0, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1042393080
 GameObject:
   m_ObjectHideFlags: 0
@@ -1736,6 +1762,8 @@ MonoBehaviour:
   target2: {fileID: 625722800}
   smoothSpeed: 0.125
   offset: {x: 0, y: 0, z: -10}
+  targetTransitionSpeed: 0.05
+  delayBeforeTransition: 0.5
 --- !u!1 &1234681157
 GameObject:
   m_ObjectHideFlags: 0
@@ -1954,13 +1982,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dd3037f994ec3b4082cd1dc9b2dceb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 2901197028966878299, guid: d180292f46e1c0a4ba807ff54d094462, type: 3}
-  spawnRate: 2
-  maxEnemiesAlive: 10
-  minSpawnDistance: 10
-  maxSpawnDistance: 15
-  spawnAreaCenter: {x: 0, y: 0}
-  visualizeSpawnArea: 1
+  kamikazePrefab:
+    prefab: {fileID: 2901197028966878299, guid: af0307415a598764cb57b8c556f24746, type: 3}
+    spawnWeight: 1
+    minSpawnInterval: 2
+    maxSpawnInterval: 5
+    maxCount: 10
+    nextSpawnTime: 0
+    currentCount: 0
+  minigunPrefab:
+    prefab: {fileID: 1339275798778787150, guid: d966290ac8418de47bf321ffd9b6fb50, type: 3}
+    spawnWeight: 1
+    minSpawnInterval: 2
+    maxSpawnInterval: 5
+    maxCount: 10
+    nextSpawnTime: 0
+    currentCount: 0
+  rocketPrefab:
+    prefab: {fileID: 2901197028966878299, guid: 49bcfddc3f4f20c43ad1b7e9350a43dc, type: 3}
+    spawnWeight: 1
+    minSpawnInterval: 2
+    maxSpawnInterval: 5
+    maxCount: 10
+    nextSpawnTime: 0
+    currentCount: 0
+  playAreaWidth: 15
+  playAreaHeight: 10
+  minDistanceFromPlayer: 5
+  difficultyScaling: 0.1
+  useCustomSpawnAreas: 1
+  spawnAreas: []
+  useWaveSystem: 0
+  timeBetweenWaves: 10
+  enemiesPerWave: 5
+  waveBreakDuration: 3
 --- !u!4 &1473526981
 Transform:
   m_ObjectHideFlags: 0
@@ -1970,7 +2025,7 @@ Transform:
   m_GameObject: {fileID: 1473526979}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.8362374, y: -0.6014131, z: 0.032377344}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2227,7 +2282,7 @@ GameObject:
   - component: {fileID: 1808227863}
   - component: {fileID: 1808227862}
   m_Layer: 0
-  m_Name: PlayerData
+  m_Name: GameData
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2246,7 +2301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   metalPara: 500
-  zeplinSaglik: 100
+  zeplinSaglik: 1000
   zeplinSaglikLevel: 0
   zeplinMinigunDamage: 10
   zeplinMinigunLevel: 0
@@ -2256,7 +2311,7 @@ MonoBehaviour:
   zeplinRoketLevel: 0
   zeplinRoketCount: 1
   zeplinRoketDelay: 2
-  anaGemiSaglik: 20
+  anaGemiSaglik: 1
   anaGemiSaglikLevel: 0
   anaGemiMinigunDamage: 10
   anaGemiMinigunLevel: 0
@@ -2268,9 +2323,15 @@ MonoBehaviour:
   anaGemiRoketDelay: 2
   anaGemiRoketSpeed: 10
   enemyBaseHealth: 30
-  enemyBaseDamage: 10
+  enemyBaseDamage: 5
   enemyBaseScoreValue: 25
   enemyDifficultyMultiplier: 1
+  enemyKamikazeDamage: 20
+  enemyMinigunDamage: 5
+  enemyRocketDamage: 30
+  enemyKamikazeDamageMultiplier: 2
+  enemyMinigunDamageMultiplier: 0.5
+  enemyRocketDamageMultiplier: 3
 --- !u!4 &1808227863
 Transform:
   m_ObjectHideFlags: 0
