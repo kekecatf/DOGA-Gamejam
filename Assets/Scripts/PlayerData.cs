@@ -50,6 +50,11 @@ public class PlayerData : MonoBehaviour
     public float enemyKamikazeDamageMultiplier = 2.0f;  // Kamikaze hasar çarpanı
     public float enemyMinigunDamageMultiplier = 0.5f;   // Minigun hasar çarpanı
     public float enemyRocketDamageMultiplier = 3.0f;    // Roket hasar çarpanı
+    
+    [Header("Düşman Atış Hızı Ayarları")]
+    public float enemyMinigunFireRate = 2.0f;     // Minigun düşmanlarının temel atış hızı (saniyede atış sayısı)
+    public float enemyRocketFireRate = 1.0f;      // Roket düşmanlarının temel atış hızı (saniyede atış sayısı)
+    public float enemyFireRateMultiplier = 1.0f;  // Tüm düşmanlar için atış hızı çarpanı
 
    /* public Button zeplinMinigunButon; // Inspector'dan atayacaksın
     public Button anaGemiMinigunButon;
@@ -81,7 +86,11 @@ public class PlayerData : MonoBehaviour
         int playerLevel = Mathf.Max(anaGemiMinigunLevel, anaGemiRoketLevel);
         enemyDifficultyMultiplier = 1f + (playerLevel * 0.2f); // Her seviye için %20 artış
         
+        // Atış hızı çarpanını da zorluğa göre ayarla
+        enemyFireRateMultiplier = 1f + (playerLevel * 0.1f); // Her seviye için %10 artış
+        
         Debug.Log("Düşman zorluğu güncellendi: " + enemyDifficultyMultiplier);
+        Debug.Log("Düşman atış hızı çarpanı: " + enemyFireRateMultiplier);
     }
     
     // Düşman sağlığını hesapla
@@ -110,6 +119,17 @@ public class PlayerData : MonoBehaviour
     public int CalculateRocketDamage()
     {
         return Mathf.RoundToInt(enemyRocketDamage * enemyDifficultyMultiplier * enemyRocketDamageMultiplier);
+    }
+    
+    // Düşman atış hızlarını hesapla
+    public float CalculateMinigunFireRate()
+    {
+        return enemyMinigunFireRate * enemyFireRateMultiplier;
+    }
+    
+    public float CalculateRocketFireRate()
+    {
+        return enemyRocketFireRate * enemyFireRateMultiplier;
     }
     
     // Düşman ödül değerini hesapla

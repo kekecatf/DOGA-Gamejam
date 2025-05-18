@@ -140,42 +140,51 @@ public class Enemy : MonoBehaviour, IDamageable
     // Düşman değerlerini PlayerData'dan alma
     private void InitializeEnemyStats()
     {
+        // PlayerData referansını bul
+        playerData = FindObjectOfType<PlayerData>();
+        
+        // Player data null değilse, düşman istatistiklerini PlayerData'dan al
         if (playerData != null)
         {
-            // Düşman tipine göre stats ayarlamaları
+            // Sağlık ve hasar değerlerini PlayerData'ya göre ayarla
+            currentHealth = playerData.CalculateEnemyHealth();
+            
+            // Düşman tipine göre hasar değerini belirle
             switch (enemyType)
             {
                 case EnemyType.Kamikaze:
                     currentHealth = playerData.CalculateEnemyHealth() / 2; // Daha az HP
-                    damage = playerData.CalculateKamikazeDamage(); // Düşman tipi için özel hasar
+                    damage = playerData.CalculateKamikazeDamage();
                     moveSpeed *= 1.3f; // Daha hızlı
-                    // Kamikaze için saldırı mesafesi ve güvenli mesafe kullanılmaz
+                    // Kamikaze için atış hızı yok
                     break;
                     
                 case EnemyType.Minigun:
                     currentHealth = playerData.CalculateEnemyHealth();
-                    damage = playerData.CalculateMinigunDamage(); // Düşman tipi için özel hasar
+                    damage = playerData.CalculateMinigunDamage();
+                    minigunBulletDamage = damage;
                     moveSpeed *= 0.8f; // Daha yavaş
+                    // Atış hızını PlayerData'dan al
+                    fireRate = playerData.CalculateMinigunFireRate();
                     // Minigun saldırı mesafesini ayarla
                     attackRange = minigunAttackRange;
                     safeDistance = minigunSafeDistance;
-                    // Minigun mermi hasarını ayarla
-                    minigunBulletDamage = damage;
                     break;
                     
                 case EnemyType.Rocket:
                     currentHealth = playerData.CalculateEnemyHealth() * 2; // Daha çok HP
-                    damage = playerData.CalculateRocketDamage(); // Düşman tipi için özel hasar
+                    damage = playerData.CalculateRocketDamage();
+                    rocketDamage = damage;
                     moveSpeed *= 0.6f; // En yavaş
-                    fireRate = 1f; // Daha yavaş ateş
+                    // Atış hızını PlayerData'dan al
+                    fireRate = playerData.CalculateRocketFireRate();
                     // Roket saldırı mesafesini ayarla
                     attackRange = rocketAttackRange;
                     safeDistance = rocketSafeDistance;
-                    // Roket hasarını ayarla
-                    rocketDamage = damage;
                     break;
             }
             
+            // Ödül değerini PlayerData'dan al
             scoreValue = playerData.CalculateEnemyScoreValue();
             
             // Düşman tipine göre ödül değerini ayarla
@@ -192,14 +201,43 @@ public class Enemy : MonoBehaviour, IDamageable
                     break;
             }
             
-            Debug.Log($"{enemyType} düşman değerleri: Sağlık={currentHealth}, Hasar={damage}, Ödül={scoreValue}");
+            Debug.Log($"{enemyType} düşmanı oluşturuldu. Sağlık: {currentHealth}, Hasar: {damage}, " +
+                      $"Ateş Hızı: {fireRate}, Hareket Hızı: {moveSpeed}, Skor Değeri: {scoreValue}");
         }
         else
         {
-            // PlayerData bulunamazsa varsayılan değerleri kullan
+            // PlayerData bulunamadıysa varsayılan değerleri kullan
             currentHealth = 50;
-            damage = 10;
-            scoreValue = 25;
+            
+            switch (enemyType)
+            {
+                case EnemyType.Kamikaze:
+                    damage = 20;
+                    moveSpeed *= 1.3f; // Daha hızlı
+                    // Kamikaze için atış hızı yok
+                    break;
+                    
+                case EnemyType.Minigun:
+                    damage = 5;
+                    minigunBulletDamage = damage;
+                    moveSpeed *= 0.8f; // Daha yavaş
+                    fireRate = 2f; // Varsayılan ateş hızı
+                    // Minigun saldırı mesafesini ayarla
+                    attackRange = minigunAttackRange;
+                    safeDistance = minigunSafeDistance;
+                    break;
+                    
+                case EnemyType.Rocket:
+                    damage = 30;
+                    rocketDamage = damage;
+                    moveSpeed *= 0.6f; // En yavaş
+                    fireRate = 1f; // Varsayılan ateş hızı
+                    // Roket saldırı mesafesini ayarla
+                    attackRange = rocketAttackRange;
+                    safeDistance = rocketSafeDistance;
+                    break;
+            }
+            
             Debug.LogWarning("PlayerData bulunamadı! Varsayılan düşman değerleri kullanılıyor.");
         }
     }

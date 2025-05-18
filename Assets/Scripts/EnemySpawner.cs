@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -43,16 +44,32 @@ public class EnemySpawner : MonoBehaviour
     public List<SpawnArea> spawnAreas = new List<SpawnArea>();
     
     [Header("Dalga Sistemi")]
-    public bool useWaveSystem = false; // Dalga sistemini kullanmak için
+    public bool useWaveSystem = true; // Dalga sistemini kullanmak için
+    public int maxWaves = 5; // Maksimum dalga sayısı
     public float timeBetweenWaves = 10f; // Dalgalar arası bekleme süresi
-    public int enemiesPerWave = 5; // Dalga başına düşman sayısı
+    public int baseEnemiesPerWave = 5; // Temel dalga başına düşman sayısı
+    public int enemyIncreasePerWave = 2; // Her dalgada eklenecek düşman sayısı
     public float waveBreakDuration = 3f; // Dalgalar arası mola süresi
+    public float enemySpawnInterval = 0.5f; // Dalga içinde düşmanlar arası spawn aralığı
     private int currentWave = 0; // Mevcut dalga
     private float waveTimer = 0f; // Dalga zamanlayıcısı
-    private bool isWaveBreak = false; // Dalga arası mı?
+    public bool isWaveBreak = false; // Dalga arası mı?
+    private bool isAllWavesCompleted = false; // Tüm dalgalar tamamlandı mı?
+    
+    [Header("UI References")]
+    public TextMeshProUGUI waveInfoText; // Dalga bilgisini göstermek için UI elemanı
     
     // Spawn etme zamanları
     private float gameStartTime;
+    
+    // Dalga için spawn edilecek toplam düşman sayısı
+    private int totalEnemiesInWave = 0;
+    
+    // Dalga için şu ana kadar spawn edilen düşman sayısı
+    private int spawnedEnemiesInWave = 0;
+    
+    // Şu anki dalgada öldürülen düşman sayısı
+    public int killedEnemiesInWave = 0;
     
     private void Start()
     {
@@ -86,6 +103,7 @@ public class EnemySpawner : MonoBehaviour
         if (useWaveSystem)
         {
             StartNextWave();
+            // UI otomatik güncellenecek
         }
     }
     
@@ -99,6 +117,12 @@ public class EnemySpawner : MonoBehaviour
     
     private void Update()
     {
+        // Tüm dalgalar tamamlandıysa düşman spawn etme
+        if (isAllWavesCompleted) return;
+        
+        // Wave bilgisini sürekli güncelle
+        UpdateWaveUI();
+        
         // Dalga sistemini kullanıyorsak dalga mantığıyla spawn et
         if (useWaveSystem)
         {
@@ -115,6 +139,30 @@ public class EnemySpawner : MonoBehaviour
         UpdateEnemyCounts();
     }
     
+    private void UpdateWaveUI()
+    {
+        if (waveInfoText != null)
+        {
+            if (isWaveBreak)
+            {
+                // Mola durumunda geri sayım göster
+                waveInfoText.text = $"Dalga {currentWave}/{maxWaves} tamamlandı!\nYeni dalga için hazırlanılıyor...\nKalan süre: {waveTimer:F1} sn";
+            }
+            else if (isAllWavesCompleted)
+            {
+                waveInfoText.text = "Tüm dalgalar tamamlandı! Tebrikler!";
+            }
+            else
+            {
+                // Normal wave bilgisini göster - sadece dalga numarası ve aktif düşman sayısı
+                int activeEnemies = GetTotalEnemyCount();
+                
+                waveInfoText.text = $"Dalga: {currentWave}/{maxWaves}\n" +
+                                   $"Aktif Düşman: {activeEnemies}";
+            }
+        }
+    }
+    
     private void UpdateWaveSystem()
     {
         // Dalga arası molada isek ve mola süresi bittiyse
@@ -126,27 +174,50 @@ public class EnemySpawner : MonoBehaviour
                 // Mola süresi bitti, yeni dalgayı başlat
                 isWaveBreak = false;
                 StartNextWave();
+                // UI otomatik güncellenecek
             }
+            // Kalan süreyi UI'da göstermeyi artık UpdateWaveUI metodu yapıyor
         }
-        // Dalga aktifse ve düşman kalmadıysa
-        else if (GetTotalEnemyCount() == 0)
+        // Dalga aktifse, tüm düşmanlar spawn edildiyse ve tüm düşmanlar öldürüldüyse
+        else if (spawnedEnemiesInWave >= totalEnemiesInWave && GetTotalEnemyCount() == 0)
         {
-            // Dalga tamamlandı, mola ver
-            isWaveBreak = true;
-            waveTimer = waveBreakDuration;
-            Debug.Log($"Dalga {currentWave} tamamlandı! Yeni dalga için hazırlanılıyor...");
+            // Dalga tamamlandı, son dalga mıydı kontrol et
+            if (currentWave >= maxWaves)
+            {
+                // Tüm dalgalar tamamlandı
+                isAllWavesCompleted = true;
+                Debug.Log("Tüm dalgalar tamamlandı! Oyun sonu.");
+                
+                // Burada oyun sonu işlemleri yapılabilir
+                // Örneğin: ShowGameOverScreen(), GiveRewards() vb.
+            }
+            else
+            {
+                // Sonraki dalga için mola ver
+                isWaveBreak = true;
+                waveTimer = waveBreakDuration;
+                Debug.Log($"Dalga {currentWave}/{maxWaves} tamamlandı! Yeni dalga için hazırlanılıyor...");
+            }
         }
     }
     
     private void StartNextWave()
     {
         currentWave++;
-        int enemiesToSpawn = enemiesPerWave + (currentWave - 1) * 2; // Her dalgada düşman sayısını arttır
+        totalEnemiesInWave = CalculateEnemiesForWave(currentWave);
+        spawnedEnemiesInWave = 0;
+        killedEnemiesInWave = 0;
         
-        Debug.Log($"Dalga {currentWave} başlıyor! Düşman sayısı: {enemiesToSpawn}");
+        Debug.Log($"Dalga {currentWave}/{maxWaves} başlıyor! Düşman sayısı: {totalEnemiesInWave}");
         
         // Dalga düşmanlarını spawn et
-        StartCoroutine(SpawnWaveEnemies(enemiesToSpawn));
+        StartCoroutine(SpawnWaveEnemies(totalEnemiesInWave));
+    }
+    
+    private int CalculateEnemiesForWave(int waveNumber)
+    {
+        // Temel düşman sayısı + (dalga numarası - 1) * her dalgada eklenecek düşman sayısı
+        return baseEnemiesPerWave + (waveNumber - 1) * enemyIncreasePerWave;
     }
     
     private IEnumerator SpawnWaveEnemies(int count)
@@ -155,9 +226,10 @@ public class EnemySpawner : MonoBehaviour
         {
             // Rastgele bir düşman tipi seç ve spawn et
             SpawnRandomEnemy();
+            spawnedEnemiesInWave++;
             
             // Kısa bir bekleme süresi ile art arda spawn et
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(enemySpawnInterval);
         }
     }
     
@@ -192,6 +264,27 @@ public class EnemySpawner : MonoBehaviour
         }
     }
     
+    private void SpawnRandomEnemy()
+    {
+        // Prefabları ağırlıklarına göre değerlendir
+        float totalWeight = kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight + rocketPrefab.spawnWeight;
+        float randomValue = Random.Range(0, totalWeight);
+        
+        // Ağırlıklara göre düşman tipini seç
+        if (randomValue < kamikazePrefab.spawnWeight)
+        {
+            SpawnEnemy(kamikazePrefab);
+        }
+        else if (randomValue < kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight)
+        {
+            SpawnEnemy(minigunPrefab);
+        }
+        else
+        {
+            SpawnEnemy(rocketPrefab);
+        }
+    }
+    
     private void SpawnEnemy(EnemySettings enemySettings)
     {
         // Prefab kontrolü
@@ -207,44 +300,36 @@ public class EnemySpawner : MonoBehaviour
             {
                 Debug.Log("Rocket Enemy prefabı spawn edilecek. Enemy bileşeni var, FireRocket metodu kullanılacak.");
                 
-                // RocketPrefab'ın atanıp atanmadığını kontrol et
-                if (rocketEnemy.rocketPrefab == null)
+                // RocketPrefab'ı bulmaya çalış
+                GameObject rocketPrefab = null;
+                
+                // Önce Resources klasöründen yüklemeyi dene
+                rocketPrefab = Resources.Load<GameObject>("Prefabs/RocketPrefab");
+                
+                // Bulunamazsa scene'de arama yap
+                if (rocketPrefab == null)
                 {
-                    // RocketPrefab'ı bulmaya çalış
-                    GameObject rocketPrefab = null;
-                    
-                    // Önce Resources klasöründen yüklemeyi dene
-                    rocketPrefab = Resources.Load<GameObject>("Prefabs/RocketPrefab");
-                    
-                    // Bulunamazsa scene'de arama yap
-                    if (rocketPrefab == null)
+                    GameObject[] allPrefabs = Resources.FindObjectsOfTypeAll<GameObject>();
+                    foreach (GameObject prefab in allPrefabs)
                     {
-                        GameObject[] allPrefabs = Resources.FindObjectsOfTypeAll<GameObject>();
-                        foreach (GameObject prefab in allPrefabs)
+                        if (prefab.name == "RocketPrefab")
                         {
-                            if (prefab.name == "RocketPrefab")
-                            {
-                                rocketPrefab = prefab;
-                                break;
-                            }
+                            rocketPrefab = prefab;
+                            break;
                         }
                     }
-                    
-                    // RocketPrefab'ı atama
-                    if (rocketPrefab != null)
-                    {
-                        // RocketPrefab'ı düşmana ata
-                        rocketEnemy.rocketPrefab = rocketPrefab;
-                        Debug.Log("Rocket Enemy'ye RocketPrefab atandı: " + rocketPrefab.name);
-                    }
-                    else
-                    {
-                        Debug.LogError("RocketPrefab bulunamadı! Roket düşmanı roket fırlatamayacak.");
-                    }
+                }
+                
+                // RocketPrefab'ı atama
+                if (rocketPrefab != null)
+                {
+                    // RocketPrefab'ı düşmana ata
+                    rocketEnemy.rocketPrefab = rocketPrefab;
+                    Debug.Log("Rocket Enemy'ye RocketPrefab atandı: " + rocketPrefab.name);
                 }
                 else
                 {
-                    Debug.Log("Roket düşmanının rocketPrefab'ı zaten atanmış: " + rocketEnemy.rocketPrefab.name);
+                    Debug.LogError("RocketPrefab bulunamadı! Roket düşmanı roket fırlatamayacak.");
                 }
             }
             else
@@ -298,27 +383,6 @@ public class EnemySpawner : MonoBehaviour
         }
         
         Debug.Log($"{enemyType} düşmanı spawn edildi. Konum: {spawnPosition}");
-    }
-    
-    private void SpawnRandomEnemy()
-    {
-        // Prefabları ağırlıklarına göre değerlendir
-        float totalWeight = kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight + rocketPrefab.spawnWeight;
-        float randomValue = Random.Range(0, totalWeight);
-        
-        // Ağırlıklara göre düşman tipini seç
-        if (randomValue < kamikazePrefab.spawnWeight)
-        {
-            SpawnEnemy(kamikazePrefab);
-        }
-        else if (randomValue < kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight)
-        {
-            SpawnEnemy(minigunPrefab);
-        }
-        else
-        {
-            SpawnEnemy(rocketPrefab);
-        }
     }
     
     private Vector2 GetRandomSpawnPosition()
@@ -472,6 +536,7 @@ public class EnemyTracker : MonoBehaviour
         // Spawner hala varsa sayacı azalt
         if (spawner != null)
         {
+            // Düşman tipine göre sayacı azalt
             switch (enemyType)
             {
                 case "Kamikaze":
@@ -483,6 +548,13 @@ public class EnemyTracker : MonoBehaviour
                 case "Roket":
                     spawner.rocketPrefab.currentCount--;
                     break;
+            }
+            
+            // Dalgadaki öldürülen düşman sayısını arttır (eğer oyun objesinin yok edilme sebebi ölüm ise)
+            // Not: Scene destroy olduğunda da OnDestroy çağrılacağı için, safAgeChecker ve Application.isPlaying kontrolü ekledim
+            if (gameObject.scene.isLoaded && Application.isPlaying && !spawner.isWaveBreak)
+            {
+                spawner.killedEnemiesInWave++;
             }
         }
     }
