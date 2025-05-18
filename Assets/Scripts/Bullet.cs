@@ -3,16 +3,21 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     public float speed = 10f;
-    public float lifetime = 3f;  // Mermi ömrü - belirli süre sonra yok olur
+    public float lifetime = 5f;  // Mermi ömrünü artırıyorum (3'ten 5 saniyeye)
+    public float maxDistance = 30f; // Maksimum menzil (birim olarak)
     public bool isZeplinBullet = false; // Zeplin'den atılan mermi mi?
     public bool isEnemyBullet = false; // Düşman tarafından atılan mermi mi?
     public int damage = 0; // Özel hasar değeri (düşman mermileri için)
     
     private bool playerFlipXEnabled = true; // Player'ın flipX durumu, varsayılan olarak açık (true)
     private PlayerData playerData;
+    private Vector3 startPosition; // Başlangıç pozisyonu
     
     void Start()
     {
+        // Başlangıç pozisyonunu kaydet
+        startPosition = transform.position;
+        
         // Tag'i ayarla - çarpışma kontrolü için önemli
         gameObject.tag = "Bullet";
         
@@ -72,7 +77,15 @@ public class Bullet : MonoBehaviour
             Debug.LogError("PlayerData bulunamadı! Mermi düzgün çalışmayabilir.");
         }
         
-        // Belirli süre sonra mermiyi yok et
+        // Zeplin mermisi ise lifetime'ı artır ve hızı ayarla
+        if (isZeplinBullet)
+        {
+            lifetime = 7f; // Zeplin mermilerine daha uzun yaşam süresi
+            speed = 15f;   // Daha hızlı hareket etsin
+            maxDistance = 50f; // Daha uzun menzil
+        }
+        
+        // Belirli süre sonra mermiyi yok et (yaşam süresi)
         Destroy(gameObject, lifetime);
         
         // Eğer damage değeri ayarlanmamışsa ve PlayerData varsa, varsayılan hasar değerini ata
@@ -114,11 +127,32 @@ public class Bullet : MonoBehaviour
     
     void Update()
     {
-        // Her zaman firePoint'e göre +X yönünde ilerle (local right)
-        Vector2 direction = transform.right;
-        
-        // Hesaplanan yönde hareket et
-        transform.Translate(direction * speed * Time.deltaTime, Space.World);
+        // Eğer Rigidbody2D ile hareket ettiriliyorsa (Zeplin tarafından) Update'de hareket ettirme
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null && rb.linearVelocity.sqrMagnitude > 0.1f)
+        {
+            // Rigidbody2D ile hareket ediyorsa, manuel hareket uygulama
+            // Ancak menzil kontrolü yap
+            if (Vector3.Distance(transform.position, startPosition) > maxDistance)
+            {
+                Debug.Log($"Mermi maksimum menzili aştı: {Vector3.Distance(transform.position, startPosition):F2} > {maxDistance}");
+                Destroy(gameObject);
+                return;
+            }
+        }
+        else
+        {
+            // Rigidbody2D ile hareket ettirilmiyorsa, transform.right yönünde hareket ettir
+            transform.Translate(transform.right * speed * Time.deltaTime, Space.World);
+            
+            // Menzil kontrolü
+            if (Vector3.Distance(transform.position, startPosition) > maxDistance)
+            {
+                Debug.Log($"Mermi maksimum menzili aştı: {Vector3.Distance(transform.position, startPosition):F2} > {maxDistance}");
+                Destroy(gameObject);
+                return;
+            }
+        }
     }
     
     // Oyuncudan yön bilgisini al

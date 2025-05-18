@@ -379,22 +379,50 @@ public class Zeplin : MonoBehaviour
             firePoint = transform;
         }
         
-        // Mermi oluştur
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        // Ateş yönünü belirle (sağa veya sola doğru)
+        Vector3 shootDirection = isFacingLeft ? Vector3.left : Vector3.right;
+        Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, Vector3.Cross(Vector3.forward, shootDirection));
+        
+        // Mermi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, bulletRotation);
         
         // Mermi bileşenini al ve yön ayarla
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
         if (bulletComponent != null)
         {
-            bulletComponent.SetDirection(isFacingLeft);
-            // Zeplin mermisini belirt (farklı davranış için kullanılabilir)
+            // Zeplin mermisini belirt
             bulletComponent.isZeplinBullet = true;
+            
+            // Doğru yönlendirme için
+            bulletComponent.SetDirection(isFacingLeft);
+            
+            // PlayerData'dan hasar değerini al
+            if (playerData != null)
+            {
+                bulletComponent.damage = playerData.zeplinMinigunDamage;
+            }
+            
+            // Mermi hızını ve menzilini artır
+            bulletComponent.speed = 20f;
+            bulletComponent.maxDistance = 50f;
+            bulletComponent.lifetime = 7f;
+        }
+        
+        // Rigidbody2D ile doğrudan hareket ettir
+        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
+        if (bulletRb != null)
+        {
+            // ÖNEMLİ: linearVelocity değil velocity kullanılmalı
+            bulletRb.linearVelocity = shootDirection * 20f; // Hızı artırıldı
+            
+            // Debug.Log ile kontrol
+            Debug.Log($"Mermi hızı ayarlandı: {bulletRb.linearVelocity}, Yön: {shootDirection}");
         }
         
         // Sonraki ateş zamanını ayarla
         nextMinigunFireTime = Time.time + (playerData != null ? playerData.zeplinMinigunCooldown : 0.5f);
         
-        Debug.Log("Zeplin minigun ateşledi!");
+        Debug.Log("Zeplin minigun ateşledi! Yön: " + shootDirection);
     }
     
     // Roket ateşleme metodu
@@ -424,36 +452,54 @@ public class Zeplin : MonoBehaviour
             firePoint = transform;
         }
         
-        // Roketi oluştur
-        GameObject rocket = Instantiate(rocketPrefab, firePoint.position, firePoint.rotation);
+        // Ateş yönünü belirle (sağa veya sola doğru)
+        Vector3 shootDirection = isFacingLeft ? Vector3.left : Vector3.right;
+        Quaternion rocketRotation = Quaternion.LookRotation(Vector3.forward, Vector3.Cross(Vector3.forward, shootDirection));
+        
+        // Roketi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile
+        GameObject rocket = Instantiate(rocketPrefab, firePoint.position, rocketRotation);
         
         // Rokete "Rocket" etiketini ata
         rocket.tag = "Rocket";
         
-        // Roket bileşenini alıp Zeplin'e ait olduğunu belirtebiliriz (opsiyonel)
-        Rocket rocketComponent = rocket.GetComponent<Rocket>();
-        if (rocketComponent != null)
-        {
-            // İleride zeplin roketlerine özel özellik eklemek için kullanılabilir
-        }
-        
-        // RocketProjectile bileşeni kontrol et
+        // RocketProjectile bileşeni kontrol et ve ayarla
         RocketProjectile rocketProjectile = rocket.GetComponent<RocketProjectile>();
         if (rocketProjectile != null)
         {
             // Zeplin roketi olduğunu belirt (düşman roketi değil)
             rocketProjectile.isEnemyRocket = false;
+            
             // Hasar değerini PlayerData'dan al
             if (playerData != null)
             {
                 rocketProjectile.damage = playerData.zeplinRoketDamage;
             }
+            
+            // Roket hızını ve menzilini artır
+            rocketProjectile.speed = 12f;
+            rocketProjectile.turnSpeed = 5f;
+            rocketProjectile.maxDistance = 70f;
+            rocketProjectile.lifetime = 10f;
+            
+            // Ateş yönünü kaydet
+            rocketProjectile.initialDirection = shootDirection;
+        }
+        
+        // Rigidbody2D ile başlangıç hızı ver
+        Rigidbody2D rocketRb = rocket.GetComponent<Rigidbody2D>();
+        if (rocketRb != null)
+        {
+            // ÖNEMLİ: linearVelocity değil velocity kullanılmalı
+            rocketRb.linearVelocity = shootDirection * 12f; // Hızı artırıldı
+            
+            // Debug.Log ile kontrol
+            Debug.Log($"Roket hızı ayarlandı: {rocketRb.linearVelocity}, Yön: {shootDirection}");
         }
         
         // Bekleme süresini ayarla
         nextRocketFireTime = Time.time + (playerData != null ? playerData.zeplinRoketDelay : 2.0f);
         
-        Debug.Log("Zeplin roket fırlattı!");
+        Debug.Log("Zeplin roket fırlattı! Yön: " + shootDirection);
     }
     
     // Zeplin'e hasar verme metodu

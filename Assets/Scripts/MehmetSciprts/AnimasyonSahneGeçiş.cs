@@ -14,10 +14,13 @@ public class AnimasyonSahneGeçiş : MonoBehaviour
     {
         
     }
-
+public void GecisYap()
+    {
+        SceneManager.LoadScene("Oynanis"); // Oyun sahnesinin adını doğru yaz!
+    }
      public void AnimasyonBitti()
     {
-        SceneManager.LoadScene("GameScene"); // Oyun sahnesinin adını buraya yaz
+        SceneManager.LoadScene("Oynanis"); // Oyun sahnesinin adını buraya yaz
     }
 }
 

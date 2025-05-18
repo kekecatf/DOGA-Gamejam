@@ -4,11 +4,13 @@ public class RocketProjectile : MonoBehaviour
 {
     public float speed = 5f;                  // Roket hızı
     public float turnSpeed = 3f;              // Dönüş hızı
-    public float lifetime = 5f;               // Roketin ömrü (saniye)
+    public float lifetime = 8f;               // Roketin ömrü (saniye) - artırıldı
     public float activationDelay = 0.5f;      // Hedef takibine başlamadan önceki gecikme
     public float explosionRadius = 2f;        // Patlama yarıçapı
     public int damage = 50;                   // Hasar miktarı
     public bool isEnemyRocket = false;        // Düşman roketi mi?
+    public Vector3 initialDirection = Vector3.right; // Başlangıç ateş yönü
+    public float maxDistance = 50f;           // Maksimum menzil
     
     public GameObject explosionEffect;        // Patlama efekti prefabı
     
@@ -18,9 +20,13 @@ public class RocketProjectile : MonoBehaviour
     private PlayerData playerData;            // Oyuncu veri referansı
     private float lastTargetSearchTime = 0f;  // Son hedef arama zamanı
     private float targetSearchInterval = 0.5f; // Hedef arama sıklığı
+    private Vector3 startPosition;            // Başlangıç pozisyonu
     
     private void Start()
     {
+        // Başlangıç pozisyonunu kaydet
+        startPosition = transform.position;
+        
         Debug.Log($"[RocketProjectile] Start metodu başladı. GameObject: {gameObject.name}, isEnemyRocket: {isEnemyRocket}");
         
         // Set the appropriate tag
@@ -59,6 +65,15 @@ public class RocketProjectile : MonoBehaviour
             }
         }
         
+        // Zeplin roketi ise hızını ve yaşam süresini artır
+        if (!isEnemyRocket)
+        {
+            speed = 8f;        // Hız artırıldı
+            turnSpeed = 5f;    // Dönüş hızı artırıldı
+            lifetime = 10f;    // Yaşam süresi uzatıldı
+            maxDistance = 70f; // Menzil artırıldı
+        }
+        
         // Belirli bir süre sonra roketi yok et
         Destroy(gameObject, lifetime);
         
@@ -93,6 +108,15 @@ public class RocketProjectile : MonoBehaviour
     
     private void Update()
     {
+        // Menzil kontrolü - maksimum mesafeyi aştıysa yok et
+        if (Vector3.Distance(transform.position, startPosition) > maxDistance)
+        {
+            Debug.Log($"Roket maksimum menzili aştı: {Vector3.Distance(transform.position, startPosition):F2} > {maxDistance}");
+            Explode();
+            Destroy(gameObject);
+            return;
+        }
+        
         // Roketi hareket ettir
         MoveRocket();
         
@@ -169,8 +193,37 @@ public class RocketProjectile : MonoBehaviour
     
     private void MoveRocket()
     {
-        // İleri doğru hareketi her zaman sağla
-        transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
+        // Eğer Rigidbody2D ile hareket ettiriliyorsa ve hâlâ hareket ediyorsa
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        bool isUsingRigidbody = (rb != null && rb.linearVelocity.sqrMagnitude > 0.1f);
+        
+        // Rigidbody2D kullanılıyorsa ve roket daha yeni atıldıysa (aktivasyon süresinden önce)
+        if (isUsingRigidbody && Time.time < activationTime)
+        {
+            // Aktivasyon öncesi Rigidbody2D ile düz hareket
+            if (rb.linearVelocity.sqrMagnitude < 0.1f)
+            {
+                // Eğer hız çok düşükse (0'a yakınsa), başlangıç hızını tekrar ayarla
+                rb.linearVelocity = initialDirection * speed;
+                Debug.Log($"Roket hızı yeniden ayarlandı: {rb.linearVelocity}, Zaman: {Time.time:F2}");
+            }
+            return;
+        }
+        
+        // Rigidbody2D hareketi bittiyse veya kullanılmıyorsa manuel hareket et
+        if (!isUsingRigidbody)
+        {
+            // İleri doğru hareketi her zaman sağla (aktivasyon öncesi initialDirection'a göre)
+            if (Time.time < activationTime)
+            {
+                transform.Translate(initialDirection * speed * Time.deltaTime, Space.World);
+            }
+            else
+            {
+                // Aktivasyon sonrası transform.right yönünde hareket et
+                transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
+            }
+        }
         
         // Eğer takip aktifse ve hedef varsa
         if (isTracking && target != null)
@@ -197,6 +250,18 @@ public class RocketProjectile : MonoBehaviour
             
             // Yumuşak dönüş uygula
             transform.Rotate(0, 0, -rotateAmount * actualTurnSpeed * Time.deltaTime * 100);
+            
+            // Eğer Rigidbody2D kullanılıyorsa, hızın yönünü güncellemeliyiz
+            if (rb != null && isTracking && Time.time >= activationTime)
+            {
+                // Rigidbody2D hızını transform.right yönüne ayarla
+                rb.linearVelocity = transform.right * speed;
+            }
+        }
+        else if (rb != null && Time.time >= activationTime && rb.linearVelocity.sqrMagnitude < 0.1f)
+        {
+            // Hedef yok ve roket neredeyse durmuş, düz hareket ettir
+            rb.linearVelocity = transform.right * speed;
         }
     }
     

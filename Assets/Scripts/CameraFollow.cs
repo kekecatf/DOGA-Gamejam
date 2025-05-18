@@ -128,12 +128,16 @@ public class CameraFollow : MonoBehaviour
     {
         // Hedef kontrol
         Transform targetToUse = DetermineTargetToUse();
-        Vector3 targetPosition = GetTargetPosition(targetToUse);
         
+        // Eğer hedef null ise, işlemi sonlandır
         if (targetToUse == null)
         {
-            return; // Geçerli hedef yoksa işlemi sonlandır
+            Debug.LogWarning("CameraFollow: Takip edilecek hedef bulunamadı!");
+            return;
         }
+        
+        // Hedef pozisyonunu al (null kontrolü yapılarak)
+        Vector3 targetPosition = GetTargetPosition(targetToUse);
         
         // Hedef pozisyonu hesapla
         Vector3 desiredPosition = targetPosition + offset;
@@ -151,9 +155,30 @@ public class CameraFollow : MonoBehaviour
     // Takip edilecek pozisyonu hesapla - normal durumda veya geçiş sırasında
     private Vector3 GetTargetPosition(Transform targetToUse)
     {
-        // Geçiş yapılıyorsa kaynaktan hedefe interpole edilmiş pozisyonu hesapla
-        if (isTransitioning && transitionTimer >= delayBeforeTransition && sourceTarget != null && destinationTarget != null)
+        // Eğer hedef null ise, şu anki kamera pozisyonunu döndür
+        if (targetToUse == null)
         {
+            Debug.LogWarning("CameraFollow: GetTargetPosition - targetToUse null!");
+            return transform.position - offset; // Mevcut pozisyonu koruyacak değer
+        }
+        
+        // Geçiş yapılıyorsa kaynaktan hedefe interpole edilmiş pozisyonu hesapla
+        if (isTransitioning && transitionTimer >= delayBeforeTransition)
+        {
+            // Kaynak ve hedef kontrolü
+            if (sourceTarget == null || destinationTarget == null)
+            {
+                Debug.LogWarning("CameraFollow: Geçiş hedeflerinden biri null! Source: " + 
+                                (sourceTarget != null ? "Mevcut" : "Null") + 
+                                ", Destination: " + (destinationTarget != null ? "Mevcut" : "Null"));
+                
+                // Eğer hedeflerden biri null ise, geçiş modunu iptal et
+                isTransitioning = false;
+                
+                // Mevcut hedefin pozisyonunu kullan
+                return targetToUse.position;
+            }
+            
             // Yumuşak geçiş için SmoothStep kullan
             float t = Mathf.SmoothStep(0, 1, transitionProgress);
             return Vector3.Lerp(sourceTarget.position, destinationTarget.position, t);
@@ -166,9 +191,19 @@ public class CameraFollow : MonoBehaviour
     // Kullanılacak hedefi belirle
     private Transform DetermineTargetToUse()
     {
-        // Geçiş yapılıyorsa destinationTarget'ı kullan
+        // Geçiş yapılıyorsa ve tamamlanmışsa destinationTarget'ı kontrol et
         if (isTransitioning && transitionProgress >= 1.0f)
         {
+            // Hedef kontrolü
+            if (destinationTarget == null)
+            {
+                Debug.LogWarning("CameraFollow: destinationTarget null olduğu için geçiş iptal ediliyor.");
+                isTransitioning = false;
+                
+                // Varsayılan hedefi kullanmaya çalış
+                return (target != null) ? target : (target2 != null) ? target2 : null;
+            }
+            
             return destinationTarget;
         }
         
@@ -181,6 +216,7 @@ public class CameraFollow : MonoBehaviour
             if (player != null)
             {
                 originalTarget = player.transform;
+                target = originalTarget; // target'ı da güncelle
                 return originalTarget;
             }
         }
@@ -189,12 +225,28 @@ public class CameraFollow : MonoBehaviour
         if (Player.isDead)
         {
             // Player ölüyse ve Zeplin varsa Zeplin'i takip et
-            return (target2 != null) ? target2 : target;
+            if (target2 != null)
+            {
+                return target2;
+            }
+            else
+            {
+                // Zeplin yoksa ve hala orijinal hedef (Player) varsa onu kullan
+                return (target != null) ? target : (originalTarget != null) ? originalTarget : null;
+            }
         }
         else 
         {
-            // Player yaşıyorsa onu takip et
-            return (originalTarget != null) ? originalTarget : target;
+            // Player yaşıyorsa ve varsa onu takip et
+            if (originalTarget != null)
+            {
+                return originalTarget;
+            }
+            else
+            {
+                // originalTarget yoksa, target'ı dene
+                return (target != null) ? target : null;
+            }
         }
     }
 } 

@@ -1,112 +1,112 @@
 fileFormatVersion: 2
-guid: 4988fded2e4a9f7488a5fef06fa73919
+guid: 33df6ca8f5040504a8b470e37d66920e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3338801036398717453
-    second: MiniGun_0
+      213: -8850841714807302466
+    second: MiniGun 1_0
   - first:
-      213: -2335660830617342041
-    second: MiniGun_1
+      213: -1042001394355642178
+    second: MiniGun 1_1
   - first:
-      213: 2353152932000380814
-    second: MiniGun_2
+      213: 5596061935426030787
+    second: MiniGun 1_2
   - first:
-      213: 5750663845658374682
-    second: MiniGun_3
+      213: 6823613328349420793
+    second: MiniGun 1_3
   - first:
-      213: 2990571703466117894
-    second: MiniGun_4
+      213: 1977771177351134030
+    second: MiniGun 1_4
   - first:
-      213: -1765318736157243593
-    second: MiniGun_5
+      213: -6174855009109943277
+    second: MiniGun 1_5
   - first:
-      213: -326556345003893594
-    second: MiniGun_6
+      213: -4572884665656427377
+    second: MiniGun 1_6
   - first:
-      213: -989526317913202612
-    second: MiniGun_7
+      213: -5040655864421209138
+    second: MiniGun 1_7
   - first:
-      213: 4969344539910687573
-    second: MiniGun_8
+      213: -720856059770192697
+    second: MiniGun 1_8
   - first:
-      213: 5235278808948697936
-    second: MiniGun_9
+      213: 9018314887971029745
+    second: MiniGun 1_9
   - first:
-      213: -1826421647723999052
-    second: MiniGun_10
+      213: -4944170796937454981
+    second: MiniGun 1_10
   - first:
-      213: -2962928164732774090
-    second: MiniGun_11
+      213: -2212577903990742979
+    second: MiniGun 1_11
   - first:
-      213: -6755421436460302742
-    second: MiniGun_12
+      213: -4348319420534976224
+    second: MiniGun 1_12
   - first:
-      213: 8760054831639076767
-    second: MiniGun_13
+      213: -2072835028961028403
+    second: MiniGun 1_13
   - first:
-      213: 1171715938474176548
-    second: MiniGun_14
+      213: 3040417852372751403
+    second: MiniGun 1_14
   - first:
-      213: 5476075229359598618
-    second: MiniGun_15
+      213: -9082786209505583464
+    second: MiniGun 1_15
   - first:
-      213: -7789289522959918968
-    second: MiniGun_16
+      213: 33013573160011432
+    second: MiniGun 1_16
   - first:
-      213: -6342246919955960469
-    second: MiniGun_17
+      213: 3175054866012733273
+    second: MiniGun 1_17
   - first:
-      213: -4907735497563269999
-    second: MiniGun_18
+      213: -526691114644057529
+    second: MiniGun 1_18
   - first:
-      213: 7750758193185105124
-    second: MiniGun_19
+      213: -6428419714591300487
+    second: MiniGun 1_19
   - first:
-      213: -5528610261132893254
-    second: MiniGun_20
+      213: -7429477417749864186
+    second: MiniGun 1_20
   - first:
-      213: -4627814599834513816
-    second: MiniGun_21
+      213: -7389724504362538714
+    second: MiniGun 1_21
   - first:
-      213: 2845652696424312095
-    second: MiniGun_22
+      213: 1696825121510631238
+    second: MiniGun 1_22
   - first:
-      213: -7336424476356670797
-    second: MiniGun_23
+      213: 7296055727217803139
+    second: MiniGun 1_23
   - first:
-      213: -497370994047626594
-    second: MiniGun_24
+      213: -6659058420777385398
+    second: MiniGun 1_24
   - first:
-      213: 2326060081845932381
-    second: MiniGun_25
+      213: -6968236380011133275
+    second: MiniGun 1_25
   - first:
-      213: -7609461440046914610
-    second: MiniGun_26
+      213: 7364685937623233192
+    second: MiniGun 1_26
   - first:
-      213: 4215478331996726801
-    second: MiniGun_27
+      213: 8281687636635435093
+    second: MiniGun 1_27
   - first:
-      213: -3495159197331273723
-    second: MiniGun_28
+      213: 4364369733164851556
+    second: MiniGun 1_28
   - first:
-      213: -5750484761896689071
-    second: MiniGun_29
+      213: 7703483813069406492
+    second: MiniGun 1_29
   - first:
-      213: 8370297671262931825
-    second: MiniGun_30
+      213: 6034907602104165296
+    second: MiniGun 1_30
   - first:
-      213: 1197242529171975211
-    second: MiniGun_31
+      213: 1232784491750983966
+    second: MiniGun 1_31
   - first:
-      213: 7108881784223146865
-    second: MiniGun_32
+      213: 8428915219745958592
+    second: MiniGun 1_32
   - first:
-      213: -4914923606247387751
-    second: MiniGun_33
+      213: 1418493622386302711
+    second: MiniGun 1_33
   - first:
-      213: 1622207097330292399
-    second: MiniGun_34
+      213: -2919781269055827160
+    second: MiniGun 1_34
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -139,7 +139,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -177,7 +177,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -202,7 +202,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MiniGun_0
+      name: MiniGun 1_0
       rect:
         serializedVersion: 2
         x: 4
@@ -217,14 +217,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d0a60465addc55e20800000000000000
-      internalID: 3338801036398717453
+      spriteID: eb693b9aa5e7b2580800000000000000
+      internalID: -8850841714807302466
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_1
+      name: MiniGun 1_1
       rect:
         serializedVersion: 2
         x: 68
@@ -239,14 +239,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7af624379d0169fd0800000000000000
-      internalID: -2335660830617342041
+      spriteID: eb068f9a0411a81f0800000000000000
+      internalID: -1042001394355642178
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_2
+      name: MiniGun 1_2
       rect:
         serializedVersion: 2
         x: 132
@@ -261,14 +261,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e873d06cf1418a020800000000000000
-      internalID: 2353152932000380814
+      spriteID: 3cc472a5ea439ad40800000000000000
+      internalID: 5596061935426030787
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_3
+      name: MiniGun 1_3
       rect:
         serializedVersion: 2
         x: 196
@@ -283,14 +283,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a12362f9c467ecf40800000000000000
-      internalID: 5750663845658374682
+      spriteID: 9fc53e84b2852be50800000000000000
+      internalID: 6823613328349420793
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_4
+      name: MiniGun 1_4
       rect:
         serializedVersion: 2
         x: 260
@@ -305,14 +305,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 60bce6c9e15a08920800000000000000
-      internalID: 2990571703466117894
+      spriteID: e4b35093864727b10800000000000000
+      internalID: 1977771177351134030
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_5
+      name: MiniGun 1_5
       rect:
         serializedVersion: 2
         x: 324
@@ -327,14 +327,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 737810866f35087e0800000000000000
-      internalID: -1765318736157243593
+      spriteID: 31cd572c5128e4aa0800000000000000
+      internalID: -6174855009109943277
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_6
+      name: MiniGun 1_6
       rect:
         serializedVersion: 2
         x: 388
@@ -349,14 +349,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6ac94e00cb6d77bf0800000000000000
-      internalID: -326556345003893594
+      spriteID: f8cb7b0ff99d980c0800000000000000
+      internalID: -4572884665656427377
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_7
+      name: MiniGun 1_7
       rect:
         serializedVersion: 2
         x: 452
@@ -371,14 +371,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c4022ec7e0f7442f0800000000000000
-      internalID: -989526317913202612
+      spriteID: ecb2f26a23efb0ab0800000000000000
+      internalID: -5040655864421209138
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_8
+      name: MiniGun 1_8
       rect:
         serializedVersion: 2
         x: 516
@@ -393,14 +393,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 55b47e3c788a6f440800000000000000
-      internalID: 4969344539910687573
+      spriteID: 7ccb53f9b310ff5f0800000000000000
+      internalID: -720856059770192697
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_9
+      name: MiniGun 1_9
       rect:
         serializedVersion: 2
         x: 578
@@ -415,14 +415,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 05b648bc65277a840800000000000000
-      internalID: 5235278808948697936
+      spriteID: 1f2412a0c9d772d70800000000000000
+      internalID: 9018314887971029745
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_10
+      name: MiniGun 1_10
       rect:
         serializedVersion: 2
         x: 640
@@ -437,14 +437,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4b0d35d203f37a6e0800000000000000
-      internalID: -1826421647723999052
+      spriteID: b7adea30bd6c26bb0800000000000000
+      internalID: -4944170796937454981
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_11
+      name: MiniGun 1_11
       rect:
         serializedVersion: 2
         x: 704
@@ -459,14 +459,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6395a1e488091e6d0800000000000000
-      internalID: -2962928164732774090
+      spriteID: d30e0ca7e185b41e0800000000000000
+      internalID: -2212577903990742979
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_12
+      name: MiniGun 1_12
       rect:
         serializedVersion: 2
         x: 747
@@ -481,14 +481,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a6e79bbcefbef32a0800000000000000
-      internalID: -6755421436460302742
+      spriteID: 0219411868aa7a3c0800000000000000
+      internalID: -4348319420534976224
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_13
+      name: MiniGun 1_13
       rect:
         serializedVersion: 2
         x: 817
@@ -503,14 +503,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f9f9ac4e477f19970800000000000000
-      internalID: 8760054831639076767
+      spriteID: dc69ac4068fcb33e0800000000000000
+      internalID: -2072835028961028403
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_14
+      name: MiniGun 1_14
       rect:
         serializedVersion: 2
         x: 879
@@ -525,14 +525,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 420ba622075c24010800000000000000
-      internalID: 1171715938474176548
+      spriteID: b241f6b8debb13a20800000000000000
+      internalID: 3040417852372751403
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_15
+      name: MiniGun 1_15
       rect:
         serializedVersion: 2
         x: 953
@@ -547,14 +547,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a1c6b49586deefb40800000000000000
-      internalID: 5476075229359598618
+      spriteID: 89e5a9ba01673f180800000000000000
+      internalID: -9082786209505583464
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_16
+      name: MiniGun 1_16
       rect:
         serializedVersion: 2
         x: 1003
@@ -569,14 +569,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8885d43c272e6e390800000000000000
-      internalID: -7789289522959918968
+      spriteID: 8a608fc7ba9457000800000000000000
+      internalID: 33013573160011432
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_17
+      name: MiniGun 1_17
       rect:
         serializedVersion: 2
         x: 1073
@@ -591,14 +591,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b6da53a6700dbf7a0800000000000000
-      internalID: -6342246919955960469
+      spriteID: 95f7017149f001c20800000000000000
+      internalID: 3175054866012733273
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_18
+      name: MiniGun 1_18
       rect:
         serializedVersion: 2
         x: 1135
@@ -613,14 +613,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1949a28319834ebb0800000000000000
-      internalID: -4907735497563269999
+      spriteID: 7425945c831d0b8f0800000000000000
+      internalID: -526691114644057529
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_19
+      name: MiniGun 1_19
       rect:
         serializedVersion: 2
         x: 1209
@@ -635,14 +635,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4e42fbce289309b60800000000000000
-      internalID: 7750758193185105124
+      spriteID: 974eaac245aa9c6a0800000000000000
+      internalID: -6428419714591300487
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_20
+      name: MiniGun 1_20
       rect:
         serializedVersion: 2
         x: 1259
@@ -657,14 +657,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ab32893624e6643b0800000000000000
-      internalID: -5528610261132893254
+      spriteID: 601ab30d6a135e890800000000000000
+      internalID: -7429477417749864186
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_21
+      name: MiniGun 1_21
       rect:
         serializedVersion: 2
         x: 1329
@@ -679,14 +679,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 86e4f720423b6cfb0800000000000000
-      internalID: -4627814599834513816
+      spriteID: 629a87937bc627990800000000000000
+      internalID: -7389724504362538714
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_22
+      name: MiniGun 1_22
       rect:
         serializedVersion: 2
         x: 1391
@@ -701,14 +701,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f1de08cec0acd7720800000000000000
-      internalID: 2845652696424312095
+      spriteID: 647a99535755c8710800000000000000
+      internalID: 1696825121510631238
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_23
+      name: MiniGun 1_23
       rect:
         serializedVersion: 2
         x: 1465
@@ -723,14 +723,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3ba874d0fc8cf2a90800000000000000
-      internalID: -7336424476356670797
+      spriteID: 38f754a170cc04560800000000000000
+      internalID: 7296055727217803139
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_24
+      name: MiniGun 1_24
       rect:
         serializedVersion: 2
         x: 1519
@@ -745,14 +745,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e92553257bbf819f0800000000000000
-      internalID: -497370994047626594
+      spriteID: a428df2c5a54693a0800000000000000
+      internalID: -6659058420777385398
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_25
+      name: MiniGun 1_25
       rect:
         serializedVersion: 2
         x: 1593
@@ -767,14 +767,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d5194a80253d74020800000000000000
-      internalID: 2326060081845932381
+      spriteID: 5a68b728ee9db4f90800000000000000
+      internalID: -6968236380011133275
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_26
+      name: MiniGun 1_26
       rect:
         serializedVersion: 2
         x: 1668
@@ -789,14 +789,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ec3a8fd0323c56690800000000000000
-      internalID: -7609461440046914610
+      spriteID: 8a2f85a27de943660800000000000000
+      internalID: 7364685937623233192
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_27
+      name: MiniGun 1_27
       rect:
         serializedVersion: 2
         x: 1732
@@ -811,14 +811,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 11665095533608a30800000000000000
-      internalID: 4215478331996726801
+      spriteID: 550466af6077ee270800000000000000
+      internalID: 8281687636635435093
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_28
+      name: MiniGun 1_28
       rect:
         serializedVersion: 2
         x: 1796
@@ -833,14 +833,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 50841a96a33be7fc0800000000000000
-      internalID: -3495159197331273723
+      spriteID: 461e1cd162b519c30800000000000000
+      internalID: 4364369733164851556
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_29
+      name: MiniGun 1_29
       rect:
         serializedVersion: 2
         x: 1860
@@ -855,14 +855,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 152e9d0939c2230b0800000000000000
-      internalID: -5750484761896689071
+      spriteID: c1149f296b548ea60800000000000000
+      internalID: 7703483813069406492
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_30
+      name: MiniGun 1_30
       rect:
         serializedVersion: 2
         x: 1897
@@ -877,14 +877,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 17b08ef5265492470800000000000000
-      internalID: 8370297671262931825
+      spriteID: 0b329b36d7c40c350800000000000000
+      internalID: 6034907602104165296
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_31
+      name: MiniGun 1_31
       rect:
         serializedVersion: 2
         x: 1924
@@ -899,14 +899,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b2c294dacb57d9010800000000000000
-      internalID: 1197242529171975211
+      spriteID: e198d63b6fabb1110800000000000000
+      internalID: 1232784491750983966
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_32
+      name: MiniGun 1_32
       rect:
         serializedVersion: 2
         x: 1962
@@ -921,14 +921,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 173adda7152d7a260800000000000000
-      internalID: 7108881784223146865
+      spriteID: 0ca67daebb589f470800000000000000
+      internalID: 8428915219745958592
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_33
+      name: MiniGun 1_33
       rect:
         serializedVersion: 2
         x: 1988
@@ -943,14 +943,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 99d417f350faacbb0800000000000000
-      internalID: -4914923606247387751
+      spriteID: 7fe1e7e1f608fa310800000000000000
+      internalID: 1418493622386302711
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MiniGun_34
+      name: MiniGun 1_34
       rect:
         serializedVersion: 2
         x: 2052
@@ -965,8 +965,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fa65d7c92cc338610800000000000000
-      internalID: 1622207097330292399
+      spriteID: 823961cc76ada77d0800000000000000
+      internalID: -2919781269055827160
       vertices: []
       indices: 
       edges: []
@@ -985,41 +985,41 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      MiniGun_0: 3338801036398717453
-      MiniGun_1: -2335660830617342041
-      MiniGun_10: -1826421647723999052
-      MiniGun_11: -2962928164732774090
-      MiniGun_12: -6755421436460302742
-      MiniGun_13: 8760054831639076767
-      MiniGun_14: 1171715938474176548
-      MiniGun_15: 5476075229359598618
-      MiniGun_16: -7789289522959918968
-      MiniGun_17: -6342246919955960469
-      MiniGun_18: -4907735497563269999
-      MiniGun_19: 7750758193185105124
-      MiniGun_2: 2353152932000380814
-      MiniGun_20: -5528610261132893254
-      MiniGun_21: -4627814599834513816
-      MiniGun_22: 2845652696424312095
-      MiniGun_23: -7336424476356670797
-      MiniGun_24: -497370994047626594
-      MiniGun_25: 2326060081845932381
-      MiniGun_26: -7609461440046914610
-      MiniGun_27: 4215478331996726801
-      MiniGun_28: -3495159197331273723
-      MiniGun_29: -5750484761896689071
-      MiniGun_3: 5750663845658374682
-      MiniGun_30: 8370297671262931825
-      MiniGun_31: 1197242529171975211
-      MiniGun_32: 7108881784223146865
-      MiniGun_33: -4914923606247387751
-      MiniGun_34: 1622207097330292399
-      MiniGun_4: 2990571703466117894
-      MiniGun_5: -1765318736157243593
-      MiniGun_6: -326556345003893594
-      MiniGun_7: -989526317913202612
-      MiniGun_8: 4969344539910687573
-      MiniGun_9: 5235278808948697936
+      MiniGun 1_0: -8850841714807302466
+      MiniGun 1_1: -1042001394355642178
+      MiniGun 1_10: -4944170796937454981
+      MiniGun 1_11: -2212577903990742979
+      MiniGun 1_12: -4348319420534976224
+      MiniGun 1_13: -2072835028961028403
+      MiniGun 1_14: 3040417852372751403
+      MiniGun 1_15: -9082786209505583464
+      MiniGun 1_16: 33013573160011432
+      MiniGun 1_17: 3175054866012733273
+      MiniGun 1_18: -526691114644057529
+      MiniGun 1_19: -6428419714591300487
+      MiniGun 1_2: 5596061935426030787
+      MiniGun 1_20: -7429477417749864186
+      MiniGun 1_21: -7389724504362538714
+      MiniGun 1_22: 1696825121510631238
+      MiniGun 1_23: 7296055727217803139
+      MiniGun 1_24: -6659058420777385398
+      MiniGun 1_25: -6968236380011133275
+      MiniGun 1_26: 7364685937623233192
+      MiniGun 1_27: 8281687636635435093
+      MiniGun 1_28: 4364369733164851556
+      MiniGun 1_29: 7703483813069406492
+      MiniGun 1_3: 6823613328349420793
+      MiniGun 1_30: 6034907602104165296
+      MiniGun 1_31: 1232784491750983966
+      MiniGun 1_32: 8428915219745958592
+      MiniGun 1_33: 1418493622386302711
+      MiniGun 1_34: -2919781269055827160
+      MiniGun 1_4: 1977771177351134030
+      MiniGun 1_5: -6174855009109943277
+      MiniGun 1_6: -4572884665656427377
+      MiniGun 1_7: -5040655864421209138
+      MiniGun 1_8: -720856059770192697
+      MiniGun 1_9: 9018314887971029745
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

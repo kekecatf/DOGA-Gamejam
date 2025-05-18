@@ -21,7 +21,12 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            
+            // Bu nesneyi sahne değişimlerinde korumak için
             DontDestroyOnLoad(gameObject);
+            
+            // PersistentObject tag'i ekle - yeniden başlatma için gerekli
+            gameObject.tag = "PersistentObject";
         }
         else
         {

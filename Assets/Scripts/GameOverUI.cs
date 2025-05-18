@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameOverUI : MonoBehaviour
 {
@@ -54,14 +55,64 @@ public class GameOverUI : MonoBehaviour
     // Restart butonuna tıklandığında çağrılacak
     public void RestartGame()
     {
+        Debug.Log("Oyun yeniden başlatılıyor... Tüm veriler sıfırlanacak.");
+        
+        // PlayerPrefs üzerinden isteğe bağlı sıfırlama
+        PlayerPrefs.DeleteKey("LastScore");
+        PlayerPrefs.DeleteKey("LastTime");
+        
+        // Player ve Enemy gibi statik verileri sıfırla
+        Player.isDead = false;
+        
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.RestartGame();
+            // Oyun verileri sıfırlanıyor
+            GameManager.Instance.ResetGameStats();
+            
+            // GameManager'ı temizle (isteğe bağlı)
+            // Eklenmemiş ise, kaldırılabilir, singleton olduğu için kendi kendini temizler
+            Destroy(GameManager.Instance.gameObject);
         }
-        else
+        
+        // Tüm aktif DontDestroyOnLoad objelerini temizle (isteğe bağlı)
+        GameObject[] persistentObjects = GameObject.FindGameObjectsWithTag("PersistentObject");
+        foreach (GameObject obj in persistentObjects)
         {
-            // GameManager yoksa doğrudan sahneyi yükle
-            SceneManager.LoadScene("GameScene");
+            Destroy(obj);
         }
+        
+        // Player nesnesini ve diğer kritik nesneleri her ihtimale karşı temizle
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Destroy(player);
+        }
+        
+        GameObject zeplin = GameObject.FindGameObjectWithTag("Zeplin");
+        if (zeplin != null)
+        {
+            Destroy(zeplin);
+        }
+        
+        // Tam yeniden başlatma için
+        Time.timeScale = 1.0f; // Oyun duraklatılmış olabilir, zamanı normale çevir
+        
+        // Ekranı temizleyip oyunu yeniden başlat
+        StartCoroutine(CompleteRestart());
+    }
+    
+    // Yeniden başlatma işlemini biraz geciktirip temiz bir şekilde başlat
+    private System.Collections.IEnumerator CompleteRestart()
+    {
+        // Geçiş animasyonu yapmak veya objelerinin yok edilmesini beklemek için kısa gecikme
+        yield return new WaitForSeconds(0.1f);
+        
+        // Sahneyi tekrar yükle
+        UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+        
+        // İsteğe bağlı: Sahne yüklendikten sonra bir kontrol daha yapılabilir
+        yield return new WaitForSeconds(0.5f);
+        
+        Debug.Log("Oyun tamamen yeniden başlatıldı!");
     }
 } 

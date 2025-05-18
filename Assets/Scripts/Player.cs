@@ -410,8 +410,56 @@ public class Player : MonoBehaviour
         else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
             horizontalInput = 1;
         
-        // Hareket yönünü kaydet
-        moveDirection = new Vector2(horizontalInput, verticalInput).normalized;
+        // Önceki hareket yönünü kaydet
+        Vector2 previousMoveDirection = moveDirection;
+        
+        // Yeni hareket yönünü hesapla
+        Vector2 targetDirection = new Vector2(horizontalInput, verticalInput).normalized;
+        
+        // Hareket yönü değişimini yumuşatma (lerp)
+        // Eğer hareket girişi varsa kademeli olarak hedef yöne yaklaş
+        if (targetDirection.sqrMagnitude > 0.01f)
+        {
+            // Daha yumuşak dönüş için kademeli geçiş faktörü
+            float smoothFactor = rotationSpeed * Time.deltaTime;
+            
+            // Ani dönüşleri sınırlamak için maksimum dönüş açısı
+            float maxTurnAngle = 120f * Time.deltaTime; // Saniyede maksimum 120 derece dönüş
+            
+            // Hedef açı hesapla
+            float targetAngle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg;
+            
+            // Mevcut açı hesapla
+            float currentAngle = Mathf.Atan2(previousMoveDirection.y, previousMoveDirection.x) * Mathf.Rad2Deg;
+            
+            // Açısal farkı hesapla (-180 ile 180 arasında)
+            float angleDiff = Mathf.DeltaAngle(currentAngle, targetAngle);
+            
+            // Açısal farkı sınırla
+            float clampedAngleDiff = Mathf.Clamp(angleDiff, -maxTurnAngle, maxTurnAngle);
+            
+            // Yeni açı hesapla
+            float newAngle = currentAngle + clampedAngleDiff;
+            
+            // Önceki yön sıfır ise (hareket yoksa) doğrudan hedef yöne dön
+            if (previousMoveDirection.sqrMagnitude < 0.01f)
+            {
+                moveDirection = targetDirection;
+            }
+            else
+            {
+                // Yeni yönü hesapla
+                moveDirection = new Vector2(Mathf.Cos(newAngle * Mathf.Deg2Rad), Mathf.Sin(newAngle * Mathf.Deg2Rad)).normalized;
+                
+                // Ek olarak hedef yöne doğru lerp yapalım (daha yumuşak geçiş)
+                moveDirection = Vector2.Lerp(moveDirection, targetDirection, smoothFactor * 0.5f);
+            }
+        }
+        else
+        {
+            // Girdi yoksa yavaşça hareket yönünü azalt
+            moveDirection = Vector2.Lerp(moveDirection, Vector2.zero, Time.deltaTime * 5f);
+        }
         
         // Pozisyonu güncelle
         transform.position += new Vector3(moveDirection.x, moveDirection.y, 0) * moveSpeed * Time.deltaTime;

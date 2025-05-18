@@ -30,12 +30,15 @@ public class Enemy : MonoBehaviour, IDamageable
     public Transform firePoint;       // Ateş noktası
     public float fireRate = 2f;       // Ateş hızı (saniyede kaç kez)
     private float nextFireTime = 0f;  // Bir sonraki ateş zamanı
+    public float initialStabilizationTime = 1.5f; // Düşman spawn olduktan sonra ateş etmeden önce geçecek süre
+    private float spawnTime; // Düşmanın spawn olduğu zaman
     
     [Header("Mesafe Ayarları")]
     public float minigunAttackRange = 8f;  // Minigun ile ateş etme mesafesi
     public float rocketAttackRange = 10f;  // Roket ile ateş etme mesafesi
     public float minigunSafeDistance = 6f; // Minigun için güvenli mesafe
     public float rocketSafeDistance = 8f;  // Roket için güvenli mesafe
+    public float minAttackDistance = 3f;   // Minimum saldırı mesafesi - çok yakınsa ateş etmez
     
     [Header("Hedef")]
     private Vector2 targetPosition = Vector2.zero;  // Hedef pozisyonu
@@ -55,6 +58,9 @@ public class Enemy : MonoBehaviour, IDamageable
     
     private void Start()
     {
+        // Spawn zamanını kaydet
+        spawnTime = Time.time;
+        
         // PlayerData referansını bul
         playerData = FindObjectOfType<PlayerData>();
         
@@ -95,6 +101,9 @@ public class Enemy : MonoBehaviour, IDamageable
         // Roket düşmanı için roket prefab kontrolü
         if (enemyType == EnemyType.Rocket)
         {
+            // Roket düşmanları için stabilizasyon süresini artır
+            initialStabilizationTime = 3.0f; // 3 saniye beklesin
+            
             // Roket prefabı atanmamışsa, Resources klasöründen yükle veya EnemyRocketPrefab içinden bul
             if (rocketPrefab == null)
             {
@@ -194,6 +203,20 @@ public class Enemy : MonoBehaviour, IDamageable
                     currentHealth = playerData.CalculateEnemyHealth() * 2; // Daha çok HP
                     damage = playerData.CalculateRocketDamage();
                     rocketDamage = damage;
+                    
+                    // Oyunun ilk dakikasında roket hasarını düşür
+                    float gameTime = Time.timeSinceLevelLoad;
+                    if (gameTime < 60.0f) // İlk 60 saniye
+                    {
+                        // Zamanla artan hasar (0'dan başlayıp %100'e)
+                        float damageMultiplier = Mathf.Clamp01(gameTime / 60.0f);
+                        int originalDamage = damage;
+                        damage = (int)(damage * (0.4f + damageMultiplier * 0.6f)); // %40-%100 arası hasar
+                        rocketDamage = damage;
+                        
+                        Debug.Log($"Oyunun ilk dakikası! Roket düşmanı hasarı azaltıldı: {originalDamage} -> {damage}");
+                    }
+                    
                     moveSpeed *= 0.6f; // En yavaş
                     // Atış hızını PlayerData'dan al
                     fireRate = playerData.CalculateRocketFireRate();
@@ -399,11 +422,16 @@ public class Enemy : MonoBehaviour, IDamageable
         float optimalDistance = enemyType == EnemyType.Minigun ? 8.0f : 12.0f;
         float minDistance = enemyType == EnemyType.Minigun ? 6.0f : 8.0f;
         
+        // Düşman tipine göre ateş etme mesafesi
+        float firingRange = enemyType == EnemyType.Minigun ? minigunAttackRange : rocketAttackRange;
+        
         // Zeplin hedefleniyorsa ateş mesafesini artır
         if (isTargetingZeplin)
         {
             // Zeplin'i daha uzaktan vurmak için
             optimalDistance = enemyType == EnemyType.Minigun ? 10.0f : 15.0f;
+            // Ateş menzilini de artır
+            firingRange *= 1.5f;
         }
         
         // Hedefe çok yakınsa kaç
@@ -445,24 +473,58 @@ public class Enemy : MonoBehaviour, IDamageable
             }
         }
         
-        // Ateş etme kontrolü - çok daha sık
+        // Ateş etme kontrolü - şartlar uygun mu kontrol et
         if (Time.time >= nextFireTime)
         {
-            // Zeplin'e karşı daha sık ateş etsin - 4x daha hızlı
-            float fireRateMultiplier = isTargetingZeplin ? 4.0f : 1.0f;
+            // Stabilizasyon süresi kontrolü - düşman yeni spawn olduysa ateş etme
+            bool isStabilized = (Time.time - spawnTime) >= initialStabilizationTime;
             
-            // Ateş et
-            if (enemyType == EnemyType.Minigun)
-            {
-                FireMinigun();
-            }
-            else // Rocket
-            {
-                FireRocket();
-            }
+            // Menzil kontrolü - düşman hedefe yeterince yakın mı?
+            bool isInFiringRange = distanceToTarget <= firingRange;
             
-            // Bir sonraki ateş zamanını ayarla
-            nextFireTime = Time.time + (1f / (fireRate * fireRateMultiplier));
+            // Minimum mesafe kontrolü - düşman hedefe çok yakın değil mi?
+            bool isNotTooClose = distanceToTarget >= minAttackDistance;
+            
+            // Ateş etme koşulları - hem stabilize olmuş hem de menzilde olmalı ve çok yakın olmamalı
+            if (isStabilized && isInFiringRange && isNotTooClose)
+            {
+                // Zeplin'e karşı daha sık ateş etsin - 4x daha hızlı
+                float fireRateMultiplier = isTargetingZeplin ? 4.0f : 1.0f;
+                
+                // Ateş et
+                if (enemyType == EnemyType.Minigun)
+                {
+                    FireMinigun();
+                }
+                else // Rocket
+                {
+                    FireRocket();
+                }
+                
+                // Bir sonraki ateş zamanını ayarla
+                nextFireTime = Time.time + (1f / (fireRate * fireRateMultiplier));
+            }
+            else
+            {
+                // Ateş etme koşulları sağlanmadı
+                if (!isStabilized && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"{enemyType} düşmanı henüz stabilize olmadı, ateş edilmiyor. " +
+                              $"Kalan süre: {initialStabilizationTime - (Time.time - spawnTime):F1} saniye");
+                }
+                
+                if (!isInFiringRange && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"{enemyType} düşmanı menzil dışında, ateş edilmiyor. " +
+                              $"Mesafe: {distanceToTarget:F1}, Gereken menzil: {firingRange:F1}");
+                }
+                
+                if (!isNotTooClose && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"{enemyType} düşmanı hedefe çok yakın, ateş edilmiyor. " +
+                              $"Mesafe: {distanceToTarget:F1}, Minimum mesafe: {minAttackDistance:F1}");
+                }
+            }
         }
     }
     
@@ -573,6 +635,20 @@ public class Enemy : MonoBehaviour, IDamageable
                 actualDamage = (int)(actualDamage * 4.0f); // 4x fazla hasar
             }
             
+            // Oyunun ilk 10 saniyesindeyse hasarı ve hızı azalt (oyun başında tek atmasın diye)
+            float gameTime = Time.timeSinceLevelLoad;
+            if (gameTime < 10.0f)
+            {
+                // Oyunun ilk anlarında hasar ve hız azalır
+                float timeMultiplier = Mathf.Clamp01(gameTime / 10.0f); // 0'dan 1'e
+                actualDamage = (int)(actualDamage * timeMultiplier * 0.5f); // En fazla normal hasarın %50'si 
+                rocketComponent.speed *= (0.5f + timeMultiplier * 0.5f); // %50-%100 arası hız
+                rocketComponent.turnSpeed *= (0.4f + timeMultiplier * 0.6f); // %40-%100 arası dönüş hızı
+                
+                Debug.Log($"Oyunun ilk 10 saniyesi! Roket hasarı ve hızı azaltıldı. " +
+                          $"Hasar: {actualDamage}, Hız çarpanı: {0.5f + timeMultiplier * 0.5f:F2}");
+            }
+            
             // Hasar değerini ayarla
             rocketComponent.damage = actualDamage;
             
@@ -595,6 +671,10 @@ public class Enemy : MonoBehaviour, IDamageable
     // Hedef pozisyonunu güncelle
     private void UpdateTargetPosition()
     {
+        // Hedefi güncellemeden önce hedefin mevcut konumunu kaydet
+        Vector2 previousTargetPosition = targetPosition;
+        bool hadTarget = targetTransform != null;
+        
         // Her zaman önce Zeplin'i hedef almaya çalış
         Zeplin zeplin = FindObjectOfType<Zeplin>();
         if (zeplin != null)
@@ -620,6 +700,50 @@ public class Enemy : MonoBehaviour, IDamageable
             if (player != null)
             {
                 targetTransform = player.transform;
+                
+                // Oyunun başında roket düşmanları için daha uzak mesafeyi tercih et
+                if (enemyType == EnemyType.Rocket)
+                {
+                    float gameTime = Time.timeSinceLevelLoad;
+                    if (gameTime < 15.0f) // İlk 15 saniye
+                    {
+                        // Mevcut pozisyonumuzu al
+                        Vector2 currentPos = transform.position;
+                        
+                        // Oyuncunun pozisyonunu al
+                        Vector2 playerPos = player.transform.position;
+                        
+                        // Oyuncuya olan yön vektörünü hesapla
+                        Vector2 directionToPlayer = (playerPos - currentPos).normalized;
+                        
+                        // Tercih edilen minimum mesafe (zaman geçtikçe azalır)
+                        float minPreferredDistance = Mathf.Lerp(15f, 5f, gameTime / 15.0f);
+                        
+                        // Oyuncuya olan mevcut mesafe
+                        float currentDistance = Vector2.Distance(currentPos, playerPos);
+                        
+                        // Eğer çok yakınsa, daha uzakta bir hedef belirle
+                        if (currentDistance < minPreferredDistance)
+                        {
+                            // Oyuncudan uzakta bir hedef noktası belirle
+                            Vector2 awayFromPlayer = currentPos - directionToPlayer * (minPreferredDistance - currentDistance);
+                            
+                            // Hedef olarak bu noktayı kullan
+                            targetPosition = awayFromPlayer;
+                            
+                            // Debug.Log mesajıyla durumu belirt
+                            if (Time.frameCount % 60 == 0) // Saniyede bir
+                            {
+                                Debug.Log($"Roket düşmanı oyunun başında oyuncudan uzak duruyor. " +
+                                          $"Mevcut mesafe: {currentDistance:F1}, Tercih edilen mesafe: {minPreferredDistance:F1}");
+                            }
+                            
+                            return; // Fonksiyondan çık
+                        }
+                    }
+                }
+                
+                // Normal durumlarda oyuncuyu hedef al
                 targetPosition = player.transform.position;
             }
         }
