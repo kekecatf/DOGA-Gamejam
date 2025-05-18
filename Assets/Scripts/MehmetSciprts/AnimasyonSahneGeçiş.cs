@@ -17,7 +17,7 @@ public class AnimasyonSahneGeçiş : MonoBehaviour
 
      public void AnimasyonBitti()
     {
-        SceneManager.LoadScene("Oynanis"); // Oyun sahnesinin adını buraya yaz
+        SceneManager.LoadScene("GameScene"); // Oyun sahnesinin adını buraya yaz
     }
 }
 
