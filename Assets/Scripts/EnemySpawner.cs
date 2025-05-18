@@ -402,9 +402,9 @@ public class EnemySpawner : MonoBehaviour
         // Sahnedeki düşmanları say
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
         
-        // Her düşman tipinin sayısını sıfırla
-        kamikazePrefab.currentCount = 0;
-        minigunPrefab.currentCount = 0;
+        // Her düşman tipinin sayısını sıfırla (null kontrolü ile)
+        if (kamikazePrefab != null) kamikazePrefab.currentCount = 0;
+        if (minigunPrefab != null) minigunPrefab.currentCount = 0;
         
         // Düşmanları tipine göre say
         foreach (GameObject enemy in enemies)
@@ -415,10 +415,10 @@ public class EnemySpawner : MonoBehaviour
                 switch (enemyComponent.enemyType)
                 {
                     case EnemyType.Kamikaze:
-                        kamikazePrefab.currentCount++;
+                        if (kamikazePrefab != null) kamikazePrefab.currentCount++;
                         break;
                     case EnemyType.Minigun:
-                        minigunPrefab.currentCount++;
+                        if (minigunPrefab != null) minigunPrefab.currentCount++;
                         break;
                 }
             }
@@ -428,14 +428,19 @@ public class EnemySpawner : MonoBehaviour
     // Toplam düşman sayısını döndür
     private int GetTotalEnemyCount()
     {
-        return kamikazePrefab.currentCount + minigunPrefab.currentCount;
+        // Null kontrolleri ekle
+        int kamikazeCount = (kamikazePrefab != null) ? kamikazePrefab.currentCount : 0;
+        int minigunCount = (minigunPrefab != null) ? minigunPrefab.currentCount : 0;
+        
+        return kamikazeCount + minigunCount;
     }
     
     // EnemySettings'e göre düşman tipini belirle
     private string DetermineEnemyType(EnemySettings settings)
     {
-        if (settings == kamikazePrefab) return "Kamikaze";
-        if (settings == minigunPrefab) return "Minigun";
+        if (settings == null) return "Bilinmeyen";
+        if (kamikazePrefab != null && settings == kamikazePrefab) return "Kamikaze";
+        if (minigunPrefab != null && settings == minigunPrefab) return "Minigun";
         return "Bilinmeyen";
     }
 }
@@ -455,10 +460,12 @@ public class EnemyTracker : MonoBehaviour
             switch (enemyType)
             {
                 case "Kamikaze":
-                    spawner.kamikazePrefab.currentCount--;
+                    if (spawner.kamikazePrefab != null) 
+                        spawner.kamikazePrefab.currentCount--;
                     break;
                 case "Minigun":
-                    spawner.minigunPrefab.currentCount--;
+                    if (spawner.minigunPrefab != null)
+                        spawner.minigunPrefab.currentCount--;
                     break;
             }
             

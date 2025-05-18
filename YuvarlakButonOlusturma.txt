@@ -1,0 +1,127 @@
+LEGACY BUTONLARI YUVARLAKLAŞTIRMA REHBERİ
+========================================
+
+Unity'nin eski UI sisteminde (Legacy UI/IMGUI) butonları yuvarlaklaştırmak için birkaç farklı yöntem kullanabilirsiniz:
+
+1. SPRITE KULLANARAK YUVARLAKLAŞTIRMA
+
+   a) Özel Buton Sprite'ı Hazırlama:
+      - Photoshop, GIMP veya benzeri bir programda yuvarlak kenarlı bir buton görseli hazırlayın
+      - Sprite'ı PNG formatında (şeffaf arka plan ile) kaydedin
+      - Sprite'ı Unity projenize import edin (Assets > Import New Asset)
+      
+   b) Sprite'ı Butona Uygulama:
+      - Button nesnesini seçin
+      - Inspector panelinde "Image (Script)" bileşenine gidin
+      - "Source Image" alanına hazırladığınız yuvarlak sprite'ı sürükleyin
+      - "Image Type" değerini "Sliced" olarak ayarlayın (9-slice özelliği için)
+      - Sprite Editor'da köşeleri ayarlayın (Sprite'a çift tıklayıp Border değerlerini düzenleyin)
+
+2. UNITY UI SPRITE EDITOR İLE 9-SLICE AYARLAMA
+
+   a) Mevcut bir sprite için:
+      - Sprite'ı seçin
+      - Inspector'da "Sprite Editor" butonuna tıklayın
+      - "Slice" menüsüne tıklayın
+      - "Type" olarak "Grid By Cell Size" veya "Automatic" seçin
+      - Köşe kenarlarını ayarlayın (genellikle 10-20 piksel yeterlidir)
+      - "Apply" butonuna tıklayın
+      - Sprite'ı butonunuza uygulayın
+
+3. UNITY-UI-ROUNDED-CORNERS PAKETİNİ KULLANMA (ÖNERİLEN YÖNTEM)
+
+   a) Paketi Unity projenize ekleyin:
+      - Package Manager'ı açın (Window > Package Manager)
+      - "+" butonuna tıklayın ve "Add package from git URL..." seçeneğini seçin
+      - Şu URL'yi girin: https://github.com/kirevdokimov/Unity-UI-Rounded-Corners.git
+      - "Add" butonuna tıklayın
+      
+   b) Paketi kullanarak yuvarlak köşeli buton oluşturma:
+      - Button nesnesine "ImageWithRoundedCorners" bileşenini ekleyin
+         * Button'u seçin
+         * Inspector'da "Add Component" butonuna tıklayın
+         * "ImageWithRoundedCorners" yazıp seçin
+      - "Radius" değerini istediğiniz yuvarlaklık oranına göre ayarlayın (ör: 10-20)
+      - Bu şekilde tüm köşeler aynı değerde yuvarlaklaştırılır
+      
+   c) Her köşe için farklı yuvarlaklık değeri belirlemek için:
+      - Button nesnesine "ImageWithIndependentRoundedCorners" bileşenini ekleyin
+      - "r" vektör değerini ayarlayın:
+         * x: Sol-üst köşe yuvarlaklığı
+         * y: Sağ-üst köşe yuvarlaklığı
+         * z: Sağ-alt köşe yuvarlaklığı
+         * w: Sol-alt köşe yuvarlaklığı
+
+   d) Runtime sırasında değişiklik yapmak için:
+      ```csharp
+      var roundedCorners = GetComponent<ImageWithRoundedCorners>();
+      roundedCorners.Radius = 25f; // Yuvarlaklık değerini değiştir
+      roundedCorners.Validate(); // Değişiklikleri derleme
+      roundedCorners.Refresh(); // Malzemeleri güncelleme
+      ```
+
+4. IMAGE COMPONENT İLE YUVARLAKLAŞTIRMA
+
+   a) Button nesnesinin alt bileşeni olan Image'ı ayarlama:
+      - Button nesnesini seçin
+      - Inspector'da "Image (Script)" bileşenine gidin
+      - "Image Type" değerini "Sliced" yapın
+      - "Sprite" olarak standart Unity buton sprite'ını seçin
+      - "Pixels Per Unit Multiplier" değerini arttırarak yumuşak köşeler elde edin
+
+5. MASK VE ROUNDED RECT KULLANMA
+
+   a) Mask bileşeni ile:
+      - Button'un parent objesi olarak yeni bir GameObject oluşturun
+      - Bu objeye "Mask" bileşeni ekleyin
+      - Mask için yuvarlak bir sprite atayın
+      - Button'u bu maskenin içine yerleştirin
+
+ÖRNEK UYGULAMA KODU:
+
+```csharp
+using UnityEngine;
+using UnityEngine.UI;
+
+public class RoundedButtonCreator : MonoBehaviour
+{
+    public void CreateRoundedButton()
+    {
+        // Yeni bir buton oluştur
+        GameObject buttonObj = new GameObject("RoundedButton");
+        Button button = buttonObj.AddComponent<Button>();
+        
+        // Image bileşeni ekle
+        Image image = buttonObj.AddComponent<Image>();
+        
+        // Butonun sprite'ını belirle (varsayılan Unity buton sprite'ı)
+        image.sprite = Resources.Load<Sprite>("UI/ButtonSprite");
+        
+        // Sprite'ı 9-slice olarak ayarla
+        image.type = Image.Type.Sliced;
+        
+        // Butonun boyutunu ayarla
+        RectTransform rectTransform = buttonObj.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(200, 50);
+        
+        // Canvas'a ekle
+        buttonObj.transform.SetParent(GameObject.FindObjectOfType<Canvas>().transform, false);
+        
+        // ImageWithRoundedCorners bileşenini ekle (Unity-UI-Rounded-Corners paketinden)
+        var roundedCorners = buttonObj.AddComponent<ImageWithRoundedCorners>();
+        roundedCorners.Radius = 15f;
+        roundedCorners.Refresh();
+    }
+}
+```
+
+6. CUSTOM BUTON ASSET'LERİ KULLANMA
+
+   Unity Asset Store'dan yuvarlak köşeli buton paketleri indirip kullanabilirsiniz:
+   - "Cartoon UI Pack" 
+   - "Clean and Minimalist UI Pack"
+   - "Flat UI Kit"
+   
+   Bu paketlerde hazır yuvarlak butonlar ve stiller bulunur.
+
+NOT: Modern UI geliştirmelerinde TextMeshPro (TMP) ve yeni UI Toolkit kullanmanızı öneririm. Bu sistemler daha gelişmiş stil ve yuvarlak köşe özellikleri sunar. 

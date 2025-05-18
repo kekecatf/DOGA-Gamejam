@@ -450,6 +450,21 @@ public class Player : MonoBehaviour
         // Rokete "Rocket" etiketini ata
         rocket.tag = "Rocket";
         
+        // Ekran titreşimi uygula - sadece roket için bir kez titreşim
+        if (ScreenShakeManager.Instance != null)
+        {
+            // Tek seferlik orta şiddetli titreşim - silah seviyesine göre şiddeti arttır
+            float intensity = 0.1f;
+            if (playerData != null && playerData.anaGemiRoketLevel > 1)
+            {
+                // Roket seviyesi arttıkça titreşim biraz daha artsın (0.02f artış)
+                intensity += (playerData.anaGemiRoketLevel * 0.02f);
+            }
+            
+            // Tek seferlik titreşim uygula (0.3 saniye)
+            ScreenShakeManager.Instance.ShakeOnce(intensity, 0.3f);
+        }
+        
         // Log that a rocket was fired
         Debug.Log("Roket fırlatıldı! (Hasar PlayerData'dan otomatik alınıyor)");
         
@@ -723,6 +738,8 @@ public class Player : MonoBehaviour
             // Debug log
             Debug.Log("Mermi oluşturuldu, her zaman firePoint +X yönünde ilerleyecek");
         }
+        
+        // Ekran titreşimini kaldırıldı - sadece roket için titreşim olacak
     }
     
     // Oyuncuya hasar verme metodu

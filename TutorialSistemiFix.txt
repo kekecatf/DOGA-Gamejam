@@ -1,0 +1,104 @@
+TUTORİAL SİSTEMİ HATA ÇÖZÜMÜ
+=========================
+
+HATA 1: Assets\Scripts\Player.cs(273,44): error CS0246: The type or namespace name 'TutorialManager' could not be found
+HATA 2: Assets\Scripts\GameInitializer.cs(36,30): error CS0246: The type or namespace name 'TutorialManager' could not be found
+
+SORUN AÇIKLAMASI:
+Player.cs ve GameInitializer.cs dosyalarında TutorialManager'a referanslar vardı, ancak TutorialManager.cs dosyası silindiği için bu referanslar hata veriyordu.
+
+YAPILAN DEĞİŞİKLİKLER:
+
+1. Player.cs dosyasında:
+   - Eski TutorialManager kodları kaldırıldı
+   - CreateSimpleTutorialPanel metodu kaldırıldı
+   - AddControlDescription yardımcı metodu kaldırıldı
+   - Yerine SimpleInstructionsManager kontrolü eklendi
+
+2. GameInitializer.cs dosyasında:
+   - TutorialManager referansları SimpleInstructionsManager ile değiştirildi
+   - tutorialManagerPrefab yerine instructionsManagerPrefab kullanıldı
+   - Obje isimleri "TutorialManager" yerine "InstructionsManager" olarak güncellendi
+
+ESKİ KOD (Player.cs):
+```csharp
+// Tutorial Manager kontrolü - eğer sahnede yoksa oluştur
+if (FindObjectOfType<TutorialManager>() == null)
+{
+    GameObject tutorialObj = new GameObject("TutorialManager");
+    TutorialManager tutorialManager = tutorialObj.AddComponent<TutorialManager>();
+    
+    // TutorialPanel'i dinamik olarak oluştur (basit bir versiyon)
+    CreateSimpleTutorialPanel(tutorialManager);
+    
+    Debug.Log("Player: Tutorial Manager oluşturuldu ve basit panel ayarlandı.");
+}
+```
+
+YENİ KOD (Player.cs):
+```csharp
+// SimpleInstructionsManager kontrolü - eğer sahnede yoksa oluştur
+if (FindObjectOfType<SimpleInstructionsManager>() == null)
+{
+    GameObject instructionsObj = new GameObject("InstructionsManager");
+    instructionsObj.AddComponent<SimpleInstructionsManager>();
+    Debug.Log("Player: SimpleInstructionsManager oluşturuldu.");
+}
+```
+
+ESKİ KOD (GameInitializer.cs):
+```csharp
+// Tutorial Manager için prefab referansı
+public GameObject tutorialManagerPrefab;
+
+// Tutorial Manager'ı oluştur (eğer oyun sahnesinde değilse)
+if (FindObjectOfType<TutorialManager>() == null)
+{
+    if (tutorialManagerPrefab != null)
+    {
+        Instantiate(tutorialManagerPrefab);
+        Debug.Log("GameInitializer: Tutorial Manager oluşturuldu.");
+    }
+    else
+    {
+        // TutorialManager prefabı atanmamışsa yeni bir GameObject oluştur
+        GameObject tutorialObj = new GameObject("TutorialManager");
+        tutorialObj.AddComponent<TutorialManager>();
+        Debug.Log("GameInitializer: Tutorial Manager prefabı atanmamış, yeni bir GameObject oluşturuldu.");
+    }
+}
+```
+
+YENİ KOD (GameInitializer.cs):
+```csharp
+// Instruction Manager için prefab referansı
+public GameObject instructionsManagerPrefab;
+
+// Instructions Manager'ı oluştur (eğer oyun sahnesinde değilse)
+if (FindObjectOfType<SimpleInstructionsManager>() == null)
+{
+    if (instructionsManagerPrefab != null)
+    {
+        Instantiate(instructionsManagerPrefab);
+        Debug.Log("GameInitializer: SimpleInstructionsManager oluşturuldu.");
+    }
+    else
+    {
+        // SimpleInstructionsManager prefabı atanmamışsa yeni bir GameObject oluştur
+        GameObject instructionsObj = new GameObject("InstructionsManager");
+        instructionsObj.AddComponent<SimpleInstructionsManager>();
+        Debug.Log("GameInitializer: SimpleInstructionsManager prefabı atanmamış, yeni bir GameObject oluşturuldu.");
+    }
+}
+```
+
+KULLANIM:
+Oyunu normal şekilde çalıştırabilirsiniz. Hem Player sınıfı hem de GameInitializer artık TutorialManager yerine SimpleInstructionsManager kullanıyor. SimpleInstructionsManager bir GameObject'e eklenmiş olmalıdır veya Player/GameInitializer sınıfları onu otomatik ekleyecektir.
+
+HızlıKurulumRehberi.txt dosyasındaki talimatları izleyerek SimpleInstructionsManager'ı ekleyebilirsiniz:
+
+1. Boş bir GameObject oluşturun ve adını "InstructionsManager" yapın
+2. SimpleInstructionsManager bileşenini ekleyin
+3. Sahneyi kaydedin ve oyunu başlatın
+
+SimpleInstructionsManager, tüm metin ve canvas öğelerini otomatik oluşturacak şekilde tasarlanmıştır. 

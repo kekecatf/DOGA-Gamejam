@@ -10,6 +10,7 @@ public class GameOverUI : MonoBehaviour
     public Text killedEnemyText;
     public Text gameTimeText;
     public Button restartButton;
+    public Button anaMenuButton; // Ana menüye dönmek için yeni buton
     
     private void Start()
     {
@@ -51,6 +52,30 @@ public class GameOverUI : MonoBehaviour
         {
             restartButton.onClick.AddListener(RestartGame);
         }
+        
+        // Ana Menü butonuna tıklama olayı ekle
+        if (anaMenuButton != null)
+        {
+            anaMenuButton.onClick.AddListener(ReturnToMainMenu);
+        }
+    }
+    
+    // Ana menüye dönmek için çağrılacak metot
+    public void ReturnToMainMenu()
+    {
+        Debug.Log("Ana menüye dönülüyor...");
+        
+        // Tüm statik değişkenleri sıfırla
+        ResetAllStaticVariables();
+        
+        // Tüm DontDestroyOnLoad objelerini temizle
+        DestroyAllPersistentObjects();
+        
+        // Zaman ölçeğini normale çevir
+        Time.timeScale = 1.0f;
+        
+        // Ana menü sahnesini yükle
+        SceneManager.LoadScene("AnaMenu");
     }
     
     // Restart butonuna tıklandığında çağrılacak

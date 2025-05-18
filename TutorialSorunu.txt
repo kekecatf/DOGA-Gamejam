@@ -1,0 +1,59 @@
+TUTORIAL MESAJI SORUNU - ÇÖZÜM REHBERİ
+======================================
+
+SORUN:
+Ekranın ortasında halen bir tutorial bilgisi görünüyor ve bu SimpleInstructionsManager tarafından otomatik oluşturulan mesajlardan kaynaklanıyor.
+
+NEDEN BU SORUNU YAŞIYORSUNUZ:
+1. TutorialManager.cs script'ini silmenize rağmen, birden fazla yerden aynı anda SimpleInstructionsManager objesi oluşuyor.
+2. Hem Player.cs hem de GameInitializer.cs dosyaları kendi SimpleInstructionsManager'larını oluşturuyor.
+3. Ayrıca siz manuel olarak da bir InstructionsManager eklemişsiniz.
+
+İNCELEME SONUÇLARI:
+- SimpleInstructionsManager.cs kodunu incelediğimde, her instance'ın otomatik olarak şunları yaptığını gördüm:
+  * "InstructionsCanvas" adlı bir Canvas objesi oluşturuyor
+  * Bu Canvas üzerine kontrol açıklamalarını ekliyor
+  * Bu açıklamaları 5 saniye gösterip sonra fade-out ile kayboluyor
+
+SORUNUN ÇÖZÜMÜ:
+
+1. DUBLASYON SORUNUNU ÇÖZMELİYİZ
+   Unity sahnenizde birden fazla SimpleInstructionsManager objesi var. İlk olarak:
+   
+   a) Oyunu durdurun
+   b) Hierarchy panelinde "InstructionsCanvas", "InstructionsManager" veya "instructionsObj" isimli 
+      tüm objeleri silin
+   c) SimpleInstructionsManager bileşeni içeren tüm objeleri silin
+
+2. TEK VE TEMİZ KURULUM YAPIN
+   Boş sahneyle başlayarak, sadece bir tane SimpleInstructionsManager ekleyin:
+   
+   a) Hierarchy'de sağ tıklayıp "Create Empty" seçin
+   b) Bu boş objeyi "InstructionsManager" olarak adlandırın
+   c) Inspector'da Add Component > SimpleInstructionsManager seçin
+   
+3. KODLARI DÜZENLEYIN
+   
+   a) Player.cs dosyasındaki SimpleInstructionsManager kontrolünü kaldırın:
+      Bu kod bloğunu:
+      ```csharp
+      // SimpleInstructionsManager kontrolü - eğer sahnede yoksa oluştur
+      if (FindObjectOfType<SimpleInstructionsManager>() == null)
+      {
+          GameObject instructionsObj = new GameObject("InstructionsManager");
+          instructionsObj.AddComponent<SimpleInstructionsManager>();
+          Debug.Log("Player: SimpleInstructionsManager oluşturuldu.");
+      }
+      ```
+      Tamamen kaldırın.
+   
+   b) GameInitializer.cs dosyasındaki SimpleInstructionsManager kontrolünü kaldırın:
+      Benzer kod bloğunu bu dosyadan da tamamen kaldırın.
+
+4. SONUÇLARI TEST EDIN
+   
+   a) Oyunu çalıştırın
+   b) Artık yalnızca bir tane SimpleInstructionsManager olmalı
+   c) Talimatlar ekranın sol üst köşesinde görünmeli ve 5 saniye sonra kaybolmalı
+
+UNUTMAYIN: SimpleInstructionsManager'ı bir kez kurmanız ve sahnede tek bir instance bulundurmanız yeterlidir. Birden fazla olması sorunlara yol açabilir. 

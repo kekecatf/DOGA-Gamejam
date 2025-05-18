@@ -1,0 +1,96 @@
+ENEMYSPAWNER NULL REFERENCE HATA ÇÖZÜMÜ
+==========================================
+
+ALINAN HATA:
+```
+NullReferenceException: Object reference not set to an instance of an object
+EnemySpawner.GetTotalEnemyCount () (at Assets/Scripts/EnemySpawner.cs:431)
+EnemySpawner.UpdateWaveSystem () (at Assets/Scripts/EnemySpawner.cs:180)
+EnemySpawner.Update () (at Assets/Scripts/EnemySpawner.cs:127)
+```
+
+SORUNUN NEDENİ:
+Bu hata, EnemySpawner sınıfında kamikazePrefab veya minigunPrefab referanslarının null olmasından kaynaklanıyor. GetTotalEnemyCount metodu, bu referanslardan currentCount değerlerini okumaya çalışırken NullReferenceException hatası oluşuyor.
+
+YAPILAN DEĞİŞİKLİKLER:
+
+1. GetTotalEnemyCount metoduna null kontrolü eklendi:
+```csharp
+private int GetTotalEnemyCount()
+{
+    // Null kontrolleri ekle
+    int kamikazeCount = (kamikazePrefab != null) ? kamikazePrefab.currentCount : 0;
+    int minigunCount = (minigunPrefab != null) ? minigunPrefab.currentCount : 0;
+    
+    return kamikazeCount + minigunCount;
+}
+```
+
+2. UpdateEnemyCounts metoduna null kontrolü eklendi:
+```csharp
+private void UpdateEnemyCounts()
+{
+    // Sahnedeki düşmanları say
+    GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    
+    // Her düşman tipinin sayısını sıfırla (null kontrolü ile)
+    if (kamikazePrefab != null) kamikazePrefab.currentCount = 0;
+    if (minigunPrefab != null) minigunPrefab.currentCount = 0;
+    
+    // Düşmanları tipine göre say
+    foreach (GameObject enemy in enemies)
+    {
+        Enemy enemyComponent = enemy.GetComponent<Enemy>();
+        if (enemyComponent != null)
+        {
+            switch (enemyComponent.enemyType)
+            {
+                case EnemyType.Kamikaze:
+                    if (kamikazePrefab != null) kamikazePrefab.currentCount++;
+                    break;
+                case EnemyType.Minigun:
+                    if (minigunPrefab != null) minigunPrefab.currentCount++;
+                    break;
+            }
+        }
+    }
+}
+```
+
+3. EnemyTracker sınıfının OnDestroy metoduna null kontrolü eklendi:
+```csharp
+private void OnDestroy()
+{
+    // Spawner hala varsa sayacı azalt
+    if (spawner != null)
+    {
+        // Düşman tipine göre sayacı azalt
+        switch (enemyType)
+        {
+            case "Kamikaze":
+                if (spawner.kamikazePrefab != null) 
+                    spawner.kamikazePrefab.currentCount--;
+                break;
+            case "Minigun":
+                if (spawner.minigunPrefab != null)
+                    spawner.minigunPrefab.currentCount--;
+                break;
+        }
+        // ...
+    }
+}
+```
+
+4. DetermineEnemyType metoduna null kontrolü eklendi:
+```csharp
+private string DetermineEnemyType(EnemySettings settings)
+{
+    if (settings == null) return "Bilinmeyen";
+    if (kamikazePrefab != null && settings == kamikazePrefab) return "Kamikaze";
+    if (minigunPrefab != null && settings == minigunPrefab) return "Minigun";
+    return "Bilinmeyen";
+}
+```
+
+ÇÖZÜM NASIL ÇALIŞIYOR:
+Bu değişiklikler sayesinde, EnemySpawner sınıfı artık kamikazePrefab veya minigunPrefab referanslarının null olması durumunda düzgün çalışacak. Her metotta doğru null kontrolleri eklenerek NullReferenceException hatası önlendi. 

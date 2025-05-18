@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 // GameInitializer - Oyun başlatıcı script
 // Bu script oyun başladığında gerekli yöneticileri ve bileşenleri oluşturur
@@ -26,9 +27,28 @@ public class GameInitializer : MonoBehaviour
     {
         Debug.Log("GameInitializer: Oyun yöneticileri başlatılıyor...");
         
-        // RocketManager kaldırıldı - düşmanlar artık roket kullanmıyor
+        // GameManager oluştur
+        CheckOrCreateManager<GameManager>("GameManager");
         
-        // Diğer yöneticiler buraya eklenebilir
+        // Wave Manager (EnemySpawner) oluştur
+        CheckOrCreateManager<EnemySpawner>("EnemySpawner");
+        
+        Debug.Log("GameInitializer: Tüm oyun yöneticileri başlatıldı.");
+    }
+    
+    // Generic manager oluşturma yardımcı fonksiyonu
+    private T CheckOrCreateManager<T>(string managerName) where T : MonoBehaviour
+    {
+        T manager = FindObjectOfType<T>();
+        
+        if (manager == null)
+        {
+            GameObject managerObj = new GameObject(managerName);
+            manager = managerObj.AddComponent<T>();
+            Debug.Log($"GameInitializer: {managerName} oluşturuldu.");
+        }
+        
+        return manager;
     }
     
     // GameInitializer'ı başlatmak için statik metot
