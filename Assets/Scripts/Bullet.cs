@@ -49,6 +49,22 @@ public class Bullet : MonoBehaviour
             }
         }
         
+        // Düşman mermisiyse rengini kırmızı yap
+        if (isEnemyBullet)
+        {
+            // SpriteRenderer bileşenini al
+            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                // Rengi kırmızı olarak ayarla
+                spriteRenderer.color = Color.red;
+            }
+            else
+            {
+                Debug.LogWarning("Bullet'ta SpriteRenderer bileşeni bulunamadı, renk değiştirilemedi!");
+            }
+        }
+        
         // PlayerData referansını bul
         playerData = FindObjectOfType<PlayerData>();
         if (playerData == null)
