@@ -20,7 +20,6 @@ public class EnemySpawner : MonoBehaviour
     [Header("Düşman Prefabları")]
     public EnemySettings kamikazePrefab; // Kamikaze düşmanı
     public EnemySettings minigunPrefab; // Minigun düşmanı
-    public EnemySettings rocketPrefab; // Roket düşmanı
     
     [Header("Spawn Ayarları")]
     public float playAreaWidth = 15f; // Oyun alanı genişliği
@@ -112,7 +111,6 @@ public class EnemySpawner : MonoBehaviour
         // Her düşman tipinin ilk spawn zamanını ayarla
         kamikazePrefab.nextSpawnTime = Time.time + Random.Range(kamikazePrefab.minSpawnInterval, kamikazePrefab.maxSpawnInterval);
         minigunPrefab.nextSpawnTime = Time.time + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval);
-        rocketPrefab.nextSpawnTime = Time.time + Random.Range(rocketPrefab.minSpawnInterval, rocketPrefab.maxSpawnInterval);
     }
     
     private void Update()
@@ -255,87 +253,36 @@ public class EnemySpawner : MonoBehaviour
             // Bir sonraki spawn zamanını ayarla
             minigunPrefab.nextSpawnTime = currentTime + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval) / timeFactor;
         }
-        
-        if (currentTime >= rocketPrefab.nextSpawnTime && rocketPrefab.currentCount < rocketPrefab.maxCount * timeFactor)
-        {
-            SpawnEnemy(rocketPrefab);
-            // Bir sonraki spawn zamanını ayarla
-            rocketPrefab.nextSpawnTime = currentTime + Random.Range(rocketPrefab.minSpawnInterval, rocketPrefab.maxSpawnInterval) / timeFactor;
-        }
     }
     
     private void SpawnRandomEnemy()
     {
-        // Prefabları ağırlıklarına göre değerlendir
-        float totalWeight = kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight + rocketPrefab.spawnWeight;
+        // Ağırlıklı rastgele seçim yap
+        float totalWeight = kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight;
         float randomValue = Random.Range(0, totalWeight);
         
-        // Ağırlıklara göre düşman tipini seç
+        // Hangi düşman tipi spawn edilecek?
         if (randomValue < kamikazePrefab.spawnWeight)
         {
             SpawnEnemy(kamikazePrefab);
         }
-        else if (randomValue < kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight)
-        {
-            SpawnEnemy(minigunPrefab);
-        }
         else
         {
-            SpawnEnemy(rocketPrefab);
+            SpawnEnemy(minigunPrefab);
         }
     }
     
     private void SpawnEnemy(EnemySettings enemySettings)
     {
-        // Prefab kontrolü
-        if (enemySettings.prefab == null) return;
-        
-        // Roket düşmanı için özel kontrol
+        // Düşman tipini belirle
         string enemyType = DetermineEnemyType(enemySettings);
-        if (enemyType == "Roket")
+        
+        // Ön hazırlık kontrolü
+        GameObject prefabInstance = enemySettings.prefab;
+        if (prefabInstance == null)
         {
-            // EnemyRocketPrefab içindeki rocketPrefab değişkenini kontrol et
-            Enemy rocketEnemy = enemySettings.prefab.GetComponent<Enemy>();
-            if (rocketEnemy != null)
-            {
-                Debug.Log("Rocket Enemy prefabı spawn edilecek. Enemy bileşeni var, FireRocket metodu kullanılacak.");
-                
-                // RocketPrefab'ı bulmaya çalış
-                GameObject rocketPrefab = null;
-                
-                // Önce Resources klasöründen yüklemeyi dene
-                rocketPrefab = Resources.Load<GameObject>("Prefabs/RocketPrefab");
-                
-                // Bulunamazsa scene'de arama yap
-                if (rocketPrefab == null)
-                {
-                    GameObject[] allPrefabs = Resources.FindObjectsOfTypeAll<GameObject>();
-                    foreach (GameObject prefab in allPrefabs)
-                    {
-                        if (prefab.name == "RocketPrefab")
-                        {
-                            rocketPrefab = prefab;
-                            break;
-                        }
-                    }
-                }
-                
-                // RocketPrefab'ı atama
-                if (rocketPrefab != null)
-                {
-                    // RocketPrefab'ı düşmana ata
-                    rocketEnemy.rocketPrefab = rocketPrefab;
-                    Debug.Log("Rocket Enemy'ye RocketPrefab atandı: " + rocketPrefab.name);
-                }
-                else
-                {
-                    Debug.LogError("RocketPrefab bulunamadı! Roket düşmanı roket fırlatamayacak.");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Roket düşmanında Enemy bileşeni bulunamadı!");
-            }
+            Debug.LogError($"{enemyType} düşman prefabı null! Spawn edilemiyor.");
+            return;
         }
         
         // Spawn pozisyonu belirle
@@ -354,33 +301,6 @@ public class EnemySpawner : MonoBehaviour
         EnemyTracker tracker = enemy.AddComponent<EnemyTracker>();
         tracker.spawner = this;
         tracker.enemyType = enemyType;
-        
-        // Roket düşmanı için son bir kontrol daha
-        if (enemyType == "Roket")
-        {
-            Enemy rocketEnemyInstance = enemy.GetComponent<Enemy>();
-            if (rocketEnemyInstance != null && rocketEnemyInstance.rocketPrefab == null)
-            {
-                // Prefab'da rocketPrefab atanmış olsa bile instance'a kopyalanmamış olabilir
-                // Tekrar bulmaya çalış
-                GameObject rocketPrefab = Resources.Load<GameObject>("Prefabs/RocketPrefab");
-                if (rocketPrefab == null)
-                {
-                    // Prefabs klasöründen direkt yüklemeyi dene
-                    rocketPrefab = Resources.Load<GameObject>("RocketPrefab");
-                }
-                
-                if (rocketPrefab != null)
-                {
-                    rocketEnemyInstance.rocketPrefab = rocketPrefab;
-                    Debug.Log("Spawn edilen Roket düşmanına RocketPrefab atandı: " + rocketPrefab.name);
-                }
-                else
-                {
-                    Debug.LogError("RocketPrefab bulunamadı! Spawn edilen roket düşmanı roket fırlatamayacak.");
-                }
-            }
-        }
         
         Debug.Log($"{enemyType} düşmanı spawn edildi. Konum: {spawnPosition}");
     }
@@ -485,7 +405,6 @@ public class EnemySpawner : MonoBehaviour
         // Her düşman tipinin sayısını sıfırla
         kamikazePrefab.currentCount = 0;
         minigunPrefab.currentCount = 0;
-        rocketPrefab.currentCount = 0;
         
         // Düşmanları tipine göre say
         foreach (GameObject enemy in enemies)
@@ -501,9 +420,6 @@ public class EnemySpawner : MonoBehaviour
                     case EnemyType.Minigun:
                         minigunPrefab.currentCount++;
                         break;
-                    case EnemyType.Rocket:
-                        rocketPrefab.currentCount++;
-                        break;
                 }
             }
         }
@@ -512,7 +428,7 @@ public class EnemySpawner : MonoBehaviour
     // Toplam düşman sayısını döndür
     private int GetTotalEnemyCount()
     {
-        return kamikazePrefab.currentCount + minigunPrefab.currentCount + rocketPrefab.currentCount;
+        return kamikazePrefab.currentCount + minigunPrefab.currentCount;
     }
     
     // EnemySettings'e göre düşman tipini belirle
@@ -520,7 +436,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (settings == kamikazePrefab) return "Kamikaze";
         if (settings == minigunPrefab) return "Minigun";
-        if (settings == rocketPrefab) return "Roket";
         return "Bilinmeyen";
     }
 }
@@ -544,9 +459,6 @@ public class EnemyTracker : MonoBehaviour
                     break;
                 case "Minigun":
                     spawner.minigunPrefab.currentCount--;
-                    break;
-                case "Roket":
-                    spawner.rocketPrefab.currentCount--;
                     break;
             }
             

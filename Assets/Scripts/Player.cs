@@ -1,6 +1,8 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI; // UI bileşenleri için
-using UnityEngine.EventSystems; // Joystick için gerekli
+using UnityEngine.EventSystems; // Event sistemi için
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -73,6 +75,9 @@ public class Player : MonoBehaviour
     private int currentFrameIndex = 0;
     private bool isAnimationPlaying = false;
     
+    // Minigun buton durumu için değişken
+    private bool isMinigunButtonPressed = false;
+    
     private void Start()
     {
         // Oyuncu başlangıçta canlı
@@ -86,6 +91,51 @@ public class Player : MonoBehaviour
         if (playerData == null)
         {
             Debug.LogError("PlayerData bulunamadı! Sahnede PlayerData objesi olduğundan emin olun.");
+        }
+        
+        // Collider kontrolü ve ayarları
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider == null)
+        {
+            // Collider yoksa ekle
+            BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
+            boxCollider.isTrigger = false; // Fiziksel çarpışma için trigger kapalı
+            
+            // Sprite boyutuna uygun collider
+            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null && spriteRenderer.sprite != null)
+            {
+                // Sprite boyutuna göre collider boyutu ayarla (biraz küçült)
+                boxCollider.size = new Vector2(
+                    spriteRenderer.sprite.bounds.size.x * 0.8f,
+                    spriteRenderer.sprite.bounds.size.y * 0.8f
+                );
+            }
+            
+            Debug.Log("Player için BoxCollider2D eklendi (isTrigger=false).");
+        }
+        else
+        {
+            Debug.Log("Player'da mevcut bir Collider var. Tip: " + collider.GetType().Name + ", IsTrigger: " + collider.isTrigger);
+            
+            // Etiket kontrolü
+            if (string.IsNullOrEmpty(gameObject.tag) || gameObject.tag != "Player")
+            {
+                gameObject.tag = "Player";
+                Debug.Log("Player etiketi atandı.");
+            }
+        }
+        
+        // Rigidbody2D kontrolü
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f; // Yerçekimini kapat
+            rb.freezeRotation = true; // Rotasyonu dondur
+            rb.linearDamping = 3f; // Hareket direnci ekle
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            Debug.Log("Player için Rigidbody2D eklendi (gravityScale=0, freezeRotation=true).");
         }
         
         // Sprite Renderer bileşenini al
@@ -151,8 +201,29 @@ public class Player : MonoBehaviour
         // Minigun butonu kontrolü ve listener ekleme
         if (minigunButton != null)
         {
-            // Butona tıklama olayı ekle
-            minigunButton.onClick.AddListener(MobileFireButton);
+            // Butona tıklama olayını kaldır
+            minigunButton.onClick.RemoveAllListeners();
+            
+            // Pointer olaylarını eklemek için Event Trigger ekle veya al
+            EventTrigger eventTrigger = minigunButton.gameObject.GetComponent<EventTrigger>();
+            if (eventTrigger == null)
+            {
+                eventTrigger = minigunButton.gameObject.AddComponent<EventTrigger>();
+            }
+            
+            // PointerDown olayı ekle
+            EventTrigger.Entry pointerDownEvent = new EventTrigger.Entry();
+            pointerDownEvent.eventID = EventTriggerType.PointerDown;
+            pointerDownEvent.callback.AddListener((data) => { OnMinigunButtonDown(); });
+            eventTrigger.triggers.Add(pointerDownEvent);
+            
+            // PointerUp olayı ekle
+            EventTrigger.Entry pointerUpEvent = new EventTrigger.Entry();
+            pointerUpEvent.eventID = EventTriggerType.PointerUp;
+            pointerUpEvent.callback.AddListener((data) => { OnMinigunButtonUp(); });
+            eventTrigger.triggers.Add(pointerUpEvent);
+            
+            Debug.Log("Minigun butonu için sürekli ateş modu etkinleştirildi!");
         }
         else
         {
@@ -204,7 +275,7 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z) && Time.time >= nextFireTime)
         {
             FireBullet();
-            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown / 2 : 0.15f);
             Debug.Log("Z tuşu ile minigun ateşlendi!");
         }
         
@@ -220,7 +291,14 @@ public class Player : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) && Time.time >= nextFireTime)
         {
             FireBullet();
-            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown / 2 : 0.15f);
+        }
+        
+        // Eğer minigun butonu basılıysa sürekli ateş et
+        if (isMinigunButtonPressed && Time.time >= nextFireTime)
+        {
+            FireBullet();
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown / 2 : 0.15f);
         }
         
         // Roket fırlatma (R tuşu veya ekstra buton)
@@ -574,7 +652,28 @@ public class Player : MonoBehaviour
         }
     }
     
-    // Mobil ateş butonu için public metot
+    // Minigun butonu basıldığında çağrılan metot
+    public void OnMinigunButtonDown()
+    {
+        isMinigunButtonPressed = true;
+        
+        // İlk ateşi hemen başlat (eğer hazırsa)
+        if (Time.time >= nextFireTime)
+        {
+            FireBullet();
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown / 2 : 0.15f);
+            Debug.Log("Minigun butonu basıldı - sürekli ateş başladı!");
+        }
+    }
+    
+    // Minigun butonu bırakıldığında çağrılan metot
+    public void OnMinigunButtonUp()
+    {
+        isMinigunButtonPressed = false;
+        Debug.Log("Minigun butonu bırakıldı - ateş durduruldu!");
+    }
+    
+    // Mobil ateş butonu için public metot (eski metot - geriye dönük uyumluluk için)
     public void MobileFireButton()
     {
         // Eğer oyuncu ölmüşse devre dışı bırak
@@ -583,7 +682,7 @@ public class Player : MonoBehaviour
         if (Time.time >= nextFireTime)
         {
             FireBullet();
-            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown : 0.3f);
+            nextFireTime = Time.time + (playerData != null ? playerData.anaGemiMinigunCooldown / 2 : 0.15f);
             
             // Buton basıldığında görsel geri bildirim (opsiyonel)
             Debug.Log("Minigun butonu ile ateş edildi!");
@@ -629,8 +728,14 @@ public class Player : MonoBehaviour
     // Oyuncuya hasar verme metodu
     public void TakeDamage(int damage)
     {
+        Debug.Log($">>> Player.TakeDamage çağrıldı - Hasar: {damage}, İnvincible: {isInvincible}, Invincibility Timer: {invincibilityTimer:F2}");
+        
         // Eğer oyuncu zaten ölmüşse işlem yapma
-        if (isDead) return;
+        if (isDead)
+        {
+            Debug.Log("Oyuncu zaten ölü, hasar yoksayıldı!");
+            return;
+        }
         
         // Eğer dokunulmazlık süresi aktifse hasarı yoksay
         if (isInvincible)
@@ -650,8 +755,21 @@ public class Player : MonoBehaviour
             }
         }
         
+        // Önceki sağlık değerini kaydet
+        int previousHealth = playerData.anaGemiSaglik;
+        
         // PlayerData'daki sağlık değerini azalt
         playerData.anaGemiSaglik -= damage;
+        
+        // Hasar uygulandığını doğrulama
+        if (previousHealth == playerData.anaGemiSaglik)
+        {
+            Debug.LogError($"Hasar uygulanamadı! Önceki Sağlık: {previousHealth}, Şimdiki Sağlık: {playerData.anaGemiSaglik}, Hasar: {damage}");
+        }
+        else
+        {
+            Debug.Log($"Oyuncuya {damage} hasar uygulandı! Önceki Sağlık: {previousHealth}, Yeni Sağlık: {playerData.anaGemiSaglik}");
+        }
         
         // Hasar efekti göster (eğer varsa)
         if (damageEffect != null)
@@ -662,11 +780,10 @@ public class Player : MonoBehaviour
         // Sağlık UI'ını güncelle
         UpdateHealthUI();
         
-        Debug.Log("Oyuncu hasar aldı: " + damage + " hasar! Kalan sağlık: " + playerData.anaGemiSaglik + "/" + maxHealth);
-        
         // Dokunulmazlık süresini başlat
         isInvincible = true;
         invincibilityTimer = invincibilityTime;
+        Debug.Log($"Oyuncu için dokunulmazlık başlatıldı. Süre: {invincibilityTimer:F2}s");
         
         // Eğer sağlık sıfırın altına düştüyse
         if (playerData.anaGemiSaglik <= 0)
@@ -752,6 +869,15 @@ public class Player : MonoBehaviour
     // Çarpışma algılama - Trigger için
     void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log("Player OnTriggerEnter2D: " + gameObject.name + " triggered with " + other.gameObject.name + " (Tag: " + other.tag + ")");
+        
+        // Eğer oyuncu dokunulmazsa veya ölüyse çarpışmaları yoksay
+        if (isInvincible || isDead)
+        {
+            Debug.Log("Player dokunulmaz/ölü durumda, çarpışma yoksayıldı!");
+            return;
+        }
+        
         // Düşman ile çarpışma kontrolü
         if (other.CompareTag("Enemy"))
         {
@@ -762,21 +888,49 @@ public class Player : MonoBehaviour
             if (enemy != null)
             {
                 damage = enemy.GetDamageAmount();
+                
+                // Hasar uygulamadan önce log
+                Debug.Log("Düşman Player'a çarpmak üzere (Trigger). Düşman tipi: " + enemy.enemyType + ", Hasar: " + damage);
             }
             
             // Oyuncuya hasar ver
             TakeDamage(damage);
             
-            // Düşmanı yok et
-            Destroy(other.gameObject);
-            
-            Debug.Log("Düşman oyuncuya çarptı ve yok edildi!");
+            // Kamikaze düşmanlarının çarpınca yok edilmesi
+            if (enemy != null && enemy.enemyType == EnemyType.Kamikaze)
+            {
+                Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek!");
+                Destroy(other.gameObject);
+            }
+        }
+        
+        // Düşman roketi ile çarpışma
+        if (other.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = other.GetComponent<RocketProjectile>();
+            if (rocket != null && rocket.isEnemyRocket)
+            {
+                TakeDamage(rocket.damage);
+                Debug.Log("Oyuncu düşman roketiyle vuruldu! Hasar: " + rocket.damage);
+                
+                // Roketi patlat veya yok et
+                Destroy(other.gameObject);
+            }
         }
     }
     
     // Çarpışma algılama - Fiziksel çarpışma için
     void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("Player OnCollisionEnter2D: " + gameObject.name + " collided with " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        
+        // Eğer oyuncu dokunulmazsa veya ölüyse çarpışmaları yoksay
+        if (isInvincible || isDead)
+        {
+            Debug.Log("Player dokunulmaz/ölü durumda, çarpışma yoksayıldı! (Collision)");
+            return;
+        }
+        
         // Düşman ile çarpışma kontrolü
         if (collision.gameObject.CompareTag("Enemy"))
         {
@@ -787,15 +941,20 @@ public class Player : MonoBehaviour
             if (enemy != null)
             {
                 damage = enemy.GetDamageAmount();
+                
+                // Hasar uygulamadan önce log
+                Debug.Log("Düşman Player'a çarptı (Collision). Düşman tipi: " + enemy.enemyType + ", Hasar: " + damage);
             }
             
             // Oyuncuya hasar ver
             TakeDamage(damage);
             
-            // Düşmanı yok et
-            Destroy(collision.gameObject);
-            
-            Debug.Log("Düşman oyuncuya çarptı ve yok edildi!");
+            // Kamikaze düşmanlarının çarpınca yok edilmesi
+            if (enemy != null && enemy.enemyType == EnemyType.Kamikaze)
+            {
+                Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek! (Collision)");
+                Destroy(collision.gameObject);
+            }
         }
     }
     

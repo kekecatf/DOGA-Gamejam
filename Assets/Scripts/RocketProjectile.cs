@@ -2,15 +2,17 @@ using UnityEngine;
 
 public class RocketProjectile : MonoBehaviour
 {
-    public float speed = 5f;                  // Roket hızı
+    public float speed = 8f;                  // Roket hızı
     public float turnSpeed = 3f;              // Dönüş hızı
-    public float lifetime = 8f;               // Roketin ömrü (saniye) - artırıldı
+    public float lifetime = 5f;               // Roketin ömrü (saniye) - artırıldı
     public float activationDelay = 0.5f;      // Hedef takibine başlamadan önceki gecikme
     public float explosionRadius = 2f;        // Patlama yarıçapı
-    public int damage = 50;                   // Hasar miktarı
+    public int damage = 15;                   // Hasar miktarı
     public bool isEnemyRocket = false;        // Düşman roketi mi?
     public Vector3 initialDirection = Vector3.right; // Başlangıç ateş yönü
     public float maxDistance = 50f;           // Maksimum menzil
+    public float minTargetSearchCooldown = 0.2f; // Hedef arama arasındaki minimum süre
+    public Transform sourceTransform = null;   // Roketi ateşleyen obje (self-collision önlemek için)
     
     public GameObject explosionEffect;        // Patlama efekti prefabı
     
@@ -21,6 +23,9 @@ public class RocketProjectile : MonoBehaviour
     private float lastTargetSearchTime = 0f;  // Son hedef arama zamanı
     private float targetSearchInterval = 0.5f; // Hedef arama sıklığı
     private Vector3 startPosition;            // Başlangıç pozisyonu
+    private bool isExploding = false;         // Patlama gerçekleşiyor mu?
+    private Rigidbody2D rb;                   // Rigidbody referansı
+    private bool isInitialized = false;       // Başlatılma durumu
     
     private void Start()
     {
@@ -33,7 +38,7 @@ public class RocketProjectile : MonoBehaviour
         gameObject.tag = "Rocket";
         
         // Rigidbody ayarlarını kontrol et
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
         if (rb == null)
         {
             rb = gameObject.AddComponent<Rigidbody2D>();
@@ -45,6 +50,7 @@ public class RocketProjectile : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic; // Kinematic kullan
         rb.interpolation = RigidbodyInterpolation2D.None;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        rb.sleepMode = RigidbodySleepMode2D.NeverSleep; // Asla uyku moduna geçmesin
         
         // Collider kontrolü
         Collider2D collider = GetComponent<Collider2D>();
@@ -53,6 +59,15 @@ public class RocketProjectile : MonoBehaviour
             // Collider yoksa ekle (Rocket genelde daha uzun olduğu için BoxCollider kullan)
             BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
             boxCollider.isTrigger = false; // Fiziksel çarpışma için trigger kapalı
+            
+            // Sprite varsa box collideri sprite boyutuna ayarla
+            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null && spriteRenderer.sprite != null)
+            {
+                boxCollider.size = spriteRenderer.sprite.bounds.size;
+                boxCollider.offset = Vector2.zero;
+            }
+            
             Debug.Log("[RocketProjectile] Rocket için BoxCollider2D eklendi (isTrigger=false).");
         }
         else
@@ -90,6 +105,15 @@ public class RocketProjectile : MonoBehaviour
             {
                 // Düşman roketi hasarı
                 damage = playerData.CalculateRocketDamage();
+                
+                // Oyunun başında roket hasarını azalt (oyuncu deneyimi için)
+                float gameTime = Time.timeSinceLevelLoad;
+                if (gameTime < 15.0f)
+                {
+                    float damageReduction = Mathf.Lerp(0.3f, 1.0f, gameTime / 15.0f);
+                    damage = Mathf.FloorToInt(damage * damageReduction);
+                    Debug.Log($"[RocketProjectile] Oyunun başı için roket hasarı azaltıldı: {damage} (Azaltma: {damageReduction:F2})");
+                }
             }
             else
             {
@@ -101,24 +125,32 @@ public class RocketProjectile : MonoBehaviour
         // İlk hedefi bul
         FindTarget();
         
+        // İlk hızını ayarla ve harekete başla
+        rb.linearVelocity = transform.right * speed;
+        
+        // Başlatma tamamlandı
+        isInitialized = true;
+        
         // Debug bilgisi
         Debug.Log($"[RocketProjectile] Rocket oluşturuldu. Düşman roketi: {isEnemyRocket}, Hasar: {damage}, " +
-                 $"Rigidbody2D: {rb != null}, Collider: {collider != null}, isTrigger: {(collider != null ? collider.isTrigger : false)}");
+                 $"Rigidbody2D: {rb != null}, Velocity: {rb.linearVelocity.magnitude:F2}");
     }
     
     private void Update()
     {
+        // Eğer patlama modundaysa güncellemeleri durdur
+        if (isExploding) return;
+        
+        // Başlatma tamamlanmadıysa bekle
+        if (!isInitialized) return;
+        
         // Menzil kontrolü - maksimum mesafeyi aştıysa yok et
         if (Vector3.Distance(transform.position, startPosition) > maxDistance)
         {
             Debug.Log($"Roket maksimum menzili aştı: {Vector3.Distance(transform.position, startPosition):F2} > {maxDistance}");
             Explode();
-            Destroy(gameObject);
             return;
         }
-        
-        // Roketi hareket ettir
-        MoveRocket();
         
         // Takip başladı mı kontrolü
         if (!isTracking && Time.time >= activationTime)
@@ -126,17 +158,38 @@ public class RocketProjectile : MonoBehaviour
             isTracking = true;
         }
         
-        // Oyuncu roketleri için periyodik olarak en yakın hedefi güncelle
+        // Hedef arama güncellemesi
+        UpdateTargetSearch();
+        
+        // Roketi hareket ettir
+        MoveRocket();
+    }
+    
+    private void UpdateTargetSearch()
+    {
+        // Hedef aramalarını zaman aralıklarıyla sınırla
+        if (Time.time < lastTargetSearchTime + minTargetSearchCooldown) return;
+        
+        // Hedef kayboldu veya hedefleme zamanı geldi
+        bool shouldSearchTarget = false;
+        
+        // Oyuncu roketleri daha sık hedef arar
         if (!isEnemyRocket && isTracking && Time.time >= lastTargetSearchTime + targetSearchInterval)
+        {
+            shouldSearchTarget = true;
+        }
+        
+        // Düşman roketi için hedef kayboldu veya uygun değil
+        if (isEnemyRocket && (target == null || (Player.isDead && target.CompareTag("Player"))))
+        {
+            shouldSearchTarget = true;
+        }
+        
+        // Gerekiyorsa hedefi güncelle
+        if (shouldSearchTarget)
         {
             FindTarget();
             lastTargetSearchTime = Time.time;
-        }
-        
-        // Düşman roketi için hedef öldüyse veya yok olduysa hedefi güncelle
-        if (isEnemyRocket && (target == null || (Player.isDead && target.CompareTag("Player"))))
-        {
-            FindTarget();
         }
     }
     
@@ -171,6 +224,8 @@ public class RocketProjectile : MonoBehaviour
             
             foreach (GameObject enemy in enemies)
             {
+                if (enemy == null) continue;
+                
                 float distance = Vector2.Distance(transform.position, enemy.transform.position);
                 
                 if (distance < closestDistance)
@@ -193,41 +248,36 @@ public class RocketProjectile : MonoBehaviour
     
     private void MoveRocket()
     {
-        // Eğer Rigidbody2D ile hareket ettiriliyorsa ve hâlâ hareket ediyorsa
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        bool isUsingRigidbody = (rb != null && rb.linearVelocity.sqrMagnitude > 0.1f);
-        
-        // Rigidbody2D kullanılıyorsa ve roket daha yeni atıldıysa (aktivasyon süresinden önce)
-        if (isUsingRigidbody && Time.time < activationTime)
+        // İleri doğru hareketi her zaman sağla (aktivasyon öncesi initialDirection'a göre)
+        if (Time.time < activationTime)
         {
-            // Aktivasyon öncesi Rigidbody2D ile düz hareket
-            if (rb.linearVelocity.sqrMagnitude < 0.1f)
+            // Aktivasyon öncesinde düz hareket
+            if (rb != null && rb.linearVelocity.sqrMagnitude < 0.1f)
             {
-                // Eğer hız çok düşükse (0'a yakınsa), başlangıç hızını tekrar ayarla
                 rb.linearVelocity = initialDirection * speed;
-                Debug.Log($"Roket hızı yeniden ayarlandı: {rb.linearVelocity}, Zaman: {Time.time:F2}");
             }
             return;
         }
         
-        // Rigidbody2D hareketi bittiyse veya kullanılmıyorsa manuel hareket et
-        if (!isUsingRigidbody)
+        // Rigidbody hareketini her zaman kontrol et
+        if (rb != null && rb.linearVelocity.sqrMagnitude < 0.1f)
         {
-            // İleri doğru hareketi her zaman sağla (aktivasyon öncesi initialDirection'a göre)
-            if (Time.time < activationTime)
-            {
-                transform.Translate(initialDirection * speed * Time.deltaTime, Space.World);
-            }
-            else
-            {
-                // Aktivasyon sonrası transform.right yönünde hareket et
-                transform.Translate(Vector2.right * speed * Time.deltaTime, Space.Self);
-            }
+            // Hız düşükse yeniden ayarla
+            rb.linearVelocity = transform.right * speed;
         }
         
         // Eğer takip aktifse ve hedef varsa
         if (isTracking && target != null)
         {
+            // Hedefin hala var olduğunu kontrol et
+            if (!target.gameObject.activeInHierarchy)
+            {
+                // Hedef artık yok, yeniden ara
+                target = null;
+                FindTarget();
+                return;
+            }
+            
             // Dönüş hızını düşman/oyuncu roketine göre ayarla
             float actualTurnSpeed = turnSpeed;
             if (isEnemyRocket)
@@ -251,23 +301,29 @@ public class RocketProjectile : MonoBehaviour
             // Yumuşak dönüş uygula
             transform.Rotate(0, 0, -rotateAmount * actualTurnSpeed * Time.deltaTime * 100);
             
-            // Eğer Rigidbody2D kullanılıyorsa, hızın yönünü güncellemeliyiz
-            if (rb != null && isTracking && Time.time >= activationTime)
-            {
-                // Rigidbody2D hızını transform.right yönüne ayarla
-                rb.linearVelocity = transform.right * speed;
-            }
+            // Rigidbody hızını transform.right yönüne ayarla
+            rb.linearVelocity = transform.right * speed;
         }
-        else if (rb != null && Time.time >= activationTime && rb.linearVelocity.sqrMagnitude < 0.1f)
+        else
         {
-            // Hedef yok ve roket neredeyse durmuş, düz hareket ettir
+            // Hedef yoksa düz git
             rb.linearVelocity = transform.right * speed;
         }
     }
     
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Roket trigger çarpışma: " + other.gameObject.name + " (Tag: " + other.tag + "), Düşman Roketi: " + isEnemyRocket);
+        // *** ÖNEMLİ: Kendi kaynağımız olan Zeplin'le çarpışmayı engelle
+        if (!isEnemyRocket && sourceTransform != null && other.transform == sourceTransform)
+        {
+            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Trigger): " + other.gameObject.name);
+            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
+        }
+        
+        Debug.Log("Roket trigger ile çarpışma: " + other.gameObject.name + " (Tag: " + other.tag + ")");
+        
+        // Patlama sürecindeyse gereksiz çarpışmaları önle
+        if (isExploding) return;
         
         // Kendimizi yok etmeyelim (oyuncu roketi oyuncuya, düşman roketi düşmana çarpmasın)
         if ((isEnemyRocket && other.CompareTag("Enemy")) || 
@@ -276,8 +332,14 @@ public class RocketProjectile : MonoBehaviour
             return;
         }
         
+        // Roketler birbirine çarpmasın
+        if (other.CompareTag("Rocket"))
+        {
+            return;
+        }
+        
         // Özellikle Zeplin ile çarpışma kontrolü
-        if (isEnemyRocket && (other.CompareTag("Zeplin") || other.GetComponent<Zeplin>() != null))
+        if (isEnemyRocket && other.GetComponent<Zeplin>() != null)
         {
             // Zeplin'e roketi direkt çarptırınca patlasın ve hasar versin
             Zeplin zeplin = other.GetComponent<Zeplin>();
@@ -290,15 +352,22 @@ public class RocketProjectile : MonoBehaviour
         
         // Patlama oluştur
         Explode();
-        
-        // Roket objesini yok et
-        Destroy(gameObject);
     }
     
     // Fiziksel çarpışmalar için
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Roket fiziksel çarpışma: " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + "), Düşman Roketi: " + isEnemyRocket);
+        // *** ÖNEMLİ: Kendi kaynağımız olan Zeplin'le çarpışmayı engelle
+        if (!isEnemyRocket && sourceTransform != null && collision.transform == sourceTransform)
+        {
+            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Collision): " + collision.gameObject.name);
+            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
+        }
+        
+        Debug.Log("Roket collision ile çarpışma: " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        
+        // Patlama sürecindeyse gereksiz çarpışmaları önle
+        if (isExploding) return;
         
         // Kendimizi yok etmeyelim (oyuncu roketi oyuncuya, düşman roketi düşmana çarpmasın)
         if ((isEnemyRocket && collision.gameObject.CompareTag("Enemy")) || 
@@ -307,8 +376,14 @@ public class RocketProjectile : MonoBehaviour
             return;
         }
         
+        // Roketler birbirine çarpmasın
+        if (collision.gameObject.CompareTag("Rocket"))
+        {
+            return;
+        }
+        
         // Özellikle Zeplin ile çarpışma kontrolü
-        if (isEnemyRocket && (collision.gameObject.CompareTag("Zeplin") || collision.gameObject.GetComponent<Zeplin>() != null))
+        if (isEnemyRocket && collision.gameObject.GetComponent<Zeplin>() != null)
         {
             // Zeplin'e roketi direkt çarptırınca patlasın ve hasar versin
             Zeplin zeplin = collision.gameObject.GetComponent<Zeplin>();
@@ -321,13 +396,37 @@ public class RocketProjectile : MonoBehaviour
         
         // Patlama oluştur
         Explode();
-        
-        // Roket objesini yok et
-        Destroy(gameObject);
     }
     
     private void Explode()
     {
+        // Eğer zaten patlama sürecindeyse tekrar patlamayı önle
+        if (isExploding) return;
+        
+        // Patlama sürecini başlat
+        isExploding = true;
+        
+        // Hareketi durdur
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+        
+        // Sprite gösterimini kapat (patlamadan sonra görünmesin)
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = false;
+        }
+        
+        // Collider'ı devre dışı bırak
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            collider.enabled = false;
+        }
+        
         // Patlama efekti
         if (explosionEffect != null)
         {
@@ -340,6 +439,9 @@ public class RocketProjectile : MonoBehaviour
         // Patlama alanındaki her objeye hasar ver
         foreach (Collider2D hitCollider in hitObjects)
         {
+            // Null kontrol
+            if (hitCollider == null) continue;
+            
             // Kendimize hasar vermeyelim
             if ((isEnemyRocket && hitCollider.CompareTag("Enemy")) || 
                 (!isEnemyRocket && hitCollider.CompareTag("Player")))
@@ -359,7 +461,7 @@ public class RocketProjectile : MonoBehaviour
                         Debug.Log("Oyuncuya düşman raketiyle " + damage + " hasar verildi!");
                     }
                 }
-                else if (hitCollider.CompareTag("Zeplin") || hitCollider.GetComponent<Zeplin>() != null)
+                else if (hitCollider.GetComponent<Zeplin>() != null)
                 {
                     Zeplin zeplin = hitCollider.GetComponent<Zeplin>();
                     if (zeplin != null)
@@ -383,6 +485,9 @@ public class RocketProjectile : MonoBehaviour
                 }
             }
         }
+        
+        // Roket objesini yok et (kısa bir gecikme ile patlama efektinin görünmesine izin ver)
+        Destroy(gameObject, 0.1f);
     }
     
     // Patlama yarıçapını görselleştir (editor için)
@@ -426,6 +531,7 @@ public class RocketProjectile : MonoBehaviour
                 rb.gravityScale = 0f;
                 rb.bodyType = RigidbodyType2D.Kinematic;
                 rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
             }
             
             // Collider kontrolü

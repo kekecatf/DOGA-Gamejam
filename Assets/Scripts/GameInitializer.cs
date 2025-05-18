@@ -26,21 +26,9 @@ public class GameInitializer : MonoBehaviour
     {
         Debug.Log("GameInitializer: Oyun yöneticileri başlatılıyor...");
         
-        // RocketManager'ı başlat
-        InitializeRocketManager();
+        // RocketManager kaldırıldı - düşmanlar artık roket kullanmıyor
         
         // Diğer yöneticiler buraya eklenebilir
-    }
-    
-    // RocketManager başlatma
-    private void InitializeRocketManager()
-    {
-        GameObject rocketManagerObj = new GameObject("RocketManager");
-        RocketManager rocketManager = rocketManagerObj.AddComponent<RocketManager>();
-        Debug.Log("GameInitializer: RocketManager başlatıldı.");
-        
-        // Manuel olarak roket atama işlemini başlat
-        rocketManager.AssignRocketPrefabToEnemies();
     }
     
     // GameInitializer'ı başlatmak için statik metot

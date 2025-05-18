@@ -3,8 +3,7 @@ using UnityEngine;using System.Collections;
 public enum EnemyType
 {
     Kamikaze,   // Kamikazeler hedefe doğru gider ve çarparak hasar verir
-    Minigun,    // Minigun düşmanları uzaktan ateş eder
-    Rocket      // Roket düşmanları füze fırlatır
+    Minigun     // Minigun düşmanları uzaktan ateş eder
 }
 
 // IDamageable interface to standardize damage processing
@@ -21,12 +20,11 @@ public class Enemy : MonoBehaviour, IDamageable
     [Header("Hareket Ayarları")]
     public float moveSpeed = 3f;
     public float rotationSpeed = 5f;
-    public float attackRange = 5f;    // Saldırı menzili (Minigun ve Rocket için)
-    public float safeDistance = 4f;   // Güvenli mesafe (Minigun ve Rocket düşmanları için)
+    public float attackRange = 5f;    // Saldırı menzili (Minigun için)
+    public float safeDistance = 4f;   // Güvenli mesafe (Minigun düşmanları için)
     
     [Header("Ateş Ayarları")]
     public GameObject bulletPrefab;   // Minigun mermisi
-    public GameObject rocketPrefab;   // Roket
     public Transform firePoint;       // Ateş noktası
     public float fireRate = 2f;       // Ateş hızı (saniyede kaç kez)
     private float nextFireTime = 0f;  // Bir sonraki ateş zamanı
@@ -35,9 +33,7 @@ public class Enemy : MonoBehaviour, IDamageable
     
     [Header("Mesafe Ayarları")]
     public float minigunAttackRange = 8f;  // Minigun ile ateş etme mesafesi
-    public float rocketAttackRange = 10f;  // Roket ile ateş etme mesafesi
     public float minigunSafeDistance = 6f; // Minigun için güvenli mesafe
-    public float rocketSafeDistance = 8f;  // Roket için güvenli mesafe
     public float minAttackDistance = 3f;   // Minimum saldırı mesafesi - çok yakınsa ateş etmez
     
     [Header("Hedef")]
@@ -54,7 +50,6 @@ public class Enemy : MonoBehaviour, IDamageable
     
     [Header("Hasar Ayarları")]
     public int minigunBulletDamage = 5;  // Minigun mermisinin verdiği hasar
-    public int rocketDamage = 30;       // Roketin verdiği hasar
     
     private void Start()
     {
@@ -68,6 +63,36 @@ public class Enemy : MonoBehaviour, IDamageable
         
         // Rastgele başlangıç hızı varyasyonu (daha doğal görünüm için)
         moveSpeed = Random.Range(moveSpeed * 0.8f, moveSpeed * 1.2f);
+        
+        // Collider kontrolü ve ayarları
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider == null)
+        {
+            // Collider yoksa ekle
+            BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
+            
+            // Eğer Kamikaze düşman ise trigger olarak ayarla (daha iyi çarpışma tespiti için)
+            if (enemyType == EnemyType.Kamikaze)
+            {
+                boxCollider.isTrigger = true;
+                Debug.Log("Kamikaze düşman için BoxCollider2D eklendi (isTrigger=true).");
+            }
+            else
+            {
+                // Diğer düşman tipleri için normal collider
+                boxCollider.isTrigger = false;
+                Debug.Log("Düşman için BoxCollider2D eklendi (isTrigger=false).");
+            }
+        }
+        else
+        {
+            // Kamikaze düşmanlar için collider'ı trigger olarak ayarla
+            if (enemyType == EnemyType.Kamikaze && !collider.isTrigger)
+            {
+                collider.isTrigger = true;
+                Debug.Log("Kamikaze düşman collider'ı trigger olarak ayarlandı.");
+            }
+        }
         
         // FirePoint kontrolü
         if (firePoint == null)
@@ -95,69 +120,6 @@ public class Enemy : MonoBehaviour, IDamageable
             {
                 deathEffect = deathEffectPrefab;
                 Debug.Log("Düşmana otomatik olarak death effect prefabı atandı");
-            }
-        }
-        
-        // Roket düşmanı için roket prefab kontrolü
-        if (enemyType == EnemyType.Rocket)
-        {
-            // Roket düşmanları için stabilizasyon süresini artır
-            initialStabilizationTime = 3.0f; // 3 saniye beklesin
-            
-            // Roket prefabı atanmamışsa, Resources klasöründen yükle veya EnemyRocketPrefab içinden bul
-            if (rocketPrefab == null)
-            {
-                // Önce Resources'tan yüklemeyi dene
-                rocketPrefab = Resources.Load<GameObject>("RocketPrefab");
-                
-                // Yine bulunamazsa Assets/Prefabs içinde ara
-                if (rocketPrefab == null)
-                {
-                    GameObject[] allPrefabs = Resources.FindObjectsOfTypeAll<GameObject>();
-                    foreach (GameObject prefab in allPrefabs)
-                    {
-                        if (prefab.name.Contains("RocketPrefab"))
-                        {
-                            rocketPrefab = prefab;
-                            Debug.Log("RocketPrefab bulundu: " + prefab.name);
-                            break;
-                        }
-                    }
-                }
-                
-                // Hala bulunamadıysa, uyarı ver
-                if (rocketPrefab == null)
-                {
-                    Debug.LogError("Roket Düşmanı için RocketPrefab bulunamadı! Bu düşman roket ateşleyemeyecek.");
-                }
-                else
-                {
-                    Debug.Log("Roket Düşmanı için RocketPrefab otomatik olarak atandı: " + rocketPrefab.name);
-                }
-            }
-            
-            // Rocket prefab'taki RocketProjectile bileşenini kontrol et
-            if (rocketPrefab != null)
-            {
-                RocketProjectile rocketComp = rocketPrefab.GetComponent<RocketProjectile>();
-                if (rocketComp == null)
-                {
-                    Debug.LogWarning("Rocket prefab'ta RocketProjectile bileşeni bulunamadı! Bu düşmanın roketleri bileşen eksikliği yaşayabilir.");
-                    
-                    // Unity Editor'da çalışıyorsak prefab'ı düzenlemeyi dene
-                    #if UNITY_EDITOR
-                    try
-                    {
-                        // Prefab'a RocketProjectile bileşenini ekle
-                        UnityEditor.PrefabUtility.InstantiateAttachedAsset(rocketPrefab);
-                        Debug.Log("Rocket prefaba editor üzerinden bileşen ekleme denemesi yapıldı.");
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError("Editor üzerinden prefab düzenleme başarısız: " + ex.Message);
-                    }
-                    #endif
-                }
             }
         }
         
@@ -198,32 +160,6 @@ public class Enemy : MonoBehaviour, IDamageable
                     attackRange = minigunAttackRange;
                     safeDistance = minigunSafeDistance;
                     break;
-                    
-                case EnemyType.Rocket:
-                    currentHealth = playerData.CalculateEnemyHealth() * 2; // Daha çok HP
-                    damage = playerData.CalculateRocketDamage();
-                    rocketDamage = damage;
-                    
-                    // Oyunun ilk dakikasında roket hasarını düşür
-                    float gameTime = Time.timeSinceLevelLoad;
-                    if (gameTime < 60.0f) // İlk 60 saniye
-                    {
-                        // Zamanla artan hasar (0'dan başlayıp %100'e)
-                        float damageMultiplier = Mathf.Clamp01(gameTime / 60.0f);
-                        int originalDamage = damage;
-                        damage = (int)(damage * (0.4f + damageMultiplier * 0.6f)); // %40-%100 arası hasar
-                        rocketDamage = damage;
-                        
-                        Debug.Log($"Oyunun ilk dakikası! Roket düşmanı hasarı azaltıldı: {originalDamage} -> {damage}");
-                    }
-                    
-                    moveSpeed *= 0.6f; // En yavaş
-                    // Atış hızını PlayerData'dan al
-                    fireRate = playerData.CalculateRocketFireRate();
-                    // Roket saldırı mesafesini ayarla
-                    attackRange = rocketAttackRange;
-                    safeDistance = rocketSafeDistance;
-                    break;
             }
             
             // Ödül değerini PlayerData'dan al
@@ -237,9 +173,6 @@ public class Enemy : MonoBehaviour, IDamageable
                     break;
                 case EnemyType.Minigun:
                     scoreValue = (int)(scoreValue * 1.2f);
-                    break;
-                case EnemyType.Rocket:
-                    scoreValue = (int)(scoreValue * 1.5f);
                     break;
             }
             
@@ -268,16 +201,6 @@ public class Enemy : MonoBehaviour, IDamageable
                     attackRange = minigunAttackRange;
                     safeDistance = minigunSafeDistance;
                     break;
-                    
-                case EnemyType.Rocket:
-                    damage = 30;
-                    rocketDamage = damage;
-                    moveSpeed *= 0.6f; // En yavaş
-                    fireRate = 1f; // Varsayılan ateş hızı
-                    // Roket saldırı mesafesini ayarla
-                    attackRange = rocketAttackRange;
-                    safeDistance = rocketSafeDistance;
-                    break;
             }
             
             Debug.LogWarning("PlayerData bulunamadı! Varsayılan düşman değerleri kullanılıyor.");
@@ -286,16 +209,6 @@ public class Enemy : MonoBehaviour, IDamageable
     
     private void Update()
     {
-        // Roket düşmanı için rocketPrefab kontrolü
-        if (enemyType == EnemyType.Rocket && rocketPrefab == null)
-        {
-            // Her framede kontrol etmeyelim
-            if (Time.frameCount % 60 == 0) // Her saniye bir kontrol et
-            {
-                TryAssignRocketPrefab();
-            }
-        }
-
         UpdateTargetPosition();
         
         // Eğer UpdateTargetPosition içinde RangedEnemyBehavior çağrıldıysa
@@ -316,7 +229,6 @@ public class Enemy : MonoBehaviour, IDamageable
                 break;
                 
             case EnemyType.Minigun:
-            case EnemyType.Rocket:
                 RangedEnemyBehavior();
                 break;
         }
@@ -324,90 +236,7 @@ public class Enemy : MonoBehaviour, IDamageable
         UpdateSpriteFlipping();
     }
     
-    // RocketPrefab atamaya çalışma
-    private void TryAssignRocketPrefab()
-    {
-        // RocketManagerBridge'i ara
-        GameObject rocketManagerObj = GameObject.Find("RocketManager");
-        if (rocketManagerObj != null)
-        {
-            // RocketManagerBridge bileşenini al
-            var bridge = rocketManagerObj.GetComponent<RocketManagerBridge>();
-            if (bridge != null)
-            {
-                // Bridge üzerinden prefabı al
-                rocketPrefab = bridge.GetRocketPrefab();
-                if (rocketPrefab != null)
-                {
-                    Debug.Log("Rocket düşmanı için RocketManagerBridge'den RocketPrefab alındı: " + rocketPrefab.name);
-                    return;
-                }
-            }
-        }
-        
-        // Eğer Bridge yoksa manuel olarak dene
-        Debug.Log("RocketManagerBridge kullanılamadı, manuel arama yapılıyor...");
-        
-        // Resources veya Scene'den RocketPrefab'ı bulmaya çalış
-        GameObject rocketPrefabObj = Resources.Load<GameObject>("Prefabs/RocketPrefab");
-        
-        if (rocketPrefabObj == null)
-        {
-            rocketPrefabObj = Resources.Load<GameObject>("RocketPrefab");
-        }
-        
-        if (rocketPrefabObj == null)
-        {
-            // Scene'de aktif olan tüm GameObject'leri ara
-            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
-            foreach (GameObject obj in allObjects)
-            {
-                if (obj.name.Contains("RocketPrefab"))
-                {
-                    rocketPrefabObj = obj;
-                    break;
-                }
-            }
-        }
-        
-        if (rocketPrefabObj != null)
-        {
-            rocketPrefab = rocketPrefabObj;
-            Debug.Log("Rocket düşmanı için manuel aramada RocketPrefab bulundu: " + rocketPrefabObj.name);
-            
-            // RocketPrefab'ın RocketProjectile bileşenini kontrol et
-            ValidateRocketPrefab();
-        }
-        else
-        {
-            Debug.LogWarning("Rocket düşmanı için hiçbir şekilde RocketPrefab bulunamadı! Bu düşman roket ateşleyemeyecek.");
-        }
-    }
-    
-    // RocketPrefab'ın geçerliliğini kontrol et
-    private void ValidateRocketPrefab()
-    {
-        if (rocketPrefab == null) return;
-        
-        // RocketProjectile bileşeni kontrolü
-        RocketProjectile rocketComp = rocketPrefab.GetComponent<RocketProjectile>();
-        if (rocketComp == null)
-        {
-            Debug.LogWarning("RocketPrefab'da RocketProjectile bileşeni bulunamadı! Runtime'da eklemeye çalışılacak.");
-            
-            // Runtime'da RocketProjectile Component'ini ekleyelim
-            GameObject testRocket = Instantiate(rocketPrefab, new Vector3(-1000, -1000, -1000), Quaternion.identity);
-            RocketProjectile.EnsureRocketComponentExists(testRocket);
-            
-            // Değişiklikler uygulandıktan sonra prefab'ı güncelleyemeyiz, ancak bir log ile bilgi verelim
-            Debug.Log("Test roketine RocketProjectile bileşeni eklendi. Düşman ateş ettiğinde rocket bileşeni otomatik eklenecek.");
-            
-            // Test roketini yok et
-            Destroy(testRocket);
-        }
-    }
-    
-    // Uzak mesafe düşman davranışı (Minigun ve Rocket için)
+    // Uzak mesafe düşman davranışı (Minigun için)
     private void RangedEnemyBehavior()
     {
         if (targetTransform == null) return;
@@ -418,18 +247,18 @@ public class Enemy : MonoBehaviour, IDamageable
         // Hedefin Zeplin olup olmadığını kontrol et
         bool isTargetingZeplin = targetTransform.GetComponent<Zeplin>() != null;
         
-        // Düşman tipine göre uzaklıklar (Minigun ve Rocket düşmanları farklı mesafelerden saldırır)
-        float optimalDistance = enemyType == EnemyType.Minigun ? 8.0f : 12.0f;
-        float minDistance = enemyType == EnemyType.Minigun ? 6.0f : 8.0f;
+        // Düşman tipi için uzaklık (Minigun düşmanları için)
+        float optimalDistance = 8.0f;
+        float minDistance = 6.0f;
         
-        // Düşman tipine göre ateş etme mesafesi
-        float firingRange = enemyType == EnemyType.Minigun ? minigunAttackRange : rocketAttackRange;
+        // Düşman tipi için ateş etme mesafesi
+        float firingRange = minigunAttackRange;
         
         // Zeplin hedefleniyorsa ateş mesafesini artır
         if (isTargetingZeplin)
         {
             // Zeplin'i daha uzaktan vurmak için
-            optimalDistance = enemyType == EnemyType.Minigun ? 10.0f : 15.0f;
+            optimalDistance = 10.0f;
             // Ateş menzilini de artır
             firingRange *= 1.5f;
         }
@@ -492,14 +321,7 @@ public class Enemy : MonoBehaviour, IDamageable
                 float fireRateMultiplier = isTargetingZeplin ? 4.0f : 1.0f;
                 
                 // Ateş et
-                if (enemyType == EnemyType.Minigun)
-                {
-                    FireMinigun();
-                }
-                else // Rocket
-                {
-                    FireRocket();
-                }
+                FireMinigun();
                 
                 // Bir sonraki ateş zamanını ayarla
                 nextFireTime = Time.time + (1f / (fireRate * fireRateMultiplier));
@@ -592,82 +414,6 @@ public class Enemy : MonoBehaviour, IDamageable
         Debug.Log($"Minigun düşmanı {(isTargetingZeplin ? "Zeplin'e" : "Player'a")} ateş etti! Hasar: {bulletDamage}");
     }
     
-    // Roket fırlatma
-    private void FireRocket()
-    {
-        if (rocketPrefab == null)
-        {
-            Debug.LogWarning("Rocket düşmanı için rocket prefab tanımlanmamış! rocketPrefab atanmaya çalışılıyor...");
-            TryAssignRocketPrefab();
-            
-            // Yine de bulunamadıysa geri dön
-            if (rocketPrefab == null)
-            {
-                return;
-            }
-        }
-        
-        // Hedef Zeplin mi kontrolü
-        bool isTargetingZeplin = targetTransform != null && targetTransform.GetComponent<Zeplin>() != null;
-        
-        Debug.Log($"Roket ateşleniyor... Prefab: {rocketPrefab.name}, Hedef: {(isTargetingZeplin ? "Zeplin" : "Player")}");
-        
-        // RocketFixHelper ile güvenli şekilde roket oluştur
-        GameObject rocket = RocketFixHelper.CreateEnemyRocket(rocketPrefab, firePoint.position, transform.rotation);
-        
-        // Roket oluşturulamadıysa geri dön
-        if (rocket == null)
-        {
-            Debug.LogError("Roket oluşturulamadı! FireRocket fonksiyonundan çıkılıyor.");
-            return;
-        }
-        
-        // Roket bileşenini al
-        RocketProjectile rocketComponent = rocket.GetComponent<RocketProjectile>();
-        if (rocketComponent != null)
-        {
-            // Hasar değerini belirle
-            int actualDamage = rocketDamage > 0 ? rocketDamage : damage;
-            
-            // Zeplin'e karşı daha fazla hasar
-            if (isTargetingZeplin)
-            {
-                actualDamage = (int)(actualDamage * 4.0f); // 4x fazla hasar
-            }
-            
-            // Oyunun ilk 10 saniyesindeyse hasarı ve hızı azalt (oyun başında tek atmasın diye)
-            float gameTime = Time.timeSinceLevelLoad;
-            if (gameTime < 10.0f)
-            {
-                // Oyunun ilk anlarında hasar ve hız azalır
-                float timeMultiplier = Mathf.Clamp01(gameTime / 10.0f); // 0'dan 1'e
-                actualDamage = (int)(actualDamage * timeMultiplier * 0.5f); // En fazla normal hasarın %50'si 
-                rocketComponent.speed *= (0.5f + timeMultiplier * 0.5f); // %50-%100 arası hız
-                rocketComponent.turnSpeed *= (0.4f + timeMultiplier * 0.6f); // %40-%100 arası dönüş hızı
-                
-                Debug.Log($"Oyunun ilk 10 saniyesi! Roket hasarı ve hızı azaltıldı. " +
-                          $"Hasar: {actualDamage}, Hız çarpanı: {0.5f + timeMultiplier * 0.5f:F2}");
-            }
-            
-            // Hasar değerini ayarla
-            rocketComponent.damage = actualDamage;
-            
-            // Zeplin'e karşı roket hızını artır, dönüşünü daha agresif yap
-            if (isTargetingZeplin)
-            {
-                rocketComponent.speed *= 1.8f; // 1.8x daha hızlı
-                rocketComponent.turnSpeed *= 2.0f; // 2x daha hızlı dönüş
-            }
-            
-            Debug.Log($"Rocket düşmanı {(isTargetingZeplin ? "Zeplin'e" : "Player'a")} başarıyla roket fırlattı! " +
-                     $"Hasar: {actualDamage}, Hız: {rocketComponent.speed}");
-        }
-        else
-        {
-            Debug.LogError("RocketProjectile bileşeni bulunamadı! Bu beklenmeyen bir durum.");
-        }
-    }
-    
     // Hedef pozisyonunu güncelle
     private void UpdateTargetPosition()
     {
@@ -700,48 +446,6 @@ public class Enemy : MonoBehaviour, IDamageable
             if (player != null)
             {
                 targetTransform = player.transform;
-                
-                // Oyunun başında roket düşmanları için daha uzak mesafeyi tercih et
-                if (enemyType == EnemyType.Rocket)
-                {
-                    float gameTime = Time.timeSinceLevelLoad;
-                    if (gameTime < 15.0f) // İlk 15 saniye
-                    {
-                        // Mevcut pozisyonumuzu al
-                        Vector2 currentPos = transform.position;
-                        
-                        // Oyuncunun pozisyonunu al
-                        Vector2 playerPos = player.transform.position;
-                        
-                        // Oyuncuya olan yön vektörünü hesapla
-                        Vector2 directionToPlayer = (playerPos - currentPos).normalized;
-                        
-                        // Tercih edilen minimum mesafe (zaman geçtikçe azalır)
-                        float minPreferredDistance = Mathf.Lerp(15f, 5f, gameTime / 15.0f);
-                        
-                        // Oyuncuya olan mevcut mesafe
-                        float currentDistance = Vector2.Distance(currentPos, playerPos);
-                        
-                        // Eğer çok yakınsa, daha uzakta bir hedef belirle
-                        if (currentDistance < minPreferredDistance)
-                        {
-                            // Oyuncudan uzakta bir hedef noktası belirle
-                            Vector2 awayFromPlayer = currentPos - directionToPlayer * (minPreferredDistance - currentDistance);
-                            
-                            // Hedef olarak bu noktayı kullan
-                            targetPosition = awayFromPlayer;
-                            
-                            // Debug.Log mesajıyla durumu belirt
-                            if (Time.frameCount % 60 == 0) // Saniyede bir
-                            {
-                                Debug.Log($"Roket düşmanı oyunun başında oyuncudan uzak duruyor. " +
-                                          $"Mevcut mesafe: {currentDistance:F1}, Tercih edilen mesafe: {minPreferredDistance:F1}");
-                            }
-                            
-                            return; // Fonksiyondan çık
-                        }
-                    }
-                }
                 
                 // Normal durumlarda oyuncuyu hedef al
                 targetPosition = player.transform.position;
@@ -942,6 +646,8 @@ public class Enemy : MonoBehaviour, IDamageable
     
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("Enemy OnTriggerEnter2D: " + gameObject.name + " triggered with " + collision.gameObject.name + " (Tag: " + collision.tag + ")");
+        
         // Sadece kamikaze düşmanlar için çarpışma tespiti
         if (enemyType == EnemyType.Kamikaze)
         {
@@ -951,9 +657,22 @@ public class Enemy : MonoBehaviour, IDamageable
                 Player player = collision.GetComponent<Player>();
                 if (player != null)
                 {
+                    // Oyuncuya hasar vermeden önce debug log
+                    Debug.Log("Kamikaze düşman Player'a hasar vermeye çalışıyor. Hasar: " + damage);
+                    
+                    // Oyuncuya doğrudan hasar ver
                     player.TakeDamage(damage);
-                    Debug.Log("Kamikaze düşman Player'a çarptı ve " + damage + " hasar verdi!");
+                    
+                    // Başarılı log
+                    Debug.Log("Kamikaze düşman Player'a çarptı ve " + damage + " hasar verdi! Player sağlık: " + 
+                              (player.GetComponent<PlayerData>() != null ? player.GetComponent<PlayerData>().anaGemiSaglik.ToString() : "bilinmiyor"));
+                    
+                    // Düşmanı yok et
                     Die();
+                }
+                else
+                {
+                    Debug.LogError("Player tagine sahip objede Player bileşeni bulunamadı!");
                 }
             }
             // Zeplinle çarpışma
@@ -977,6 +696,56 @@ public class Enemy : MonoBehaviour, IDamageable
             {
                 TakeDamage(bullet.damage);
                 Destroy(bullet.gameObject); // Mermiyi yok et
+            }
+        }
+    }
+    
+    // Fiziksel çarpışma işleme
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log("Enemy OnCollisionEnter2D: " + gameObject.name + " collided with " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        
+        // Kamikaze düşmanlar dışındakiler için veya yedek çarpışma kontrolü olarak
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Player player = collision.gameObject.GetComponent<Player>();
+            if (player != null)
+            {
+                // Oyuncuya hasar vermeden önce debug log
+                Debug.Log("Düşman Player'a hasar vermeye çalışıyor (Collision). Hasar: " + damage);
+                
+                // Oyuncuya hasar ver
+                player.TakeDamage(damage);
+                
+                // Başarılı log
+                Debug.Log("Düşman Player'a çarptı ve " + damage + " hasar verdi! (OnCollisionEnter2D)");
+                
+                // Kamikaze ise kendini imha et
+                if (enemyType == EnemyType.Kamikaze)
+                {
+                    Die();
+                }
+            }
+            else
+            {
+                Debug.LogError("Player tagine sahip objede Player bileşeni bulunamadı! (OnCollisionEnter2D)");
+            }
+        }
+        
+        // Zeplinle çarpışma
+        if (collision.gameObject.CompareTag("Zeplin") || collision.gameObject.GetComponent<Zeplin>() != null)
+        {
+            Zeplin zeplin = collision.gameObject.GetComponent<Zeplin>();
+            if (zeplin != null)
+            {
+                zeplin.TakeDamage(damage);
+                Debug.Log("Düşman Zeplin'e çarptı ve " + damage + " hasar verdi! (OnCollisionEnter2D)");
+                
+                // Kamikaze ise kendini imha et
+                if (enemyType == EnemyType.Kamikaze)
+                {
+                    Die();
+                }
             }
         }
     }

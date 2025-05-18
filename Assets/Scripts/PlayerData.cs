@@ -3,10 +3,16 @@ using UnityEngine.UI;
 
 public class PlayerData : MonoBehaviour
 {
-    public int metalPara = 500;
+    // Başlangıç değerleri - Sıfırlamalar için kullanılacak
+    private const int DEFAULT_METAL_PARA = 500;
+    private const int DEFAULT_ZEPLIN_SAGLIK = 100;
+    private const int DEFAULT_ANA_GEMI_SAGLIK = 100;
+    
+    // Mevcut değerler
+    public int metalPara = DEFAULT_METAL_PARA;
 
     [Header("Zeplin Ayarları")]
-    public int zeplinSaglik = 100;
+    public int zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
     public int zeplinSaglikLevel = 0;
 
     public int zeplinMinigunDamage = 10;
@@ -20,12 +26,12 @@ public class PlayerData : MonoBehaviour
     public float zeplinRoketDelay = 2.0f;
 
     [Header("Oyuncu Ayarları")]
-    public int anaGemiSaglik = 100;
+    public int anaGemiSaglik = DEFAULT_ANA_GEMI_SAGLIK;
     public int anaGemiSaglikLevel = 0;
 
-    public int anaGemiMinigunDamage = 10;
+    public int anaGemiMinigunDamage = 5;
     public int anaGemiMinigunLevel = 0;
-    public float anaGemiMinigunCooldown = 1.0f;
+    public float anaGemiMinigunCooldown = 0.4f;
     public int anaGemiMinigunCount = 1;
 
     public int anaGemiRoketDamage = 20;
@@ -56,14 +62,67 @@ public class PlayerData : MonoBehaviour
     public float enemyRocketFireRate = 1.0f;      // Roket düşmanlarının temel atış hızı (saniyede atış sayısı)
     public float enemyFireRateMultiplier = 1.0f;  // Tüm düşmanlar için atış hızı çarpanı
 
-   /* public Button zeplinMinigunButon; // Inspector'dan atayacaksın
-    public Button anaGemiMinigunButon;
-    public Button anaGemiRoketButon;
-    public Button anaGemiSaglikButon;*/
+    // Singleton yapısı
+    public static PlayerData Instance { get; private set; }
 
     private void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        // Singleton kontrol
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            
+            // Identify as a persistent object for restart functionality
+            gameObject.tag = "PersistentObject";
+            
+            // İlk başlangıçta verileri sıfırla
+            ResetAllData();
+        }
+        else
+        {
+            // Zaten bir PlayerData var, bu nesneyi yok et
+            Debug.Log("Mevcut bir PlayerData zaten var. Bu kopya yok ediliyor.");
+            Destroy(gameObject);
+        }
+    }
+
+    // Tüm verileri sıfırla (yeniden başlatmada kullanılır)
+    public void ResetAllData()
+    {
+        // Para ve seviye sıfırlama
+        metalPara = DEFAULT_METAL_PARA;
+        
+        // Zeplin değerleri sıfırlama
+        zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
+        zeplinSaglikLevel = 0;
+        zeplinMinigunDamage = 10;
+        zeplinMinigunLevel = 0;
+        zeplinMinigunCooldown = 1.0f;
+        zeplinMinigunCount = 1;
+        zeplinRoketDamage = 20;
+        zeplinRoketLevel = 0;
+        zeplinRoketCount = 1;
+        zeplinRoketDelay = 2.0f;
+        
+        // Ana gemi değerleri sıfırlama
+        anaGemiSaglik = DEFAULT_ANA_GEMI_SAGLIK;
+        anaGemiSaglikLevel = 0;
+        anaGemiMinigunDamage = 5;
+        anaGemiMinigunLevel = 0;
+        anaGemiMinigunCooldown = 0.4f;
+        anaGemiMinigunCount = 1;
+        anaGemiRoketDamage = 20;
+        anaGemiRoketLevel = 0;
+        anaGemiRoketCount = 1;
+        anaGemiRoketDelay = 2.0f;
+        anaGemiRoketSpeed = 10.0f;
+        
+        // Düşman zorluğunu başlangıç değerine sıfırla
+        enemyDifficultyMultiplier = 1.0f;
+        enemyFireRateMultiplier = 1.0f;
+        
+        Debug.Log("PlayerData tüm değerler sıfırlandı!");
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -137,7 +196,4 @@ public class PlayerData : MonoBehaviour
     {
         return Mathf.RoundToInt(enemyBaseScoreValue * enemyDifficultyMultiplier);
     }
-
-    // Ana Gemi Minigun Geliştirme
-    
 }

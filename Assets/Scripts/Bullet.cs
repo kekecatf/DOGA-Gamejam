@@ -2,12 +2,13 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public float speed = 10f;
+    public float speed = 40f; // Mermi hızını 20'den 40'a çıkardık (tekrar 2 kat daha hızlı)
     public float lifetime = 5f;  // Mermi ömrünü artırıyorum (3'ten 5 saniyeye)
     public float maxDistance = 30f; // Maksimum menzil (birim olarak)
     public bool isZeplinBullet = false; // Zeplin'den atılan mermi mi?
     public bool isEnemyBullet = false; // Düşman tarafından atılan mermi mi?
     public int damage = 0; // Özel hasar değeri (düşman mermileri için)
+    public Transform zeplinSource = null; // Hangi Zeplin'den atıldı
     
     private bool playerFlipXEnabled = true; // Player'ın flipX durumu, varsayılan olarak açık (true)
     private PlayerData playerData;
@@ -81,7 +82,7 @@ public class Bullet : MonoBehaviour
         if (isZeplinBullet)
         {
             lifetime = 7f; // Zeplin mermilerine daha uzun yaşam süresi
-            speed = 15f;   // Daha hızlı hareket etsin
+            speed = 60f;   // Daha hızlı hareket etsin (Zeplin mermisi hızını da 2 katına çıkardık)
             maxDistance = 50f; // Daha uzun menzil
         }
         
@@ -175,6 +176,19 @@ public class Bullet : MonoBehaviour
     // Fiziksel çarpışma algılama için
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        // *** ÖNEMLİ: Kendi kaynak Zeplin'imizle çarpışmamızı engelle
+        if (isZeplinBullet && zeplinSource != null && collision.transform == zeplinSource)
+        {
+            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Collision): " + collision.gameObject.name);
+            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
+        }
+        
+        // Debug için çarpışma bilgisi
+        if (Time.frameCount < 20)
+        {
+            Debug.Log("Bullet collides with " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        }
+        
         Debug.Log("Mermi fiziksel çarpışma: " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + "), Düşman Mermisi: " + isEnemyBullet);
         
         // Düşman mermisi ise farklı işlemler yap
@@ -277,6 +291,19 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // *** ÖNEMLİ: Kendi kaynak Zeplin'imizle çarpışmamızı engelle
+        if (isZeplinBullet && zeplinSource != null && other.transform == zeplinSource)
+        {
+            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Trigger): " + other.gameObject.name);
+            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
+        }
+        
+        // Debug için çarpışma bilgisi (sadece ilk 20 kare için)
+        if (Time.frameCount < 20)
+        {
+            Debug.Log("Bullet triggers with " + other.gameObject.name + " (Tag: " + other.tag + ")");
+        }
+        
         // Düşman mermisi farklı davranıyor
         if (isEnemyBullet)
         {

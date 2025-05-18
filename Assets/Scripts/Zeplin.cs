@@ -383,8 +383,34 @@ public class Zeplin : MonoBehaviour
         Vector3 shootDirection = isFacingLeft ? Vector3.left : Vector3.right;
         Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, Vector3.Cross(Vector3.forward, shootDirection));
         
-        // Mermi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, bulletRotation);
+        // Collider boyutunu alma
+        Collider2D collider = GetComponent<Collider2D>();
+        float offsetDistance = 0.5f; // Varsayılan offset mesafesi
+        
+        if (collider != null)
+        {
+            // Eğer BoxCollider2D ise
+            BoxCollider2D boxCollider = collider as BoxCollider2D;
+            if (boxCollider != null)
+            {
+                // X eksenindeki genişliğin yarısı + biraz ekstra
+                offsetDistance = (boxCollider.size.x / 2) + 0.1f;
+            }
+            // Eğer CircleCollider2D ise
+            else if (collider is CircleCollider2D)
+            {
+                // Yarıçap + biraz ekstra
+                offsetDistance = ((CircleCollider2D)collider).radius + 0.1f;
+            }
+            
+            Debug.Log($"Collider tipinden hesaplanan offset mesafesi: {offsetDistance}");
+        }
+        
+        // Merminin spawnlanacağı pozisyonu collider'ın dışına taşı
+        Vector3 spawnPosition = firePoint.position + (shootDirection * offsetDistance);
+        
+        // Mermi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile (OFFSET UYGULANMIŞ)
+        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, bulletRotation);
         
         // Mermi bileşenini al ve yön ayarla
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
@@ -392,6 +418,9 @@ public class Zeplin : MonoBehaviour
         {
             // Zeplin mermisini belirt
             bulletComponent.isZeplinBullet = true;
+            
+            // Bu Zeplin'den atıldığını belirt (self-collision önlemek için)
+            bulletComponent.zeplinSource = this.transform;
             
             // Doğru yönlendirme için
             bulletComponent.SetDirection(isFacingLeft);
@@ -416,7 +445,7 @@ public class Zeplin : MonoBehaviour
             bulletRb.linearVelocity = shootDirection * 20f; // Hızı artırıldı
             
             // Debug.Log ile kontrol
-            Debug.Log($"Mermi hızı ayarlandı: {bulletRb.linearVelocity}, Yön: {shootDirection}");
+            Debug.Log($"Mermi hızı ayarlandı: {bulletRb.linearVelocity}, Yön: {shootDirection}, Spawn Pozisyonu: {spawnPosition}");
         }
         
         // Sonraki ateş zamanını ayarla
@@ -456,8 +485,34 @@ public class Zeplin : MonoBehaviour
         Vector3 shootDirection = isFacingLeft ? Vector3.left : Vector3.right;
         Quaternion rocketRotation = Quaternion.LookRotation(Vector3.forward, Vector3.Cross(Vector3.forward, shootDirection));
         
-        // Roketi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile
-        GameObject rocket = Instantiate(rocketPrefab, firePoint.position, rocketRotation);
+        // Collider boyutunu alma
+        Collider2D collider = GetComponent<Collider2D>();
+        float offsetDistance = 0.5f; // Varsayılan offset mesafesi
+        
+        if (collider != null)
+        {
+            // Eğer BoxCollider2D ise
+            BoxCollider2D boxCollider = collider as BoxCollider2D;
+            if (boxCollider != null)
+            {
+                // X eksenindeki genişliğin yarısı + biraz ekstra
+                offsetDistance = (boxCollider.size.x / 2) + 0.1f;
+            }
+            // Eğer CircleCollider2D ise
+            else if (collider is CircleCollider2D)
+            {
+                // Yarıçap + biraz ekstra
+                offsetDistance = ((CircleCollider2D)collider).radius + 0.1f;
+            }
+            
+            Debug.Log($"Collider tipinden hesaplanan offset mesafesi: {offsetDistance}");
+        }
+        
+        // Roketin spawnlanacağı pozisyonu collider'ın dışına taşı
+        Vector3 spawnPosition = firePoint.position + (shootDirection * offsetDistance);
+        
+        // Roketi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile (OFFSET UYGULANMIŞ)
+        GameObject rocket = Instantiate(rocketPrefab, spawnPosition, rocketRotation);
         
         // Rokete "Rocket" etiketini ata
         rocket.tag = "Rocket";
@@ -468,6 +523,9 @@ public class Zeplin : MonoBehaviour
         {
             // Zeplin roketi olduğunu belirt (düşman roketi değil)
             rocketProjectile.isEnemyRocket = false;
+            
+            // Bu Zeplin'den atıldığını belirt (self-collision önlemek için)
+            rocketProjectile.sourceTransform = this.transform;
             
             // Hasar değerini PlayerData'dan al
             if (playerData != null)
@@ -493,7 +551,7 @@ public class Zeplin : MonoBehaviour
             rocketRb.linearVelocity = shootDirection * 12f; // Hızı artırıldı
             
             // Debug.Log ile kontrol
-            Debug.Log($"Roket hızı ayarlandı: {rocketRb.linearVelocity}, Yön: {shootDirection}");
+            Debug.Log($"Roket hızı ayarlandı: {rocketRb.linearVelocity}, Yön: {shootDirection}, Spawn Pozisyonu: {spawnPosition}");
         }
         
         // Bekleme süresini ayarla

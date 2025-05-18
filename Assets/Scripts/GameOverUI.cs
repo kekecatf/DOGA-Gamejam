@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Linq;
 
 public class GameOverUI : MonoBehaviour
 {
@@ -61,38 +62,11 @@ public class GameOverUI : MonoBehaviour
         PlayerPrefs.DeleteKey("LastScore");
         PlayerPrefs.DeleteKey("LastTime");
         
-        // Player ve Enemy gibi statik verileri sıfırla
-        Player.isDead = false;
+        // Tüm statik değişkenleri sıfırla
+        ResetAllStaticVariables();
         
-        if (GameManager.Instance != null)
-        {
-            // Oyun verileri sıfırlanıyor
-            GameManager.Instance.ResetGameStats();
-            
-            // GameManager'ı temizle (isteğe bağlı)
-            // Eklenmemiş ise, kaldırılabilir, singleton olduğu için kendi kendini temizler
-            Destroy(GameManager.Instance.gameObject);
-        }
-        
-        // Tüm aktif DontDestroyOnLoad objelerini temizle (isteğe bağlı)
-        GameObject[] persistentObjects = GameObject.FindGameObjectsWithTag("PersistentObject");
-        foreach (GameObject obj in persistentObjects)
-        {
-            Destroy(obj);
-        }
-        
-        // Player nesnesini ve diğer kritik nesneleri her ihtimale karşı temizle
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            Destroy(player);
-        }
-        
-        GameObject zeplin = GameObject.FindGameObjectWithTag("Zeplin");
-        if (zeplin != null)
-        {
-            Destroy(zeplin);
-        }
+        // Tüm DontDestroyOnLoad objelerini temizle
+        DestroyAllPersistentObjects();
         
         // Tam yeniden başlatma için
         Time.timeScale = 1.0f; // Oyun duraklatılmış olabilir, zamanı normale çevir
@@ -101,18 +75,104 @@ public class GameOverUI : MonoBehaviour
         StartCoroutine(CompleteRestart());
     }
     
+    // Statik değişkenleri sıfırlayan metot
+    private void ResetAllStaticVariables()
+    {
+        // Player ve düşman ilgili statik değişkenleri sıfırla
+        Player.isDead = false;
+        
+        // Ek statik değişkenleri de burada sıfırla
+        // Örnek: Enemy.spawnCount = 0; gibi
+        
+        Debug.Log("Tüm statik değişkenler sıfırlandı.");
+    }
+    
+    // Tüm kalıcı nesneleri bulup yok et
+    private void DestroyAllPersistentObjects()
+    {
+        // PersistentObject tag'ine sahip nesneleri bul ve yok et
+        GameObject[] persistentObjects = GameObject.FindGameObjectsWithTag("PersistentObject");
+        foreach (GameObject obj in persistentObjects)
+        {
+            Destroy(obj);
+            Debug.Log($"Kalıcı nesne yok edildi: {obj.name}");
+        }
+        
+        // GameManager - bu GameOverUI'yi başlatan GameManager'ı yok et
+        if (GameManager.Instance != null)
+        {
+            Destroy(GameManager.Instance.gameObject);
+            Debug.Log("GameManager yok edildi.");
+        }
+        
+        // DontDestroyOnLoad'a sahip olan, tag'i farklı olan nesneleri de temizle
+        DestroySpecificManagers("PlayerData");
+        // RocketManager kaldırıldı - düşmanlar artık roket kullanmıyor
+        DestroySpecificManagers("AudioManager");
+        DestroySpecificManagers("GameInitializer");
+        
+        // Player nesnesini ve diğer kritik nesneleri her ihtimale karşı temizle
+        DestroyGameObjectsWithTag("Player");
+        DestroyGameObjectsWithTag("Zeplin");
+        DestroyGameObjectsWithTag("Enemy");
+        DestroyGameObjectsWithTag("Rocket");
+        
+        Debug.Log("Tüm DontDestroyOnLoad objeleri temizlendi.");
+    }
+    
+    // Belirli bir tipteki yöneticileri bul ve yok et
+    private void DestroySpecificManagers(string managerName)
+    {
+        var managers = Object.FindObjectsOfType<MonoBehaviour>().Where(
+            mono => mono.GetType().Name == managerName || 
+                   mono.name.Contains(managerName) || 
+                   mono.gameObject.name.Contains(managerName)
+        );
+        
+        foreach (var manager in managers)
+        {
+            Debug.Log($"{managerName} sınıfı/nesnesi yok edildi: {manager.gameObject.name}");
+            Destroy(manager.gameObject);
+        }
+    }
+    
+    // Belirli bir tag'e sahip tüm objeleri yok et
+    private void DestroyGameObjectsWithTag(string tag)
+    {
+        if (string.IsNullOrEmpty(tag)) return;
+        
+        GameObject[] objects = GameObject.FindGameObjectsWithTag(tag);
+        foreach (GameObject obj in objects)
+        {
+            Debug.Log($"{tag} tag'li nesne yok edildi: {obj.name}");
+            Destroy(obj);
+        }
+    }
+    
     // Yeniden başlatma işlemini biraz geciktirip temiz bir şekilde başlat
     private System.Collections.IEnumerator CompleteRestart()
     {
         // Geçiş animasyonu yapmak veya objelerinin yok edilmesini beklemek için kısa gecikme
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.2f);
         
-        // Sahneyi tekrar yükle
-        UnityEngine.SceneManagement.SceneManager.LoadScene("GameScene");
+        // Resources.UnloadUnusedAssets çağrılarak hafızayı temizle
+        AsyncOperation asyncUnload = Resources.UnloadUnusedAssets();
+        yield return asyncUnload;
         
-        // İsteğe bağlı: Sahne yüklendikten sonra bir kontrol daha yapılabilir
+        // Çöp toplayıcıyı çağır
+        System.GC.Collect();
+        
+        // Sahneyi tekrar yükle - eksik sahne ismi kontrolü ekle
+        string targetScene = "GameScene";
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.gameSceneName))
+        {
+            targetScene = GameManager.Instance.gameSceneName;
+        }
+        
+        Debug.Log($"{targetScene} sahnesi tamamen temiz bir şekilde yeniden yükleniyor...");
+        SceneManager.LoadScene(targetScene);
+        
         yield return new WaitForSeconds(0.5f);
-        
         Debug.Log("Oyun tamamen yeniden başlatıldı!");
     }
 } 

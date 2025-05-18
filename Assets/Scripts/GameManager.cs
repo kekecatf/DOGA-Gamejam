@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,6 +16,9 @@ public class GameManager : MonoBehaviour
     public string gameSceneName = "GameScene";
     public string gameOverSceneName = "OyunSonu";
     
+    // Scene değişimi kontrolü
+    private bool isFirstLoad = true;
+    
     private void Awake()
     {
         // Singleton yapısı
@@ -27,9 +31,13 @@ public class GameManager : MonoBehaviour
             
             // PersistentObject tag'i ekle - yeniden başlatma için gerekli
             gameObject.tag = "PersistentObject";
+            
+            Debug.Log("GameManager oluşturuldu. Veriler sıfırlanıyor...");
+            ResetGameStats();
         }
         else
         {
+            Debug.Log("Mevcut bir GameManager zaten var. Bu kopya yok ediliyor.");
             Destroy(gameObject);
         }
     }
@@ -38,6 +46,48 @@ public class GameManager : MonoBehaviour
     {
         // Oyun başlangıç ayarları
         ResetGameStats();
+        
+        // Sahne değişim olayını dinle
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    
+    private void OnDestroy()
+    {
+        // Olay dinleyiciyi kaldır
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+    
+    // Sahne değiştiğinde çağrılır
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // GameScene sahnesine geçiş yaptıysa verileri sıfırla
+        if (scene.name == gameSceneName && !isFirstLoad)
+        {
+            StartCoroutine(InitializeGameSceneDelayed());
+        }
+        
+        if (isFirstLoad)
+        {
+            isFirstLoad = false;
+        }
+    }
+    
+    // Sahne yüklendikten kısa bir süre sonra oyunu başlatmayı sağlar
+    private IEnumerator InitializeGameSceneDelayed()
+    {
+        // Sahnenin tam olarak yüklenmesi için kısa bir bekleme
+        yield return new WaitForSeconds(0.2f);
+        
+        Debug.Log("GameScene yüklendi. Oyun yeniden başlatılıyor...");
+        
+        // Oyun verilerini sıfırla
+        ResetGameStats();
+        
+        // Oyun içi değişkenleri sıfırla
+        Player.isDead = false;
+        
+        // Sahne objeleri ile etkileşim için hazır
+        Debug.Log("Oyun sıfırlama tamamlandı.");
     }
     
     private void Update()
@@ -72,19 +122,35 @@ public class GameManager : MonoBehaviour
         killedEnemyCount = 0;
         gameTime = 0f;
         isGameOver = false;
+        
+        Debug.Log("Oyun istatistikleri sıfırlandı.");
     }
     
     // Oyunu yeniden başlat
     public void RestartGame()
     {
+        Debug.Log("GameManager.RestartGame() çağrıldı.");
+        
+        // Kalıcı veriler güvenli bir şekilde temizleniyor
+        StartCoroutine(SafeRestart());
+    }
+    
+    // Güvenli bir şekilde yeniden başlatmak için 
+    private IEnumerator SafeRestart()
+    {
+        // Oyun verilerini sıfırla
         ResetGameStats();
+        
+        // Beklemeden hemen sahneyi yükle (DontDestroyOnLoad nesneleri GameOverUI tarafından temizlenir)
         SceneManager.LoadScene(gameSceneName);
+        
+        yield return null;
     }
     
     // Ana menüye dön
     public void GoToMainMenu()
     {
         ResetGameStats();
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("AnaMenu");
     }
 } 
