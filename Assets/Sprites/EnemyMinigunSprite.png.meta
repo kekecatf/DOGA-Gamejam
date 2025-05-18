@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 18ee884cf5abc7246b03c2b9c4742626
+guid: 9f43f77f987f0444eb18344522cf05ac
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6915174210966744625
-    second: Bulut33-_0
+      213: 3041207817480015058
+    second: EnemyMinigunSprite_0
+  - first:
+      213: -4826292453578212357
+    second: EnemyMinigunSprite_1
+  - first:
+      213: -930317807476273096
+    second: EnemyMinigunSprite_2
+  - first:
+      213: 2809190810874043909
+    second: EnemyMinigunSprite_3
+  - first:
+      213: 1678766040797895614
+    second: EnemyMinigunSprite_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,221 +112,111 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BulutArkaplansiz_0
+      name: EnemyMinigunSprite_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 256
-        height: 256
+        x: 39
+        y: 54
+        width: 65
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: f3c9a550a062ecd4b8fc9d7a412aa824
-      internalID: -1802033534
+      spriteID: 2dc8901a56a843a20800000000000000
+      internalID: 3041207817480015058
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BulutArkaplansiz_1
+      name: EnemyMinigunSprite_1
       rect:
         serializedVersion: 2
-        x: 256
-        y: 0
-        width: 256
-        height: 256
+        x: 166
+        y: 54
+        width: 66
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 12b72284f25f2b543a6cb4079ef24c9f
-      internalID: -507152116
+      spriteID: bfb72529590950db0800000000000000
+      internalID: -4826292453578212357
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BulutArkaplansiz_2
+      name: EnemyMinigunSprite_2
       rect:
         serializedVersion: 2
-        x: 512
-        y: 0
-        width: 256
-        height: 256
+        x: 293
+        y: 54
+        width: 67
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 97189deaeb87b0f409716b974f66d36e
-      internalID: 2107004535
+      spriteID: 830182512e8d613f0800000000000000
+      internalID: -930317807476273096
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BulutArkaplansiz_3
+      name: EnemyMinigunSprite_3
       rect:
         serializedVersion: 2
-        x: 768
-        y: 0
-        width: 256
-        height: 256
+        x: 420
+        y: 54
+        width: 68
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: c98e8353e4d0e9248a3f46fd5b25ec4c
-      internalID: -1565618977
+      spriteID: 50e5074a8204cf620800000000000000
+      internalID: 2809190810874043909
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BulutArkaplansiz_4
+      name: EnemyMinigunSprite_4
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 0
-        width: 256
-        height: 256
+        x: 547
+        y: 54
+        width: 69
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: ba98893fdc798494ebb72c12e900743d
-      internalID: 42686314
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: BulutArkaplansiz_5
-      rect:
-        serializedVersion: 2
-        x: 1280
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: be9edf8c3bec45949ac8816481f33da5
-      internalID: -605164199
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: BulutArkaplansiz_6
-      rect:
-        serializedVersion: 2
-        x: 1536
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d190d3c75bd7ce24c9811daf8fb63533
-      internalID: 382247864
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: BulutArkaplansiz_7
-      rect:
-        serializedVersion: 2
-        x: 1792
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c3fe9e3d96e9a6b438ce9c78d7e5ccee
-      internalID: -2064943929
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: BulutArkaplansiz_8
-      rect:
-        serializedVersion: 2
-        x: 2048
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e34cce3db0872c843a59eb107fb000d8
-      internalID: -1565285483
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: BulutArkaplansiz_9
-      rect:
-        serializedVersion: 2
-        x: 2304
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 54acfc0724f5e5641a111501ba6b9fe8
-      internalID: -178177499
+      spriteID: ebb5fb2d1dc2c4710800000000000000
+      internalID: 1678766040797895614
       vertices: []
       indices: 
       edges: []
@@ -323,7 +225,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: bf26975f865b5e84b909a847271cd83a
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -332,17 +234,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      BulutArkaplansiz_0: -1802033534
-      BulutArkaplansiz_1: -507152116
-      BulutArkaplansiz_2: 2107004535
-      BulutArkaplansiz_3: -1565618977
-      BulutArkaplansiz_4: 42686314
-      BulutArkaplansiz_5: -605164199
-      BulutArkaplansiz_6: 382247864
-      BulutArkaplansiz_7: -2064943929
-      BulutArkaplansiz_8: -1565285483
-      BulutArkaplansiz_9: -178177499
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

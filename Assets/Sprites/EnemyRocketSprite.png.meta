@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: ab1b0dc24b249024ca7bdf85020da3c1
+guid: 8783a8205e5d0014184e868b4556e551
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6760250943669130968
-    second: Bulut3_0
+      213: 6829093323688361374
+    second: EnemyRocketSprite_0
+  - first:
+      213: 5548099093401720419
+    second: EnemyRocketSprite_1
+  - first:
+      213: -5741911965792851828
+    second: EnemyRocketSprite_2
+  - first:
+      213: 1728800830921611872
+    second: EnemyRocketSprite_3
+  - first:
+      213: -799600446612579892
+    second: EnemyRocketSprite_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +49,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +87,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -96,30 +108,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Bulut3_0
+      name: EnemyRocketSprite_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 256
-        height: 256
+        x: 39
+        y: 50
+        width: 65
+        height: 22
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +127,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d6d5e97a6c31dd50800000000000000
-      internalID: 6760250943669130968
+      spriteID: e9dbf602230d5ce50800000000000000
+      internalID: 6829093323688361374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EnemyRocketSprite_1
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 50
+        width: 66
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36650e8fabecefc40800000000000000
+      internalID: 5548099093401720419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EnemyRocketSprite_2
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 50
+        width: 67
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c882a533d71a050b0800000000000000
+      internalID: -5741911965792851828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EnemyRocketSprite_3
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 50
+        width: 68
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06a9b76323fedf710800000000000000
+      internalID: 1728800830921611872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EnemyRocketSprite_4
+      rect:
+        serializedVersion: 2
+        x: 547
+        y: 50
+        width: 69
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc9d96951af37e4f0800000000000000
+      internalID: -799600446612579892
       vertices: []
       indices: 
       edges: []
@@ -147,8 +234,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Bulut3_0: 6760250943669130968
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -73,6 +73,25 @@ public class Enemy : MonoBehaviour, IDamageable
             firePoint = newFirePoint.transform;
         }
         
+        // Death Effect kontrolü
+        if (deathEffect == null)
+        {
+            // Death Effect prefabını bul
+            GameObject deathEffectPrefab = Resources.Load<GameObject>("DeathEffectPrefab");
+            if (deathEffectPrefab == null)
+            {
+                // Resources'ta yoksa, Project'te ara
+                deathEffectPrefab = GameObject.Find("DeathEffectPrefab");
+            }
+            
+            // Prefabı bulduysa ata
+            if (deathEffectPrefab != null)
+            {
+                deathEffect = deathEffectPrefab;
+                Debug.Log("Düşmana otomatik olarak death effect prefabı atandı");
+            }
+        }
+        
         // Roket düşmanı için roket prefab kontrolü
         if (enemyType == EnemyType.Rocket)
         {
@@ -698,10 +717,75 @@ public class Enemy : MonoBehaviour, IDamageable
     
     void Die()
     {
-        // Ölüm animasyonu veya efekti (isteğe bağlı)
+        // Önce düşmanın hareketini ve çarpışmasını devre dışı bırak
+        GetComponent<Collider2D>().enabled = false;
+        if (GetComponent<Rigidbody2D>() != null)
+        {
+            GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
+            GetComponent<Rigidbody2D>().isKinematic = true;
+        }
+        
+        // Ölüm animasyonu ve efektini oynatan coroutine'i başlat
+        StartCoroutine(PlayDeathAnimation());
+    }
+    
+    IEnumerator PlayDeathAnimation()
+    {
+        // Ölüm animasyonu veya efekti
         if (deathEffect != null)
         {
-            Instantiate(deathEffect, transform.position, Quaternion.identity);
+            // Efekti oluştur
+            GameObject effect = Instantiate(deathEffect, transform.position, Quaternion.identity);
+            
+            // Efektin boyutunu düşmanla benzer yap (isteğe bağlı)
+            effect.transform.localScale = transform.localScale;
+            
+            // Efektin Animator bileşenini kontrol et
+            Animator animator = effect.GetComponent<Animator>();
+            if (animator != null)
+            {
+                // Animator varsa, animasyon süresi kadar bekle
+                AnimatorClipInfo[] clipInfo = animator.GetCurrentAnimatorClipInfo(0);
+                if (clipInfo.Length > 0)
+                {
+                    // Animasyon süresini al
+                    float animationDuration = clipInfo[0].clip.length;
+                    Debug.Log("Ölüm animasyonu süresi: " + animationDuration);
+                    
+                    // Düşmanı gizle (sprite renderer'ı devre dışı bırak)
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.enabled = false;
+                    }
+                    
+                    // Animasyon süresi kadar bekle
+                    yield return new WaitForSeconds(animationDuration);
+                }
+                else
+                {
+                    // Animasyon bilgisi yoksa varsayılan süre kadar bekle
+                    yield return new WaitForSeconds(0.5f);
+                }
+            }
+            else
+            {
+                // DeathEffect script süresi kadar bekle
+                DeathEffect deathEffectScript = effect.GetComponent<DeathEffect>();
+                float waitTime = (deathEffectScript != null) ? deathEffectScript.lifetime : 0.5f;
+                
+                // Düşmanı gizle
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.enabled = false;
+                }
+                
+                yield return new WaitForSeconds(waitTime);
+            }
+        }
+        else
+        {
+            // Efekt yoksa kısa bir süre bekle
+            yield return new WaitForSeconds(0.3f);
         }
         
         // Skor ekle (PlayerData üzerinden)

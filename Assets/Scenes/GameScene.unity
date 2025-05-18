@@ -2466,7 +2466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   metalPara: 500
-  zeplinSaglik: 1000
+  zeplinSaglik: 200
   zeplinSaglikLevel: 0
   zeplinMinigunDamage: 10
   zeplinMinigunLevel: 0
@@ -2476,7 +2476,7 @@ MonoBehaviour:
   zeplinRoketLevel: 0
   zeplinRoketCount: 1
   zeplinRoketDelay: 2
-  anaGemiSaglik: 200
+  anaGemiSaglik: 100
   anaGemiSaglikLevel: 0
   anaGemiMinigunDamage: 10
   anaGemiMinigunLevel: 0
@@ -2487,7 +2487,7 @@ MonoBehaviour:
   anaGemiRoketCount: 1
   anaGemiRoketDelay: 2
   anaGemiRoketSpeed: 10
-  enemyBaseHealth: 30
+  enemyBaseHealth: 10
   enemyBaseDamage: 5
   enemyBaseScoreValue: 25
   enemyDifficultyMultiplier: 1
@@ -2497,7 +2497,7 @@ MonoBehaviour:
   enemyKamikazeDamageMultiplier: 2
   enemyMinigunDamageMultiplier: 0.5
   enemyRocketDamageMultiplier: 3
-  enemyMinigunFireRate: 1
+  enemyMinigunFireRate: 0.1
   enemyRocketFireRate: 1
   enemyFireRateMultiplier: 1
 --- !u!4 &1808227863

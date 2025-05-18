@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7492075122498614673}
   - component: {fileID: 1164920218506045572}
   - component: {fileID: 7600799536722176235}
+  - component: {fileID: 5434315529500957918}
   m_Layer: 0
   m_Name: EnemyRocketPrefab
   m_TagString: Enemy
@@ -79,8 +80,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7167971821754250806, guid: d2865864e61391c4aa542dfcf03c3ef1, type: 3}
-  m_Color: {r: 0.15226316, g: 0, b: 1, a: 1}
+  m_Sprite: {fileID: 6829093323688361374, guid: 8783a8205e5d0014184e868b4556e551, type: 3}
+  m_Color: {r: 1, g: 0.93470955, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -128,7 +129,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.79, y: 0.3}
+    oldSize: {x: 0.65, y: 0.22}
     newSize: {x: 0.79, y: 0.3}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -162,9 +163,31 @@ MonoBehaviour:
   minigunSafeDistance: 6
   rocketSafeDistance: 8
   scoreValue: 25
-  deathEffect: {fileID: 0}
+  deathEffect: {fileID: 716968566986638124, guid: 70f77ce120fbe9647a71494cc1e732a4, type: 3}
   minigunBulletDamage: 5
   rocketDamage: 30
+--- !u!95 &5434315529500957918
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2901197028966878299}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 09853438c1a6e904bb73f45248928ad0, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5049150667301563552
 GameObject:
   m_ObjectHideFlags: 0
