@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI; // UI bileşenleri için
 using UnityEngine.EventSystems; // Joystick için gerekli
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class Player : MonoBehaviour
 {
@@ -34,7 +37,8 @@ public class Player : MonoBehaviour
     
     // Bileşenler
     private SpriteRenderer spriteRenderer;
-    private bool isFacingLeft = false;
+    private Animator animator; // Animator bileşeni
+    private bool isFacingLeft = true; // Artık varsayılan olarak sola bakıyor (flip X açık)
     private float currentRotation = 0f;     // Mevcut gerçek rotasyon
     private Vector3 originalFirePointLocalPos;
     
@@ -61,6 +65,14 @@ public class Player : MonoBehaviour
     // Zeplin referansı
     private Zeplin zeplin;
     
+    // Sprite animasyonu için değişkenler
+    [Header("Sprite Animasyonu")]
+    public float animationSpeed = 0.1f;     // Her kare arasındaki zaman
+    public Sprite[] animationFrames;        // El ile atanacak sprite kareleri
+    private float animationTimer = 0f;
+    private int currentFrameIndex = 0;
+    private bool isAnimationPlaying = false;
+    
     private void Start()
     {
         // Oyuncu başlangıçta canlı
@@ -78,6 +90,20 @@ public class Player : MonoBehaviour
         
         // Sprite Renderer bileşenini al
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        // Animator bileşenini kontrol et
+        animator = GetComponent<Animator>();
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            // Eğer düzgün animator controller varsa animasyonu başlat
+            animator.enabled = true;
+            Debug.Log("Animator kullanılarak animasyon başlatıldı.");
+        }
+        else
+        {
+            // Animator yoksa veya controller atanmamışsa manuel sprite animasyonu kullan
+            SetupManualAnimation();
+        }
         
         // Başlangıç rotasyonunu sıfırla
         transform.rotation = Quaternion.identity;
@@ -99,7 +125,7 @@ public class Player : MonoBehaviour
             SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
             if (firePointSpriteRenderer != null)
             {
-                firePointSpriteRenderer.flipX = isFacingLeft;
+                firePointSpriteRenderer.flipX = isFacingLeft; // Varsayılan olarak flip X açık
             }
         }
         
@@ -164,6 +190,12 @@ public class Player : MonoBehaviour
     {
         // Eğer oyuncu ölmüşse kontrolü devre dışı bırak
         if (isDead) return;
+        
+        // Manuel sprite animasyonunu güncelle
+        if (isAnimationPlaying && animationFrames != null && animationFrames.Length > 0)
+        {
+            UpdateSpriteAnimation();
+        }
         
         // Hareket ve yönlendirme
         Movement();
@@ -385,8 +417,9 @@ public class Player : MonoBehaviour
             // Mevcut rotasyonu kaydet
             currentRotation = transform.eulerAngles.z;
             
-            // FirePoint pozisyonunu güncelle
-            UpdateFirePointPosition(moveDirection.x < 0);
+            // FirePoint pozisyonunu güncelle - moveDirection.x ile isLeft mantığını tersine çevir
+            // Varsayılan olarak flip X açık olduğundan moveDirection.x > 0 ise sağa bakıyoruz
+            UpdateFirePointPosition(moveDirection.x > 0);
         }
     }
     
@@ -416,23 +449,23 @@ public class Player : MonoBehaviour
             // Rotasyon durumuna göre fire point pozisyonunu ayarla
             Vector3 newPosition = firePoint.localPosition;
             
-            // X pozisyonunu ayarla
+            // X pozisyonunu ayarla - TERSİNE ÇEVRİLDİ
             if (shouldFlipY)
             {
                 // 90/-90 derece rotasyonda (dikey)
                 if (normalizedRotation > 0) // 90 derece civarı (yukarı)
                 {
-                    newPosition.x = isFacingLeft ? Mathf.Abs(originalFirePointLocalPos.x) : -Mathf.Abs(originalFirePointLocalPos.x);
+                    newPosition.x = isFacingLeft ? -Mathf.Abs(originalFirePointLocalPos.x) : Mathf.Abs(originalFirePointLocalPos.x);
                 }
                 else // -90 derece civarı (aşağı)
                 {
-                    newPosition.x = isFacingLeft ? -Mathf.Abs(originalFirePointLocalPos.x) : Mathf.Abs(originalFirePointLocalPos.x);
+                    newPosition.x = isFacingLeft ? Mathf.Abs(originalFirePointLocalPos.x) : -Mathf.Abs(originalFirePointLocalPos.x);
                 }
             }
             else
             {
-                // Normal yatay pozisyon
-                newPosition.x = isFacingLeft ? -Mathf.Abs(originalFirePointLocalPos.x) : Mathf.Abs(originalFirePointLocalPos.x);
+                // Normal yatay pozisyon - TERSİNE ÇEVRİLDİ
+                newPosition.x = isFacingLeft ? Mathf.Abs(originalFirePointLocalPos.x) : -Mathf.Abs(originalFirePointLocalPos.x);
             }
             
             firePoint.localPosition = newPosition;
@@ -451,23 +484,23 @@ public class Player : MonoBehaviour
             Vector3 rocketPosition = rocketFirePoint.localPosition;
             float rocketOriginalX = rocketPosition.x >= 0 ? Mathf.Abs(rocketPosition.x) : -Mathf.Abs(rocketPosition.x);
             
-            // X pozisyonunu ayarla
+            // X pozisyonunu ayarla - TERSİNE ÇEVRİLDİ
             if (shouldFlipY)
             {
                 // 90/-90 derece rotasyonda (dikey)
                 if (normalizedRotation > 0) // 90 derece civarı (yukarı)
                 {
-                    rocketPosition.x = isFacingLeft ? Mathf.Abs(rocketOriginalX) : -Mathf.Abs(rocketOriginalX);
+                    rocketPosition.x = isFacingLeft ? -Mathf.Abs(rocketOriginalX) : Mathf.Abs(rocketOriginalX);
                 }
                 else // -90 derece civarı (aşağı)
                 {
-                    rocketPosition.x = isFacingLeft ? -Mathf.Abs(rocketOriginalX) : Mathf.Abs(rocketOriginalX);
+                    rocketPosition.x = isFacingLeft ? Mathf.Abs(rocketOriginalX) : -Mathf.Abs(rocketOriginalX);
                 }
             }
             else
             {
-                // Normal yatay pozisyon
-                rocketPosition.x = isFacingLeft ? -Mathf.Abs(rocketOriginalX) : Mathf.Abs(rocketOriginalX);
+                // Normal yatay pozisyon - TERSİNE ÇEVRİLDİ
+                rocketPosition.x = isFacingLeft ? Mathf.Abs(rocketOriginalX) : -Mathf.Abs(rocketOriginalX);
             }
             
             rocketFirePoint.localPosition = rocketPosition;
@@ -518,15 +551,18 @@ public class Player : MonoBehaviour
             return;
         }
         
-        // Mermi her zaman aynı rotasyonla oluşturulur - yön değişimi SetDirection ile yapılır
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, transform.rotation);
+        // Mermi firePoint rotasyonu ile oluşturulur - böylece her zaman firePoint'in +X yönünde ilerler
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         
         // Mermi bileşenini al
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
         if (bulletComponent != null)
         {
-            // Yön bilgisini ayarla (sağa veya sola hareket için)
+            // Sadece sprite'ın görünümünü ayarla, hareket etkilenmesin
             bulletComponent.SetDirection(isFacingLeft);
+            
+            // Debug log
+            Debug.Log("Mermi oluşturuldu, her zaman firePoint +X yönünde ilerleyecek");
         }
     }
     
@@ -700,6 +736,59 @@ public class Player : MonoBehaviour
             Destroy(collision.gameObject);
             
             Debug.Log("Düşman oyuncuya çarptı ve yok edildi!");
+        }
+    }
+    
+    // Manuel sprite animasyonu ayarı
+    private void SetupManualAnimation()
+    {
+        // Animator'ı devre dışı bırak (varsa)
+        if (animator != null)
+        {
+            animator.enabled = false;
+        }
+        
+        // Sprite dizisini kontrol et
+        if (animationFrames == null || animationFrames.Length == 0)
+        {
+            Debug.LogWarning("Animasyon kareleri (animationFrames) atanmamış! Inspector'dan 5 adet kareyi sırasıyla atayın.");
+            return;
+        }
+        
+        // Animasyonu başlat
+        isAnimationPlaying = true;
+        currentFrameIndex = 0;
+        animationTimer = 0f;
+        
+        // İlk kareyi ayarla
+        if (spriteRenderer != null && animationFrames.Length > 0)
+        {
+            spriteRenderer.sprite = animationFrames[0];
+            Debug.Log("Manuel sprite animasyonu başlatıldı. Kare sayısı: " + animationFrames.Length);
+        }
+    }
+    
+    // Manuel sprite animasyonunu güncelle
+    private void UpdateSpriteAnimation()
+    {
+        // Eğer sprite renderer veya animasyon kareleri yoksa dön
+        if (spriteRenderer == null || animationFrames == null || animationFrames.Length == 0)
+            return;
+            
+        // Zamanlayıcıyı güncelle
+        animationTimer += Time.deltaTime;
+        
+        // Zaman geldiğinde bir sonraki kareye geç
+        if (animationTimer >= animationSpeed)
+        {
+            // Sonraki kareye geç (döngüsel)
+            currentFrameIndex = (currentFrameIndex + 1) % animationFrames.Length;
+            
+            // Sprite'ı güncelle
+            spriteRenderer.sprite = animationFrames[currentFrameIndex];
+            
+            // Zamanlayıcıyı sıfırla
+            animationTimer = 0f;
         }
     }
 } 

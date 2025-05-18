@@ -40,6 +40,16 @@ public class PlayerData : MonoBehaviour
     public int enemyBaseDamage = 10;
     public int enemyBaseScoreValue = 25;
     public float enemyDifficultyMultiplier = 1.0f;
+    
+    // Düşman tipleri için hasarlar
+    [Header("Düşman Hasar Ayarları")]
+    public int enemyKamikazeDamage = 20;  // Kamikaze düşmanların verdiği hasar
+    public int enemyMinigunDamage = 5;    // Minigun düşmanların mermi başına verdiği hasar
+    public int enemyRocketDamage = 30;    // Roket düşmanların roket başına verdiği hasar
+    
+    public float enemyKamikazeDamageMultiplier = 2.0f;  // Kamikaze hasar çarpanı
+    public float enemyMinigunDamageMultiplier = 0.5f;   // Minigun hasar çarpanı
+    public float enemyRocketDamageMultiplier = 3.0f;    // Roket hasar çarpanı
 
    /* public Button zeplinMinigunButon; // Inspector'dan atayacaksın
     public Button anaGemiMinigunButon;
@@ -84,6 +94,22 @@ public class PlayerData : MonoBehaviour
     public int CalculateEnemyDamage()
     {
         return Mathf.RoundToInt(enemyBaseDamage * enemyDifficultyMultiplier);
+    }
+    
+    // Düşman tiplerine göre hasar hesaplama
+    public int CalculateKamikazeDamage()
+    {
+        return Mathf.RoundToInt(enemyKamikazeDamage * enemyDifficultyMultiplier * enemyKamikazeDamageMultiplier);
+    }
+    
+    public int CalculateMinigunDamage()
+    {
+        return Mathf.RoundToInt(enemyMinigunDamage * enemyDifficultyMultiplier * enemyMinigunDamageMultiplier);
+    }
+    
+    public int CalculateRocketDamage()
+    {
+        return Mathf.RoundToInt(enemyRocketDamage * enemyDifficultyMultiplier * enemyRocketDamageMultiplier);
     }
     
     // Düşman ödül değerini hesapla

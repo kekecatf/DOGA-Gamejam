@@ -74,7 +74,7 @@ public class RocketProjectile : MonoBehaviour
             if (isEnemyRocket)
             {
                 // Düşman roketi hasarı
-                damage = playerData.CalculateEnemyDamage() * 2;
+                damage = playerData.CalculateRocketDamage();
             }
             else
             {

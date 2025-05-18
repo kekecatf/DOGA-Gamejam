@@ -8,7 +8,7 @@ public class Bullet : MonoBehaviour
     public bool isEnemyBullet = false; // Düşman tarafından atılan mermi mi?
     public int damage = 0; // Özel hasar değeri (düşman mermileri için)
     
-    private bool isMovingLeft = false;
+    private bool playerFlipXEnabled = true; // Player'ın flipX durumu, varsayılan olarak açık (true)
     private PlayerData playerData;
     
     void Start()
@@ -98,28 +98,22 @@ public class Bullet : MonoBehaviour
     
     void Update()
     {
-        // Hareket yönünü belirle (transform.right kullanarak rotasyona göre)
+        // Her zaman firePoint'e göre +X yönünde ilerle (local right)
         Vector2 direction = transform.right;
-        
-        // Eğer sola bakıyorsa, yönü tersine çevir
-        if (isMovingLeft)
-        {
-            direction = -direction;
-        }
         
         // Hesaplanan yönde hareket et
         transform.Translate(direction * speed * Time.deltaTime, Space.World);
     }
     
     // Oyuncudan yön bilgisini al
-    public void SetDirection(bool isLeft)
+    public void SetDirection(bool isFlipXEnabled)
     {
-        isMovingLeft = isLeft;
-        
-        // Sprite'ın yönünü ayarla (sol veya sağ)
+        // Sadece sprite'ın görünümünü ayarla, yönü etkilemesin
         Vector3 scale = transform.localScale;
-        scale.x = isMovingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
+        scale.x = isFlipXEnabled ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
         transform.localScale = scale;
+        
+        // Not: Mermi hareketi artık her zaman +X yönünde olacak (Update metodunda)
     }
     
     // Rotasyon bilgisini al (firePoint'in rotasyonu)

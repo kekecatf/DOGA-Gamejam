@@ -147,14 +147,14 @@ public class Enemy : MonoBehaviour, IDamageable
             {
                 case EnemyType.Kamikaze:
                     currentHealth = playerData.CalculateEnemyHealth() / 2; // Daha az HP
-                    damage = playerData.CalculateEnemyDamage() * 2; // Daha çok hasar
+                    damage = playerData.CalculateKamikazeDamage(); // Düşman tipi için özel hasar
                     moveSpeed *= 1.3f; // Daha hızlı
                     // Kamikaze için saldırı mesafesi ve güvenli mesafe kullanılmaz
                     break;
                     
                 case EnemyType.Minigun:
                     currentHealth = playerData.CalculateEnemyHealth();
-                    damage = playerData.CalculateEnemyDamage() / 2; // Mermi başına daha az hasar
+                    damage = playerData.CalculateMinigunDamage(); // Düşman tipi için özel hasar
                     moveSpeed *= 0.8f; // Daha yavaş
                     // Minigun saldırı mesafesini ayarla
                     attackRange = minigunAttackRange;
@@ -165,7 +165,7 @@ public class Enemy : MonoBehaviour, IDamageable
                     
                 case EnemyType.Rocket:
                     currentHealth = playerData.CalculateEnemyHealth() * 2; // Daha çok HP
-                    damage = playerData.CalculateEnemyDamage() * 3; // Roket hasarı daha yüksek
+                    damage = playerData.CalculateRocketDamage(); // Düşman tipi için özel hasar
                     moveSpeed *= 0.6f; // En yavaş
                     fireRate = 1f; // Daha yavaş ateş
                     // Roket saldırı mesafesini ayarla
