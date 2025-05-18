@@ -532,8 +532,24 @@ public class Zeplin : MonoBehaviour
         
         Debug.Log("Zeplin yok oldu!");
         
-        // Oyun sonu mantığı (örneğin: oyunu kaybetme ekranı)
-        // GameManager.Instance.GameOver();
+        // Oyun sonu mantığı - GameManager'ı çağır
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GameOver();
+        }
+        else
+        {
+            Debug.LogError("GameManager bulunamadı! OyunSonu sahnesine geçiş yapılamıyor.");
+            // Doğrudan sahne yükleme (alternatif)
+            try
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene("OyunSonu");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("OyunSonu sahnesine geçiş başarısız! Hata: " + e.Message);
+            }
+        }
         
         // Zeplin'i yok et
         Destroy(gameObject);

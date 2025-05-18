@@ -788,6 +788,12 @@ public class Enemy : MonoBehaviour, IDamageable
             yield return new WaitForSeconds(0.3f);
         }
         
+        // GameManager'a öldürülen düşmanı bildir
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.EnemyKilled(enemyType);
+        }
+        
         // Skor ekle (PlayerData üzerinden)
         if (playerData != null)
         {
