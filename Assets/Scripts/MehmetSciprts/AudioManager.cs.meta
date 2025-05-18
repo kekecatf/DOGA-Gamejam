@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 44546d28ac64c89498eecd1ebf4a3fdc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - musicSlider: {instanceID: 0}
+  - sfxSlider: {instanceID: 0}
+  - musicSource: {instanceID: 0}
+  - sfxSource: {instanceID: 0}
+  - menuMusicSource: {instanceID: 0}
+  - buttonClickClip: {fileID: 8300000, guid: 2aacd0dae27d25f469fa5b79f6d0a4fd, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
