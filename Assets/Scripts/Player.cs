@@ -322,6 +322,9 @@ public class Player : MonoBehaviour
         // Roketi oluştur
         GameObject rocket = Instantiate(rocketPrefab, rocketFirePoint.position, rocketFirePoint.rotation);
         
+        // Rokete "Rocket" etiketini ata
+        rocket.tag = "Rocket";
+        
         // Log that a rocket was fired
         Debug.Log("Roket fırlatıldı! (Hasar PlayerData'dan otomatik alınıyor)");
         
@@ -393,37 +396,88 @@ public class Player : MonoBehaviour
         bool wasFlipped = isFacingLeft;
         isFacingLeft = isLeft;
         
-        // Sadece yön değiştiyse firePoint'i güncelle
-        if (wasFlipped != isFacingLeft && firePoint != null && firePoint != transform)
-        {
-            // FirePoint'in x değerini yöne göre ayarla, y değerini koru
-            Vector3 newPosition = firePoint.localPosition;
+        // Rotasyon 90 veya -90 derece civarında ise Y ekseni üzerinde flip kontrol et
+        float normalizedRotation = transform.eulerAngles.z;
+        if (normalizedRotation > 180)
+            normalizedRotation -= 360;
             
-            // Sadece x değerini yöne göre değiştir
-            if (isFacingLeft)
-            {
-                newPosition.x = -Mathf.Abs(originalFirePointLocalPos.x);
-            }
-            else
-            {
-                newPosition.x = Mathf.Abs(originalFirePointLocalPos.x);
-            }
-            
-            // y değeri korundu, sadece x değeri değişti
-            firePoint.localPosition = newPosition;
-            
-            // FirePoint'in sprite'ını da flip et (eğer SpriteRenderer bileşeni varsa)
-            SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
-            if (firePointSpriteRenderer != null)
-            {
-                firePointSpriteRenderer.flipX = isFacingLeft;
-            }
-        }
+        bool shouldFlipY = Mathf.Abs(Mathf.Abs(normalizedRotation) - 90) < 45;
         
         // Sprite yönünü ayarla
         if (spriteRenderer != null)
         {
-            spriteRenderer.flipX = isFacingLeft;
+            // Sadece Y ekseninde flip yap
+            spriteRenderer.flipY = shouldFlipY;
+        }
+        
+        // Fire point pozisyonunu rotasyona ve flip durumuna göre ayarla
+        if (firePoint != null && firePoint != transform)
+        {
+            // Rotasyon durumuna göre fire point pozisyonunu ayarla
+            Vector3 newPosition = firePoint.localPosition;
+            
+            // X pozisyonunu ayarla
+            if (shouldFlipY)
+            {
+                // 90/-90 derece rotasyonda (dikey)
+                if (normalizedRotation > 0) // 90 derece civarı (yukarı)
+                {
+                    newPosition.x = isFacingLeft ? Mathf.Abs(originalFirePointLocalPos.x) : -Mathf.Abs(originalFirePointLocalPos.x);
+                }
+                else // -90 derece civarı (aşağı)
+                {
+                    newPosition.x = isFacingLeft ? -Mathf.Abs(originalFirePointLocalPos.x) : Mathf.Abs(originalFirePointLocalPos.x);
+                }
+            }
+            else
+            {
+                // Normal yatay pozisyon
+                newPosition.x = isFacingLeft ? -Mathf.Abs(originalFirePointLocalPos.x) : Mathf.Abs(originalFirePointLocalPos.x);
+            }
+            
+            firePoint.localPosition = newPosition;
+            
+            // Fire point sprite'ını Y ekseninde flip yap
+            SpriteRenderer firePointSpriteRenderer = firePoint.GetComponent<SpriteRenderer>();
+            if (firePointSpriteRenderer != null)
+            {
+                firePointSpriteRenderer.flipY = shouldFlipY;
+            }
+        }
+        
+        // Roket fire point için de aynı işlemleri yap
+        if (rocketFirePoint != null && rocketFirePoint != transform && rocketFirePoint != firePoint)
+        {
+            Vector3 rocketPosition = rocketFirePoint.localPosition;
+            float rocketOriginalX = rocketPosition.x >= 0 ? Mathf.Abs(rocketPosition.x) : -Mathf.Abs(rocketPosition.x);
+            
+            // X pozisyonunu ayarla
+            if (shouldFlipY)
+            {
+                // 90/-90 derece rotasyonda (dikey)
+                if (normalizedRotation > 0) // 90 derece civarı (yukarı)
+                {
+                    rocketPosition.x = isFacingLeft ? Mathf.Abs(rocketOriginalX) : -Mathf.Abs(rocketOriginalX);
+                }
+                else // -90 derece civarı (aşağı)
+                {
+                    rocketPosition.x = isFacingLeft ? -Mathf.Abs(rocketOriginalX) : Mathf.Abs(rocketOriginalX);
+                }
+            }
+            else
+            {
+                // Normal yatay pozisyon
+                rocketPosition.x = isFacingLeft ? -Mathf.Abs(rocketOriginalX) : Mathf.Abs(rocketOriginalX);
+            }
+            
+            rocketFirePoint.localPosition = rocketPosition;
+            
+            // Roket fire point sprite'ını Y ekseninde flip yap
+            SpriteRenderer rocketFirePointSpriteRenderer = rocketFirePoint.GetComponent<SpriteRenderer>();
+            if (rocketFirePointSpriteRenderer != null)
+            {
+                rocketFirePointSpriteRenderer.flipY = shouldFlipY;
+            }
         }
     }
     
@@ -485,7 +539,7 @@ public class Player : MonoBehaviour
         // Eğer dokunulmazlık süresi aktifse hasarı yoksay
         if (isInvincible)
         {
-            Debug.Log("Oyuncu dokunulmaz durumda, hasar yoksayıldı!");
+            Debug.Log("Oyuncu dokunulmaz durumda, hasar yoksayıldı! (" + damage + " hasar)");
             return;
         }
         
@@ -512,7 +566,7 @@ public class Player : MonoBehaviour
         // Sağlık UI'ını güncelle
         UpdateHealthUI();
         
-        Debug.Log("Oyuncu hasar aldı! Kalan sağlık: " + playerData.anaGemiSaglik + "/" + maxHealth);
+        Debug.Log("Oyuncu hasar aldı: " + damage + " hasar! Kalan sağlık: " + playerData.anaGemiSaglik + "/" + maxHealth);
         
         // Dokunulmazlık süresini başlat
         isInvincible = true;

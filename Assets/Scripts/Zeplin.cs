@@ -42,7 +42,8 @@ public class Zeplin : MonoBehaviour
     
     // Hasar kontrolü
     [Header("Hasar Kontrolü")]
-    public float invincibilityTime = 1.0f; // Hasar sonrası dokunulmazlık süresi
+    public float invincibilityTime = 0.2f; // Hasar sonrası dokunulmazlık süresi - 0.2 saniye (çok kısa)
+    public bool useInvincibility = false;  // Dokunulmazlık özelliğini kullan mı?
     private float invincibilityTimer = 0f;
     private bool isInvincible = false;
     
@@ -58,6 +59,45 @@ public class Zeplin : MonoBehaviour
     
     void Start()
     {
+        // Set the tag to "Zeplin" to ensure proper collision detection
+        gameObject.tag = "Zeplin";
+        
+        // Collider bileşenini kontrol et
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider == null)
+        {
+            Debug.LogError("Zeplin'de Collider2D bileşeni bulunamadı! Çarpışma algılaması çalışmayacak.");
+        }
+        else
+        {
+            // Trigger ayarını düzelt - çarpışma için is Trigger FALSE olmalı
+            if (collider.isTrigger)
+            {
+                Debug.LogWarning("Zeplin Collider2D IsTrigger açık, hasarlar algılanmayabilir. IsTrigger kapatılıyor.");
+                collider.isTrigger = false;
+            }
+            
+            Debug.Log("Zeplin Collider2D IsTrigger: " + collider.isTrigger);
+            
+            // Zeplin'in Rigidbody2D bileşeni var mı kontrol et
+            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            if (rb == null)
+            {
+                Debug.LogWarning("Zeplin'de Rigidbody2D bileşeni bulunamadı. Ekleniyor...");
+                // Otomatik olarak ekle
+                rb = gameObject.AddComponent<Rigidbody2D>();
+            }
+            
+            // Rigidbody ayarlarını düzelt
+            rb.bodyType = RigidbodyType2D.Kinematic; // Dynamic yerine Kinematic yaparak fizik etkilerini devre dışı bırak
+            rb.gravityScale = 0f; // Yerçekimini kapat
+            rb.interpolation = RigidbodyInterpolation2D.None;
+            rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Discrete;
+            
+            Debug.Log("Zeplin'in Rigidbody2D ayarları düzeltildi: Kinematic, yerçekimsiz");
+        }
+        
         // Başlangıçta kontrol devre dışı
         isControlActive = false;
         
@@ -157,10 +197,16 @@ public class Zeplin : MonoBehaviour
             }
         }
         
-        // Dokunulmazlık süresi kontrolü
-        if (isInvincible)
+        // Dokunulmazlık süresi kontrolü (sadece kullanılıyorsa)
+        if (useInvincibility && isInvincible)
         {
             invincibilityTimer -= Time.deltaTime;
+            
+            // Periyodik olarak dokunulmazlık süresini logla
+            if (Time.frameCount % 60 == 0) // Her 60 karede bir (yaklaşık 1 saniyede bir)
+            {
+                Debug.Log($"Zeplin dokunulmazlık süresi: {invincibilityTimer:F1} saniye kaldı");
+            }
             
             // Yanıp sönme efekti
             if (spriteRenderer != null)
@@ -176,6 +222,7 @@ public class Zeplin : MonoBehaviour
                 {
                     spriteRenderer.enabled = true;
                 }
+                Debug.Log("Zeplin dokunulmazlık süresi bitti! Artık hasara açık.");
             }
         }
         
@@ -362,11 +409,27 @@ public class Zeplin : MonoBehaviour
         // Roketi oluştur
         GameObject rocket = Instantiate(rocketPrefab, firePoint.position, firePoint.rotation);
         
+        // Rokete "Rocket" etiketini ata
+        rocket.tag = "Rocket";
+        
         // Roket bileşenini alıp Zeplin'e ait olduğunu belirtebiliriz (opsiyonel)
         Rocket rocketComponent = rocket.GetComponent<Rocket>();
         if (rocketComponent != null)
         {
             // İleride zeplin roketlerine özel özellik eklemek için kullanılabilir
+        }
+        
+        // RocketProjectile bileşeni kontrol et
+        RocketProjectile rocketProjectile = rocket.GetComponent<RocketProjectile>();
+        if (rocketProjectile != null)
+        {
+            // Zeplin roketi olduğunu belirt (düşman roketi değil)
+            rocketProjectile.isEnemyRocket = false;
+            // Hasar değerini PlayerData'dan al
+            if (playerData != null)
+            {
+                rocketProjectile.damage = playerData.zeplinRoketDamage;
+            }
         }
         
         // Bekleme süresini ayarla
@@ -378,13 +441,16 @@ public class Zeplin : MonoBehaviour
     // Zeplin'e hasar verme metodu
     public void TakeDamage(int damage)
     {
-        // Dokunulmazlık kontrolü
-        if (isInvincible)
+        Debug.Log($"!!! Zeplin TakeDamage çağrıldı - Hasar: {damage}, İnvincible: {isInvincible}, Invincibility Timer: {invincibilityTimer:F2}");
+        
+        // Dokunulmazlık kontrolü (sadece kullanılıyorsa)
+        if (useInvincibility && isInvincible)
         {
-            Debug.Log("Zeplin dokunulmaz durumda, hasar yoksayıldı!");
+            Debug.Log("Zeplin dokunulmaz durumda, hasar yoksayıldı! (" + damage + " hasar)");
             return;
         }
         
+        // PlayerData kontrolü
         if (playerData == null)
         {
             playerData = FindObjectOfType<PlayerData>();
@@ -395,8 +461,21 @@ public class Zeplin : MonoBehaviour
             }
         }
         
+        // Önceki sağlık durumunu kaydet
+        int previousHealth = playerData.zeplinSaglik;
+        
         // PlayerData'daki sağlık değerini azalt
         playerData.zeplinSaglik -= damage;
+        
+        // Hasar uygulandığını doğrulama
+        if (previousHealth == playerData.zeplinSaglik)
+        {
+            Debug.LogError($"Hasar uygulanamadı! Önceki Sağlık: {previousHealth}, Şimdiki Sağlık: {playerData.zeplinSaglik}, Hasar: {damage}");
+        }
+        else
+        {
+            Debug.Log($"Zeplin'e {damage} hasar uygulandı! Önceki Sağlık: {previousHealth}, Yeni Sağlık: {playerData.zeplinSaglik}");
+        }
         
         // Hasar efekti göster (eğer varsa)
         if (damageEffect != null)
@@ -407,11 +486,15 @@ public class Zeplin : MonoBehaviour
         // UI elemanlarını güncelle
         UpdateUI();
         
-        Debug.Log("Zeplin hasar aldı! Kalan sağlık: " + playerData.zeplinSaglik + "/" + maxHealth);
+        // Dokunulmazlık süresini başlat (eğer kullanılıyorsa)
+        if (useInvincibility)
+        {
+            isInvincible = true;
+            invincibilityTimer = invincibilityTime;
+            Debug.Log($"Zeplin için dokunulmazlık başlatıldı. Süre: {invincibilityTimer:F2}s");
+        }
         
-        // Dokunulmazlık süresini başlat
-        isInvincible = true;
-        invincibilityTimer = invincibilityTime;
+        Debug.Log($"Zeplin hasar aldı: {damage} hasar! Kalan sağlık: {playerData.zeplinSaglik}/{maxHealth}");
         
         // Eğer sağlık sıfırın altına düştüyse
         if (playerData.zeplinSaglik <= 0)
@@ -460,6 +543,8 @@ public class Zeplin : MonoBehaviour
     // Çarpışma algılama - Trigger için
     void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log("Zeplin ile çarpışma algılandı: " + other.gameObject.name + " (Tag: " + other.tag + ")");
+        
         // Düşman ile çarpışma kontrolü
         if (other.CompareTag("Enemy"))
         {
@@ -480,11 +565,43 @@ public class Zeplin : MonoBehaviour
             
             Debug.Log("Düşman Zeplin'e çarptı ve yok edildi!");
         }
+        // Düşman mermisiyle çarpışma kontrolü
+        else if (other.CompareTag("Bullet"))
+        {
+            Bullet bullet = other.GetComponent<Bullet>();
+            if (bullet != null && bullet.isEnemyBullet)
+            {
+                // Düşman mermisinden hasar al
+                TakeDamage(bullet.damage);
+                
+                // Mermiyi yok et
+                Destroy(other.gameObject);
+                
+                Debug.Log("Zeplin düşman mermisiyle vuruldu! Hasar: " + bullet.damage);
+            }
+        }
+        // Roket ile çarpışma kontrolü
+        else if (other.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = other.GetComponent<RocketProjectile>();
+            if (rocket != null && rocket.isEnemyRocket)
+            {
+                // Düşman roketinden hasar al
+                TakeDamage(rocket.damage);
+                
+                // Roketi yok et
+                Destroy(other.gameObject);
+                
+                Debug.Log("Zeplin düşman roketiyle vuruldu! Hasar: " + rocket.damage);
+            }
+        }
     }
     
     // Çarpışma algılama - Fiziksel çarpışma için
     void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("Zeplin ile fiziksel çarpışma algılandı: " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        
         // Düşman ile çarpışma kontrolü
         if (collision.gameObject.CompareTag("Enemy"))
         {
@@ -504,6 +621,36 @@ public class Zeplin : MonoBehaviour
             Destroy(collision.gameObject);
             
             Debug.Log("Düşman Zeplin'e çarptı ve yok edildi!");
+        }
+        // Düşman mermisiyle çarpışma kontrolü
+        else if (collision.gameObject.CompareTag("Bullet"))
+        {
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            if (bullet != null && bullet.isEnemyBullet)
+            {
+                // Düşman mermisinden hasar al
+                TakeDamage(bullet.damage);
+                
+                // Mermiyi yok et
+                Destroy(collision.gameObject);
+                
+                Debug.Log("Zeplin düşman mermisiyle vuruldu! (Collision) Hasar: " + bullet.damage);
+            }
+        }
+        // Roket ile çarpışma kontrolü
+        else if (collision.gameObject.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = collision.gameObject.GetComponent<RocketProjectile>();
+            if (rocket != null && rocket.isEnemyRocket)
+            {
+                // Düşman roketinden hasar al
+                TakeDamage(rocket.damage);
+                
+                // Roketi yok et
+                Destroy(collision.gameObject);
+                
+                Debug.Log("Zeplin düşman roketiyle vuruldu! (Collision) Hasar: " + rocket.damage);
+            }
         }
     }
 } 
