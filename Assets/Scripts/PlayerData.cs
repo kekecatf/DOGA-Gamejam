@@ -65,6 +65,10 @@ public class PlayerData : MonoBehaviour
     // Singleton yapısı
     public static PlayerData Instance { get; private set; }
 
+    // Oyun mekanikleri için kontrol değişkenleri
+    [Header("Oyun Mekanikleri")]
+    public bool isPlayerRespawned = false; // Oyuncu canlandı mı? (ilk ölümden sonra MiniGame başarılı olduysa)
+
     private void Awake()
     {
         // Singleton kontrol

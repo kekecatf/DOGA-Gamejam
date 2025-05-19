@@ -5689,6 +5689,7 @@ MonoBehaviour:
   enemyMinigunFireRate: 0.1
   enemyRocketFireRate: 0
   enemyFireRateMultiplier: 1
+  isPlayerRespawned: 0
 --- !u!4 &1808227863
 Transform:
   m_ObjectHideFlags: 0

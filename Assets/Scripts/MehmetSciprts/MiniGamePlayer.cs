@@ -42,7 +42,7 @@ public class MiniGamePlayer : MonoBehaviour
         if (other.CompareTag("Zemin"))
         {
             // Direkt olarak Oynanis sahnesine geç
-            SceneManager.LoadScene("Oynanis");
+            SceneManager.LoadScene("GameScene");
         }
         else if (other.CompareTag("Engel"))
         {
@@ -73,6 +73,6 @@ public class MiniGamePlayer : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f);
 
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene("GameOver");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("OyunSonu");
     }
 }

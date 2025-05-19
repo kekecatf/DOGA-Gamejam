@@ -64,7 +64,75 @@ public class GameInitializer : MonoBehaviour
         // Wave Manager (EnemySpawner) oluştur
         EnemySpawner enemySpawner = CheckOrCreateManager<EnemySpawner>("EnemySpawner");
         
+        // Eğer oyuncu bir MiniGame sonrası canlandıysa PlayerRespawner'ı oluştur
+        if (PlayerData.Instance != null && PlayerData.Instance.isPlayerRespawned)
+        {
+            CheckOrCreatePlayerRespawner();
+        }
+        
         Debug.Log("GameInitializer: Tüm oyun yöneticileri başlatıldı.");
+    }
+    
+    // PlayerRespawner oluşturma metodu
+    private void CheckOrCreatePlayerRespawner()
+    {
+        // Önce PlayerRespawner var mı kontrol et
+        PlayerRespawner respawner = FindObjectOfType<PlayerRespawner>();
+        
+        if (respawner == null)
+        {
+            // PlayerRespawner oluştur
+            GameObject respawnerObj = new GameObject("PlayerRespawner");
+            respawner = respawnerObj.AddComponent<PlayerRespawner>();
+            
+            // Gerekli referansları ayarla
+            
+            // Player prefabı referansını ayarlamak için Resources klasöründen yükle
+            // Önce "Prefabs/Player" yolunu dene
+            respawner.playerPrefab = Resources.Load<GameObject>("Prefabs/Player");
+            
+            // Bulunamazsa alternatif yollar dene
+            if (respawner.playerPrefab == null)
+            {
+                respawner.playerPrefab = Resources.Load<GameObject>("Player");
+                
+                if (respawner.playerPrefab == null)
+                {
+                    // Sahnedeki mevcut oyuncuyu prefab olarak kullanmayı dene
+                    GameObject existingPlayer = GameObject.FindGameObjectWithTag("Player");
+                    if (existingPlayer != null)
+                    {
+                        Debug.LogWarning("GameInitializer: Player prefabı Resources klasöründe bulunamadı, sahnedeki Player kullanılacak!");
+                        respawner.playerPrefab = existingPlayer;
+                    }
+                    else
+                    {
+                        Debug.LogError("GameInitializer: Player prefabı bulunamadı! Resources/Prefabs/Player veya Resources/Player yollarını kontrol edin.");
+                        Debug.LogError("Lütfen Player prefabını Resources klasörüne ekleyin veya doğru yolu belirtin.");
+                    }
+                }
+            }
+            
+            // Bulunan prefabı logla
+            if (respawner.playerPrefab != null)
+            {
+                Debug.Log($"GameInitializer: Player prefabı bulundu: {respawner.playerPrefab.name}");
+            }
+            
+            // Alternatif olarak, oyundaki mevcut canlanma noktasını bulmayı dene
+            GameObject respawnPointObj = GameObject.FindGameObjectWithTag("RespawnPoint");
+            if (respawnPointObj != null)
+            {
+                respawner.respawnPoint = respawnPointObj.transform;
+                Debug.Log($"GameInitializer: RespawnPoint bulundu: {respawnPointObj.name}");
+            }
+            else
+            {
+                Debug.LogWarning("GameInitializer: RespawnPoint bulunamadı, varsayılan pozisyon kullanılacak.");
+            }
+            
+            Debug.Log("GameInitializer: PlayerRespawner oluşturuldu. Oyuncu canlanacak.");
+        }
     }
     
     // Generic manager oluşturma yardımcı fonksiyonu

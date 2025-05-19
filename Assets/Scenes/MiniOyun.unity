@@ -425,7 +425,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 420105662}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c3c3ae29550624b998417c30c3fecd, type: 3}
+  m_Script: {fileID: 11500000, guid: fdbafa7c58f0b894780eb01bd9f95fe9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
@@ -473,12 +473,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 467075077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 951b2151be311d143922cff32e6ddcf3, type: 3}
+  m_Script: {fileID: 11500000, guid: 1dc838428e1e7f74ab8154133bd22b80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  toplamSure: 10
-  timerText: {fileID: 1365159215}
-  player: {fileID: 420105662}
+  pointsToWin: 100
 --- !u!1 &728568308
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,7 +754,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1639315173}
-  - component: {fileID: 1639315172}
+  - component: {fileID: 1639315174}
   m_Layer: 0
   m_Name: EngelSpawner
   m_TagString: Untagged
@@ -764,23 +762,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1639315172
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1639315171}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 04bd000df03a18f448f3e26cfc80a9f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  engelPrefab: {fileID: 5568516123866161491, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-  spawnInterval: 1
-  maxEngelSayisi: 5
-  toplamSure: 8
-  zemin: {fileID: 33301224}
 --- !u!4 &1639315173
 Transform:
   m_ObjectHideFlags: 0
@@ -796,6 +777,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1639315174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1639315171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14f84a9ae90e36d46bba45980f7685a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  engelPrefab: {fileID: 6385910146296121089, guid: ed9c8cb67e2351f428b74f7705e8f251, type: 3}
+  spawnInterval: 1
+  maxEngelSayisi: 5
+  toplamSure: 8
+  zemin: {fileID: 33301224}
 --- !u!1 &1795024979
 GameObject:
   m_ObjectHideFlags: 0
@@ -943,7 +941,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1795024979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4b7999e8b70c3744a514f25c20e308f, type: 3}
+  m_Script: {fileID: 11500000, guid: 018511493966d2840a3721006f0c20c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 420105665}
@@ -1027,63 +1025,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &5856610775104426931
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 1.7064723
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.4706513
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3913999802582598119, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5568516123866161491, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
-      propertyPath: m_Name
-      value: Engel
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 96346a3bd6dd6d54b8192219371442de, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1094,6 +1035,5 @@ SceneRoots:
   - {fileID: 420105665}
   - {fileID: 467075079}
   - {fileID: 33301224}
-  - {fileID: 5856610775104426931}
   - {fileID: 1639315173}
   - {fileID: 728568310}
