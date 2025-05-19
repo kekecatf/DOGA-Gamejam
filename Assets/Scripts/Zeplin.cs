@@ -588,19 +588,20 @@ public class Zeplin : MonoBehaviour
             }
         }
         
+        // Negatif veya sıfır sağlık kontrolü - hasar uygulamadan önce kontrol
+        if (playerData.zeplinSaglik <= 0)
+        {
+            Debug.LogError($"Zeplin: zeplinSaglik zaten negatif veya sıfır ({playerData.zeplinSaglik}). Varsayılan değer (1000) kullanılıyor.");
+            playerData.zeplinSaglik = 1000; // DEFAULT_ZEPLIN_SAGLIK
+            maxHealth = playerData.zeplinSaglik;
+            UpdateUI();
+            return; // Hasar uygulamadan çık, zaten yeni canlandırılmış
+        }
+        
         // maxHealth ve zeplinSaglik arasında farklılık varsa, maxHealth değerini güncelle
         if (maxHealth != playerData.zeplinSaglik && playerData.zeplinSaglik > 0)
         {
             Debug.Log($"Zeplin: maxHealth ({maxHealth}) ve zeplinSaglik ({playerData.zeplinSaglik}) arasında fark var. maxHealth güncelleniyor.");
-            maxHealth = playerData.zeplinSaglik;
-            UpdateUI();
-        }
-        
-        // Negatif veya sıfır sağlık kontrolü
-        if (playerData.zeplinSaglik <= 0)
-        {
-            Debug.LogError($"Zeplin: zeplinSaglik zaten negatif veya sıfır ({playerData.zeplinSaglik}). Varsayılan değer kullanılıyor.");
-            playerData.zeplinSaglik = 1000; // DEFAULT_ZEPLIN_SAGLIK
             maxHealth = playerData.zeplinSaglik;
             UpdateUI();
         }
@@ -610,6 +611,14 @@ public class Zeplin : MonoBehaviour
         
         // PlayerData'daki sağlık değerini azalt
         playerData.zeplinSaglik -= damage;
+        
+        // Hasar sonrası negatif sağlık kontrolü
+        if (playerData.zeplinSaglik <= 0)
+        {
+            // Ölüm için sağlık değerini 0 olarak ayarla (negatif değil)
+            playerData.zeplinSaglik = 0;
+            Debug.Log("Zeplin'in sağlığı 0'a düştü! Ölüm işlemi başlatılıyor.");
+        }
         
         // Hasar uygulandığını doğrulama
         if (previousHealth == playerData.zeplinSaglik)
@@ -645,7 +654,7 @@ public class Zeplin : MonoBehaviour
         
         Debug.Log($"Zeplin hasar aldı: {damage} hasar! Kalan sağlık: {playerData.zeplinSaglik}/{maxHealth}");
         
-        // Eğer sağlık sıfırın altına düştüyse
+        // Eğer sağlık sıfıra düştüyse
         if (playerData.zeplinSaglik <= 0)
         {
             Die();
@@ -736,13 +745,16 @@ public class Zeplin : MonoBehaviour
             Bullet bullet = other.GetComponent<Bullet>();
             if (bullet != null && bullet.isEnemyBullet)
             {
+                // Hasar kontrolü - fazla hasar almayı önle
+                int bulletDamage = Mathf.Clamp(bullet.damage, 0, 100); // Maksimum 100 hasar
+                
                 // Düşman mermisinden hasar al
-                TakeDamage(bullet.damage);
+                TakeDamage(bulletDamage);
                 
                 // Mermiyi yok et
                 Destroy(other.gameObject);
                 
-                Debug.Log("Zeplin düşman mermisiyle vuruldu! Hasar: " + bullet.damage);
+                Debug.Log($"Zeplin düşman mermisiyle vuruldu! Hasar: {bulletDamage}, Orjinal Mermi Hasarı: {bullet.damage}");
             }
         }
         // Roket ile çarpışma kontrolü
@@ -793,13 +805,16 @@ public class Zeplin : MonoBehaviour
             Bullet bullet = collision.gameObject.GetComponent<Bullet>();
             if (bullet != null && bullet.isEnemyBullet)
             {
+                // Hasar kontrolü - fazla hasar almayı önle
+                int bulletDamage = Mathf.Clamp(bullet.damage, 0, 100); // Maksimum 100 hasar
+                
                 // Düşman mermisinden hasar al
-                TakeDamage(bullet.damage);
+                TakeDamage(bulletDamage);
                 
                 // Mermiyi yok et
                 Destroy(collision.gameObject);
                 
-                Debug.Log("Zeplin düşman mermisiyle vuruldu! (Collision) Hasar: " + bullet.damage);
+                Debug.Log($"Zeplin düşman mermisiyle vuruldu! Hasar: {bulletDamage}, Orjinal Mermi Hasarı: {bullet.damage}");
             }
         }
         // Roket ile çarpışma kontrolü
@@ -814,7 +829,7 @@ public class Zeplin : MonoBehaviour
                 // Roketi yok et
                 Destroy(collision.gameObject);
                 
-                Debug.Log("Zeplin düşman roketiyle vuruldu! (Collision) Hasar: " + rocket.damage);
+                Debug.Log("Zeplin düşman roketiyle vuruldu! Hasar: " + rocket.damage);
             }
         }
     }

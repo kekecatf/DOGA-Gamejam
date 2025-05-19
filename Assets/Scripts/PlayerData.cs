@@ -20,7 +20,7 @@ public class PlayerData : MonoBehaviour
     public float zeplinMinigunCooldown = 1.0f;
     public int zeplinMinigunCount = 1;
 
-    public int zeplinRoketDamage = 20;
+    public int zeplinRoketDamage = 60;
     public int zeplinRoketLevel = 0;
     public int zeplinRoketCount = 1;
     public float zeplinRoketDelay = 2.0f;
@@ -34,7 +34,7 @@ public class PlayerData : MonoBehaviour
     public float anaGemiMinigunCooldown = 0.4f;
     public int anaGemiMinigunCount = 1;
 
-    public int anaGemiRoketDamage = 20;
+    public int anaGemiRoketDamage = 60;
     public int anaGemiRoketLevel = 0;
     public int anaGemiRoketCount = 1;
     public float anaGemiRoketDelay = 2.0f;
@@ -133,10 +133,6 @@ public class PlayerData : MonoBehaviour
         PlayerPrefs.Save();
         
         Debug.Log("PlayerData: zeplinSaglik değeri her zaman 1000 olarak ayarlandı!");
-        
-        // NOTE: We're skipping the usual PlayerPrefs loading logic for zeplinSaglik
-        
-        // Diğer değerleri de ihtiyaca göre buraya ekleyebilirsiniz
     }
     
     // Değerleri PlayerPrefs'e kaydet
@@ -166,14 +162,14 @@ public class PlayerData : MonoBehaviour
         metalPara = DEFAULT_METAL_PARA;
         
         // Zeplin değerleri sıfırlama
-        // NOT: zeplinSaglik değeri korunacak şekilde değiştirildi
-        // zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK; // Bu satır artık çalıştırılmayacak
+        // NOT: zeplinSaglik değeri artık her zaman 1000 olarak ayarlanıyor
+        zeplinSaglik = 1000; // Bu satır artık açıkça çalıştırılıyor
         zeplinSaglikLevel = 0;
         zeplinMinigunDamage = 10;
         zeplinMinigunLevel = 0;
         zeplinMinigunCooldown = 1.0f;
         zeplinMinigunCount = 1;
-        zeplinRoketDamage = 20;
+        zeplinRoketDamage = 60;
         zeplinRoketLevel = 0;
         zeplinRoketCount = 1;
         zeplinRoketDelay = 2.0f;
@@ -185,7 +181,7 @@ public class PlayerData : MonoBehaviour
         anaGemiMinigunLevel = 0;
         anaGemiMinigunCooldown = 0.4f;
         anaGemiMinigunCount = 1;
-        anaGemiRoketDamage = 20;
+        anaGemiRoketDamage = 60;
         anaGemiRoketLevel = 0;
         anaGemiRoketCount = 1;
         anaGemiRoketDelay = 2.0f;
@@ -203,7 +199,13 @@ public class PlayerData : MonoBehaviour
         enemyMinigunDamageMultiplier = 0.3f;
         enemyRocketDamageMultiplier = 1.5f;
         
-        Debug.Log("PlayerData tüm değerler sıfırlandı (zeplinSaglik hariç)!");
+        // Oyun mekaniği değişkenlerini sıfırla
+        isPlayerRespawned = false;
+        
+        // PlayerPrefs'e kaydet
+        SaveValues();
+        
+        Debug.Log("PlayerData tüm değerler sıfırlandı! zeplinSaglik = 1000");
     }
 
     // İsteğe bağlı olarak çağrılabilecek bir özellik değerlerini yeniden ayarlama fonksiyonu ekleyelim

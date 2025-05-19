@@ -970,15 +970,20 @@ public class Player : MonoBehaviour
         }
 
         // Düşman mermisi ile çarpışma
-        if (other.CompareTag("EnemyBullet"))
+        if (other.tag == "Bullet")
         {
-            // EnemyMinigun mermisi için sabit 5 hasar değeri
-            int bulletDamage = 5;
-            TakeDamage(bulletDamage);
-            Debug.Log("Oyuncu düşman mermisiyle vuruldu! Hasar: " + bulletDamage);
-
-            // Mermiyi yok et
-            Destroy(other.gameObject);
+            // Mermi komponenti al
+            Bullet bullet = other.GetComponent<Bullet>();
+            
+            // Eğer düşman mermisiyse hasar ver
+            if (bullet != null && bullet.isEnemyBullet)
+            {
+                TakeDamage(bullet.damage);
+                Debug.Log("Oyuncu düşman mermisiyle vuruldu! Hasar: " + bullet.damage);
+                
+                // Mermiyi yok et
+                Destroy(other.gameObject);
+            }
         }
     }
 
@@ -1023,6 +1028,23 @@ public class Player : MonoBehaviour
 
             // Oyuncuya hasar ver
             TakeDamage(damage);
+        }
+
+        // Düşman mermisi ile çarpışma
+        if (collision.gameObject.tag == "Bullet")
+        {
+            // Mermi komponenti al
+            Bullet bullet = collision.gameObject.GetComponent<Bullet>();
+            
+            // Eğer düşman mermisiyse hasar ver
+            if (bullet != null && bullet.isEnemyBullet)
+            {
+                TakeDamage(bullet.damage);
+                Debug.Log("Oyuncu düşman mermisiyle vuruldu! (Collision) Hasar: " + bullet.damage);
+                
+                // Mermiyi yok et
+                Destroy(collision.gameObject);
+            }
         }
     }
 
