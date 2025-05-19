@@ -214,6 +214,13 @@ public class Enemy : MonoBehaviour, IDamageable
     
     private void Update()
     {
+        // Check if enemy has fallen below y=-100
+        if (transform.position.y < -100f)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         UpdateTargetPosition();
         
         // Eğer UpdateTargetPosition içinde RangedEnemyBehavior çağrıldıysa
@@ -552,15 +559,32 @@ public class Enemy : MonoBehaviour, IDamageable
     
     void Die()
     {
-        // Önce düşmanın hareketini ve çarpışmasını devre dışı bırak
-        GetComponent<Collider2D>().enabled = false;
-        if (GetComponent<Rigidbody2D>() != null)
+        // Add Rigidbody2D for falling physics
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
         {
-            GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
-            GetComponent<Rigidbody2D>().isKinematic = true;
+            rb = gameObject.AddComponent<Rigidbody2D>();
         }
         
-        // Ölüm animasyonu ve efektini oynatan coroutine'i başlat
+        // Configure Rigidbody2D for falling
+        rb.gravityScale = 1f;
+        rb.mass = 1f;
+        rb.linearDamping = 0.5f;
+        rb.angularDamping = 0.5f;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        
+        // Add some random rotation and velocity for more natural falling
+        float randomRotation = Random.Range(-180f, 180f);
+        rb.angularVelocity = randomRotation;
+        
+        // Add some random horizontal velocity
+        float randomHorizontalForce = Random.Range(-2f, 2f);
+        rb.linearVelocity = new Vector2(randomHorizontalForce, rb.linearVelocity.y);
+        
+        // Disable enemy movement and collision
+        GetComponent<Collider2D>().enabled = true; // Keep collider enabled for physics
+        
+        // Start death animation and effects
         StartCoroutine(PlayDeathAnimation());
     }
     
