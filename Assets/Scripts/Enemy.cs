@@ -775,12 +775,50 @@ public class Enemy : MonoBehaviour, IDamageable
                 Destroy(bullet.gameObject); // Mermiyi yok et
             }
         }
+        
+        // Roketle çarpışma
+        if (collision.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = collision.GetComponent<RocketProjectile>();
+            if (rocket != null && !rocket.isEnemyRocket)
+            {
+                // Roket ile daha fazla hasar al
+                Debug.Log($"Düşman roket ile vuruldu! Roket hasarı: {rocket.damage}");
+                TakeDamage(rocket.damage);
+                
+                // Roketi patlat
+                rocket.HandleHit(gameObject);
+                
+                // Roket log
+                Debug.Log($"Roket düşmana çarptı ve {rocket.damage} hasar verdi!");
+            }
+        }
     }
     
     // Fiziksel çarpışma işleme
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Debug.Log("Enemy OnCollisionEnter2D: " + gameObject.name + " collided with " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
+        
+        // Roketle çarpışma kontrolü
+        if (collision.gameObject.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = collision.gameObject.GetComponent<RocketProjectile>();
+            if (rocket != null && !rocket.isEnemyRocket)
+            {
+                // Roket ile daha fazla hasar al
+                Debug.Log($"Düşman roket ile vuruldu (Collision)! Roket hasarı: {rocket.damage}");
+                TakeDamage(rocket.damage);
+                
+                // Roketi patlat
+                rocket.HandleHit(gameObject);
+                
+                // Roket log
+                Debug.Log($"Roket düşmana çarptı (Collision) ve {rocket.damage} hasar verdi!");
+                
+                return; // Başka işlem yapma
+            }
+        }
         
         // Kamikaze düşmanlar dışındakiler için veya yedek çarpışma kontrolü olarak
         if (collision.gameObject.CompareTag("Player"))

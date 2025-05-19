@@ -611,7 +611,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7167971821754250806, guid: d2865864e61391c4aa542dfcf03c3ef1, type: 3}
+  m_Sprite: {fileID: -5012545622266089749, guid: 92ad8653c55b74d45b026e3fa536eb8c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1875,6 +1875,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthSlider: {fileID: 1615276922}
   healthText: {fileID: 0}
+  fillRectTransform: {fileID: 0}
   damageEffect: {fileID: 0}
   destroyEffect: {fileID: 0}
   moveSpeed: 2
@@ -4722,7 +4723,7 @@ MonoBehaviour:
   useCustomSpawnAreas: 1
   spawnAreas: []
   useWaveSystem: 1
-  maxWaves: 5
+  maxWaves: 2
   timeBetweenWaves: 10
   baseEnemiesPerWave: 5
   enemyIncreasePerWave: 2

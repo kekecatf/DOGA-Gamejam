@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class Boss : Enemy
 {
@@ -149,20 +150,42 @@ public class Boss : Enemy
         }
     }
     
-    public override void TakeDamage(int damageAmount)
+    // Hasar alma metodu (Enemy sınıfından geliyor)
+    public override void TakeDamage(int damage)
     {
-        currentHealth -= damageAmount;
-        
-        // Hasar efekti
+        // Canı azalt
+        currentHealth -= damage;
+        Debug.Log("Boss hasar aldı: " + damage + " - Kalan can: " + currentHealth);
+
+        // Hasar efekti (varsa)
         if (spriteRenderer != null)
         {
             StartCoroutine(FlashRed());
         }
-        
-        // Boss öldü mü kontrol et
+
+        // Hasar ses efekti
+        if (AudioManager.Instance != null)
+        {
+            // Düşman vuruş sesi
+            AudioManager.Instance.PlayExplosionSound();
+        }
+
+        // Ölüm kontrolü
         if (currentHealth <= 0)
         {
+            Debug.Log("Boss öldürüldü!");
             Die();
+        }
+        else
+        {
+            // Debug - Düşmanın kalan canını göster
+            Debug.Log("Boss için kalan can: " + currentHealth);
+            
+            // Debug - Roket çarpması özel kontrolü
+            if (damage >= 15) 
+            {
+                Debug.Log("Boss'a güçlü bir saldırı yapıldı! (Roket olabilir) Hasar: " + damage);
+            }
         }
     }
     
@@ -182,6 +205,13 @@ public class Boss : Enemy
             Instantiate(deathEffect, transform.position, Quaternion.identity);
         }
         
+        // Patlama sesi çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayExplosionSound();
+            Debug.Log("Boss öldürüldü! Patlama sesi çalınıyor.");
+        }
+        
         // Item düşürme şansı
         if (ItemDropManager.Instance != null)
         {
@@ -195,8 +225,41 @@ public class Boss : Enemy
             Debug.Log($"Boss öldürüldü! Para kazanıldı: {scoreValue}");
         }
         
-        // Objeyi yok et
-        Destroy(gameObject);
+        // Boss öldüğünde OyunKazanma sahnesine geçiş yap
+        Debug.Log("Boss öldürüldü! OyunKazanma sahnesine geçiliyor...");
+        
+        // Coroutine yerine doğrudan sahne geçişi yap, sorun olursa tekrar coroutine kullan
+        try
+        {
+            // Objeyi yok etmeden önce coroutine'i başlat
+            StartCoroutine(LoadOyunKazanmaScene());
+            Debug.Log("LoadOyunKazanmaScene coroutine başlatıldı");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Coroutine başlatılamadı: {e.Message}. Doğrudan sahne yükleniyor...");
+            // Doğrudan sahne yükleme dene
+            SceneManager.LoadScene("OyunKazanma");
+        }
+        
+        // Objeyi hemen yok etme, önemli
+        Destroy(gameObject, 2f); // 2 saniye bekle ki coroutine çalışabilsin
+    }
+    
+    // OyunKazanma sahnesini yükleme coroutine'i
+    private IEnumerator LoadOyunKazanmaScene()
+    {
+        Debug.Log("LoadOyunKazanmaScene coroutine başladı, 1.5 saniye bekleniyor...");
+        
+        // Kısa bir gecikme ekle
+        yield return new WaitForSeconds(1.5f);
+        
+        Debug.Log("Bekleme süresi tamamlandı, sahne yükleniyor: OyunKazanma");
+        
+        // OyunKazanma sahnesine geçiş yap
+        SceneManager.LoadScene("OyunKazanma");
+        
+        Debug.Log("SceneManager.LoadScene çağrıldı");
     }
     
     // Boss'un özel ateş etme fonksiyonu
@@ -229,6 +292,50 @@ public class Boss : Enemy
         catch (System.Exception e)
         {
             Debug.LogError($"BossFire hata: {e.Message}");
+        }
+    }
+    
+    // Trigger çarpışma kontrolü
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        // Roketle çarpışma kontrolü
+        if (collision.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = collision.GetComponent<RocketProjectile>();
+            if (rocket != null && !rocket.isEnemyRocket)
+            {
+                // Roket ile daha fazla hasar al
+                Debug.Log($"[Boss] Boss roket ile vuruldu! Roket hasarı: {rocket.damage}");
+                TakeDamage(rocket.damage);
+                
+                // Roketi patlat
+                rocket.HandleHit(gameObject);
+                
+                // Roket log
+                Debug.Log($"[Boss] Roket boss'a çarptı ve {rocket.damage} hasar verdi!");
+            }
+        }
+    }
+    
+    // Fiziksel çarpışma kontrolü
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // Roketle çarpışma kontrolü
+        if (collision.gameObject.CompareTag("Rocket"))
+        {
+            RocketProjectile rocket = collision.gameObject.GetComponent<RocketProjectile>();
+            if (rocket != null && !rocket.isEnemyRocket)
+            {
+                // Roket ile daha fazla hasar al
+                Debug.Log($"[Boss] Boss roket ile vuruldu (Collision)! Roket hasarı: {rocket.damage}");
+                TakeDamage(rocket.damage);
+                
+                // Roketi patlat
+                rocket.HandleHit(gameObject);
+                
+                // Roket log
+                Debug.Log($"[Boss] Roket boss'a çarptı (Collision) ve {rocket.damage} hasar verdi!");
+            }
         }
     }
 } 

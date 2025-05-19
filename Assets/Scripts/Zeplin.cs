@@ -7,6 +7,7 @@ public class Zeplin : MonoBehaviour
     [Header("UI Elemanları")]
     public Slider healthSlider; // Opsiyonel sağlık çubuğu
     public Text healthText; // Opsiyonel sağlık metni
+    public RectTransform fillRectTransform; // Fill area için sağlık barı fill nesnesi
     
     // Efektler
     [Header("Efektler")]
@@ -59,14 +60,21 @@ public class Zeplin : MonoBehaviour
     
     void Start()
     {
-        // Set the tag to "Zeplin" to ensure proper collision detection
-        gameObject.tag = "Zeplin";
+        // SpriteRenderer bileşenini bul
+        spriteRenderer = GetComponent<SpriteRenderer>();
         
-        // Collider bileşenini kontrol et
+        // FirePoint kontrolü
+        if (firePoint == null)
+        {
+            Debug.LogWarning("FirePoint atanmamış! Zeplin mermi ateşleyemeyecek.");
+        }
+        
+        // Collider kontrolü
         Collider2D collider = GetComponent<Collider2D>();
         if (collider == null)
         {
-            Debug.LogError("Zeplin'de Collider2D bileşeni bulunamadı! Çarpışma algılaması çalışmayacak.");
+            Debug.LogError("Zeplin objesi için Collider2D bileşeni bulunamadı! Oluşturuluyor...");
+            gameObject.AddComponent<BoxCollider2D>();
         }
         else
         {
@@ -116,6 +124,12 @@ public class Zeplin : MonoBehaviour
         // Maksimum sağlık değerini kaydet, fakat sağlık değerini değiştirme
         maxHealth = playerData.zeplinSaglik;
         Debug.Log($"Zeplin: maxHealth = {maxHealth}, zeplinSaglik = {playerData.zeplinSaglik}");
+        
+        // Fill sağlık barı kontrolü
+        if (fillRectTransform == null)
+        {
+            Debug.LogWarning("Fill sağlık barı atanmamış! Inspector'dan Fill nesnesinin RectTransform'unu atayın.");
+        }
         
         // UI elemanlarını güncelle
         UpdateUI();
@@ -472,8 +486,15 @@ public class Zeplin : MonoBehaviour
     // Roket ateşleme metodu
     public void FireRocket()
     {
+        Debug.Log("FireRocket çağrıldı - kontrol: " + (isControlActive ? "aktif" : "deaktif") + 
+                  ", rocketPrefab: " + (rocketPrefab != null ? "var" : "yok"));
+        
         // Kontrol aktif değilse ateş etme
-        if (!isControlActive) return;
+        if (!isControlActive)
+        {
+            Debug.LogWarning("Zeplin kontrolü aktif değil, roket ateşlenemedi!");
+            return;
+        }
         
         // Bekleme süresini kontrol et
         if (Time.time < nextRocketFireTime)
@@ -486,13 +507,14 @@ public class Zeplin : MonoBehaviour
         // Roket prefabı kontrolü
         if (rocketPrefab == null)
         {
-            Debug.LogError("Roket prefabı atanmamış!");
+            Debug.LogError("Roket prefabı atanmamış! Zeplin Inspector'ından RocketPrefab alanını doldurun: Assets/Prefabs/RocketPrefab.prefab");
             return;
         }
         
         // Ateş noktası kontrolü
         if (firePoint == null)
         {
+            Debug.LogWarning("FirePoint atanmamış, transform kullanılıyor");
             firePoint = transform;
         }
         
@@ -523,62 +545,78 @@ public class Zeplin : MonoBehaviour
             Debug.Log($"Collider tipinden hesaplanan offset mesafesi: {offsetDistance}");
         }
         
-        // Roketin spawnlanacağı pozisyonu collider'ın dışına taşı
-        Vector3 spawnPosition = firePoint.position + (shootDirection * offsetDistance);
-        
-        // Roketi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile (OFFSET UYGULANMIŞ)
-        GameObject rocket = Instantiate(rocketPrefab, spawnPosition, rocketRotation);
-        
-        // Rokete "Rocket" etiketini ata
-        rocket.tag = "Rocket";
-        
-        // Roket fırlatma sesi çal
-        if (AudioManager.Instance != null)
+        try
         {
-            AudioManager.Instance.PlayRocketSound();
-        }
-        
-        // RocketProjectile bileşeni kontrol et ve ayarla
-        RocketProjectile rocketProjectile = rocket.GetComponent<RocketProjectile>();
-        if (rocketProjectile != null)
-        {
-            // Zeplin roketi olduğunu belirt (düşman roketi değil)
-            rocketProjectile.isEnemyRocket = false;
+            // Roketin spawnlanacağı pozisyonu collider'ın dışına taşı
+            Vector3 spawnPosition = firePoint.position + (shootDirection * offsetDistance);
             
-            // Bu Zeplin'den atıldığını belirt (self-collision önlemek için)
-            rocketProjectile.sourceTransform = this.transform;
+            // Roketi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile (OFFSET UYGULANMIŞ)
+            GameObject rocket = Instantiate(rocketPrefab, spawnPosition, rocketRotation);
             
-            // Hasar değerini PlayerData'dan al
-            if (playerData != null)
+            // Rokete "Rocket" etiketini ata
+            rocket.tag = "Rocket";
+            
+            // Roket fırlatma sesi çal
+            if (AudioManager.Instance != null)
             {
-                rocketProjectile.damage = playerData.zeplinRoketDamage;
+                AudioManager.Instance.PlayRocketSound();
             }
             
-            // Roket hızını ve menzilini artır
-            rocketProjectile.speed = 12f;
-            rocketProjectile.turnSpeed = 5f;
-            rocketProjectile.maxDistance = 70f;
-            rocketProjectile.lifetime = 10f;
+            // RocketProjectile bileşeni kontrol et ve ayarla
+            RocketProjectile rocketProjectile = rocket.GetComponent<RocketProjectile>();
+            if (rocketProjectile != null)
+            {
+                // Zeplin roketi olduğunu belirt (düşman roketi değil)
+                rocketProjectile.isEnemyRocket = false;
+                
+                // Bu Zeplin'den atıldığını belirt (self-collision önlemek için)
+                rocketProjectile.sourceTransform = this.transform;
+                
+                // Hasar değerini PlayerData'dan al
+                if (playerData != null)
+                {
+                    rocketProjectile.damage = playerData.zeplinRoketDamage;
+                    Debug.Log($"Roket hasarı ayarlandı: {playerData.zeplinRoketDamage}");
+                }
+                
+                // Roket hızını ve menzilini artır
+                rocketProjectile.speed = 12f;
+                rocketProjectile.turnSpeed = 5f;
+                rocketProjectile.maxDistance = 70f;
+                rocketProjectile.lifetime = 10f;
+                
+                // Ateş yönünü kaydet
+                rocketProjectile.initialDirection = shootDirection;
+            }
+            else
+            {
+                Debug.LogError("Roket prefabında RocketProjectile bileşeni bulunamadı!");
+            }
             
-            // Ateş yönünü kaydet
-            rocketProjectile.initialDirection = shootDirection;
+            // Rigidbody2D ile başlangıç hızı ver
+            Rigidbody2D rocketRb = rocket.GetComponent<Rigidbody2D>();
+            if (rocketRb != null)
+            {
+                // ÖNEMLİ: linearVelocity değil velocity kullanılmalı
+                rocketRb.linearVelocity = shootDirection * 12f; // Hızı artırıldı
+                
+                // Debug.Log ile kontrol
+                Debug.Log($"Roket hızı ayarlandı: {rocketRb.linearVelocity}, Yön: {shootDirection}, Spawn Pozisyonu: {spawnPosition}");
+            }
+            else
+            {
+                Debug.LogError("Roket prefabında Rigidbody2D bileşeni bulunamadı!");
+            }
+            
+            // Bekleme süresini ayarla
+            nextRocketFireTime = Time.time + (playerData != null ? playerData.zeplinRoketDelay : 2.0f);
+            
+            Debug.Log("Zeplin roket fırlattı! Yön: " + shootDirection);
         }
-        
-        // Rigidbody2D ile başlangıç hızı ver
-        Rigidbody2D rocketRb = rocket.GetComponent<Rigidbody2D>();
-        if (rocketRb != null)
+        catch (System.Exception e)
         {
-            // ÖNEMLİ: linearVelocity değil velocity kullanılmalı
-            rocketRb.linearVelocity = shootDirection * 12f; // Hızı artırıldı
-            
-            // Debug.Log ile kontrol
-            Debug.Log($"Roket hızı ayarlandı: {rocketRb.linearVelocity}, Yön: {shootDirection}, Spawn Pozisyonu: {spawnPosition}");
+            Debug.LogError($"Roket fırlatılırken hata oluştu: {e.Message}\n{e.StackTrace}");
         }
-        
-        // Bekleme süresini ayarla
-        nextRocketFireTime = Time.time + (playerData != null ? playerData.zeplinRoketDelay : 2.0f);
-        
-        Debug.Log("Zeplin roket fırlattı! Yön: " + shootDirection);
     }
     
     // Zeplin'e hasar verme metodu
@@ -721,6 +759,13 @@ public class Zeplin : MonoBehaviour
         {
             healthSlider.maxValue = maxHealth;
             healthSlider.value = playerData.zeplinSaglik;
+        }
+        
+        // Fill nesnesi ile sağlık barını güncelle (eğer varsa)
+        if (fillRectTransform != null)
+        {
+            float healthPercent = (float)playerData.zeplinSaglik / maxHealth;
+            fillRectTransform.localScale = new Vector3(healthPercent, 1, 1);
         }
         
         // Sağlık metnini güncelle (eğer varsa)

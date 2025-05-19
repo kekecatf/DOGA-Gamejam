@@ -100,12 +100,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 2671364182073778232}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab05b2b10f3ae8d40be902c06d9c4cc3, type: 3}
+  m_Script: {fileID: 11500000, guid: 7c651392b3e570446a040e84ed18e25f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 200
+  speed: 8
+  turnSpeed: 3
   lifetime: 5
+  activationDelay: 0.5
   explosionRadius: 2
+  damage: 15
+  isEnemyRocket: 0
+  initialDirection: {x: 1, y: 0, z: 0}
+  maxDistance: 50
+  minTargetSearchCooldown: 0.2
+  sourceTransform: {fileID: 0}
   explosionEffect: {fileID: 0}
 --- !u!61 &-3565037875732257410
 BoxCollider2D:
@@ -137,7 +145,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -168,7 +176,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -177,8 +185,8 @@ Rigidbody2D:
     serializedVersion: 2
     m_Bits: 0
   m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_SleepingMode: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!95 &4012107523664154823
 Animator:

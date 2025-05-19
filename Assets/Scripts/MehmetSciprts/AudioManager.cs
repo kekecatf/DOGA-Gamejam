@@ -392,10 +392,8 @@ public class AudioManager : MonoBehaviour
         
         // Farklı ses yollarını dene
         string[] pathOptions = {
-            "Sounds/minigun orta",   // Yeni yol: Resources/Sounds/minigun orta
-            "minigun orta",          // Eski yol: Resources/minigun orta
-            "Sounds/minigun",        // Alternatif yol: Resources/Sounds/minigun
-            "minigun"                // Alternatif yol: Resources/minigun
+            "Sounds/minigun",        // Yeni yol: Resources/Sounds/minigun
+            "minigun"                // Eski yol: Resources/minigun
         };
         
         foreach (string path in pathOptions)
@@ -725,9 +723,22 @@ public class AudioManager : MonoBehaviour
         
         if (musicSource != null && gameMusicClip != null)
         {
-            // Oyun müziğini çal - müzik ses seviyesini uygula
+            // Oyun müziğini çal - müzik ses seviyesini uygula (GameScene için %25 azaltma)
             musicSource.clip = gameMusicClip;
-            musicSource.volume = musicVolume * masterVolume;
+            
+            // GameScene için ses azaltma
+            if (SceneManager.GetActiveScene().name == GAME_SCENE_NAME)
+            {
+                // GameScene için ses seviyesini %25 olarak ayarla
+                musicSource.volume = (musicVolume * masterVolume) * 0.25f;
+                Debug.Log("AudioManager: GameScene için oyun müziği ses seviyesi %25 olarak ayarlandı.");
+            }
+            else
+            {
+                // Diğer sahneler için normal ses seviyesi
+                musicSource.volume = musicVolume * masterVolume;
+            }
+            
             musicSource.loop = true;
             musicSource.Play();
             Debug.Log("AudioManager: Oyun müziği başlatıldı.");
@@ -751,7 +762,20 @@ public class AudioManager : MonoBehaviour
                 {
                     Debug.Log($"AudioManager: {path} oyun müziği yüklendi ve çalınıyor.");
                     musicSource.clip = clip;
-                    musicSource.volume = musicVolume * masterVolume;
+                    
+                    // GameScene için ses azaltma
+                    if (SceneManager.GetActiveScene().name == GAME_SCENE_NAME)
+                    {
+                        // GameScene için ses seviyesini %25 olarak ayarla
+                        musicSource.volume = (musicVolume * masterVolume) * 0.25f;
+                        Debug.Log("AudioManager: GameScene için oyun müziği ses seviyesi %25 olarak ayarlandı.");
+                    }
+                    else
+                    {
+                        // Diğer sahneler için normal ses seviyesi
+                        musicSource.volume = musicVolume * masterVolume;
+                    }
+                    
                     musicSource.loop = true;
                     musicSource.Play();
                     
@@ -870,6 +894,10 @@ public class AudioManager : MonoBehaviour
     // Minigun ateş etme sesini çalma metodu
     public void PlayMinigunSound()
     {
+        // Minigun sesi devre dışı bırakıldı
+        return;
+        
+        /* Eski kod:
         Debug.Log("PlayMinigunSound çağrıldı - sfxSource: " + (sfxSource != null ? "var" : "yok") + 
                   ", minigunClip: " + (minigunClip != null ? "var" : "yok"));
                   
@@ -885,8 +913,6 @@ public class AudioManager : MonoBehaviour
             Debug.Log("minigunClip bulunamadı, Resources'dan yüklemeye çalışılıyor...");
             // Eğer minigunClip null ise, Resources'dan yüklemeyi dene
             string[] pathOptions = {
-                "Sounds/minigun orta",   // Resources/Sounds/minigun orta
-                "minigun orta",          // Resources/minigun orta
                 "Sounds/minigun",        // Resources/Sounds/minigun
                 "minigun"                // Resources/minigun
             };
@@ -915,5 +941,6 @@ public class AudioManager : MonoBehaviour
                 Debug.LogWarning("AudioManager: Minigun ses efekti bulunamadı! Hiçbir ses çalınamadı.");
             }
         }
+        */
     }
 }

@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MiniOyun.unity
     guid: b3b2a6b5f71c0744a9a6f0fdabeb2982
+  - enabled: 1
+    path: Assets/Scenes/OyunKazanma.unity
+    guid: 8ea2a9e0cb0df8e42a0fe46d9ebc622b
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
