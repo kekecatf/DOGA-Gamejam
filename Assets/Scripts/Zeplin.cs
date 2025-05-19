@@ -522,6 +522,12 @@ public class Zeplin : MonoBehaviour
         // Rokete "Rocket" etiketini ata
         rocket.tag = "Rocket";
         
+        // Roket fırlatma sesi çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayRocketSound();
+        }
+        
         // RocketProjectile bileşeni kontrol et ve ayarla
         RocketProjectile rocketProjectile = rocket.GetComponent<RocketProjectile>();
         if (rocketProjectile != null)

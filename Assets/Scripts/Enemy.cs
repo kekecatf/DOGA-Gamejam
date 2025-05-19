@@ -566,6 +566,12 @@ public class Enemy : MonoBehaviour, IDamageable
     
     IEnumerator PlayDeathAnimation()
     {
+        // Ölüm sesi çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayExplosionSound();
+        }
+        
         // Ölüm animasyonu veya efekti
         if (deathEffect != null)
         {
@@ -647,20 +653,30 @@ public class Enemy : MonoBehaviour, IDamageable
             }
         }
         
-        // Calculate whether to drop an item (20% chance)
-        if (Random.Range(0f, 100f) <= 20f)
+        // Try to use ItemDropManager if available
+        ItemDropManager dropManager = ItemDropManager.Instance;
+        if (dropManager != null)
         {
-            // Try to load the item prefab from Resources
-            GameObject itemPrefab = Resources.Load<GameObject>("ItemPrefab");
-            if (itemPrefab != null)
+            // Use the manager to try dropping an item
+            dropManager.TryDropItem(transform.position);
+        }
+        else
+        {
+            // Fallback: Calculate whether to drop an item (20% chance)
+            if (Random.Range(0f, 100f) <= 20f)
             {
-                // Spawn the item at the enemy's position
-                GameObject item = Instantiate(itemPrefab, transform.position, Quaternion.identity);
-                Debug.Log("Item dropped at position: " + transform.position);
-            }
-            else
-            {
-                Debug.LogWarning("ItemPrefab not found in Resources folder. Create a prefab named 'ItemPrefab' and place it in a Resources folder.");
+                // Try to load the item prefab from Resources
+                GameObject itemPrefab = Resources.Load<GameObject>("ItemPrefab");
+                if (itemPrefab != null)
+                {
+                    // Spawn the item at the enemy's position
+                    GameObject item = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                    Debug.Log("Item dropped at position: " + transform.position);
+                }
+                else
+                {
+                    Debug.LogWarning("ItemPrefab not found in Resources folder. Create a prefab named 'ItemPrefab' and place it in a Resources folder.");
+                }
             }
         }
         
@@ -678,6 +694,12 @@ public class Enemy : MonoBehaviour, IDamageable
             // Oyuncuyla çarpışma
             if (collision.CompareTag("Player"))
             {
+                // Kamikaze sesi çal
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayKamikazeSound();
+                }
+                
                 Player player = collision.GetComponent<Player>();
                 if (player != null)
                 {
@@ -702,6 +724,12 @@ public class Enemy : MonoBehaviour, IDamageable
             // Zeplinle çarpışma
             else if (collision.GetComponent<Zeplin>() != null)
             {
+                // Kamikaze sesi çal
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayKamikazeSound();
+                }
+                
                 Zeplin zeplin = collision.GetComponent<Zeplin>();
                 if (zeplin != null)
                 {
@@ -734,6 +762,12 @@ public class Enemy : MonoBehaviour, IDamageable
         // Kamikaze düşmanlar dışındakiler için veya yedek çarpışma kontrolü olarak
         if (collision.gameObject.CompareTag("Player"))
         {
+            // Kamikaze ise ses çal
+            if (enemyType == EnemyType.Kamikaze && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayKamikazeSound();
+            }
+            
             Player player = collision.gameObject.GetComponent<Player>();
             if (player != null)
             {
@@ -761,6 +795,12 @@ public class Enemy : MonoBehaviour, IDamageable
         // Zeplinle çarpışma
         if (collision.gameObject.CompareTag("Zeplin") || collision.gameObject.GetComponent<Zeplin>() != null)
         {
+            // Kamikaze ise ses çal
+            if (enemyType == EnemyType.Kamikaze && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayKamikazeSound();
+            }
+            
             Zeplin zeplin = collision.gameObject.GetComponent<Zeplin>();
             if (zeplin != null)
             {

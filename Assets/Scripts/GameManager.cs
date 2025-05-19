@@ -37,6 +37,9 @@ public class GameManager : MonoBehaviour
             
             // PlayerData değerlerini güncelleme metodu
             UpdatePlayerDataValues();
+            
+            // AudioManager kontrolü ve oluşturma
+            CheckAndCreateAudioManager();
         }
         else
         {
@@ -200,6 +203,91 @@ public class GameManager : MonoBehaviour
             {
                 Debug.LogError("GameManager: PlayerData oluşturma başarısız oldu!");
             }
+        }
+    }
+    
+    // AudioManager kontrolü ve oluşturma
+    private void CheckAndCreateAudioManager()
+    {
+        // AudioManager var mı kontrol et
+        if (AudioManager.Instance == null)
+        {
+            Debug.Log("GameManager: AudioManager bulunamadı, oluşturuluyor...");
+            
+            // AudioManager oluştur
+            GameObject audioManagerObj = new GameObject("AudioManager");
+            AudioManager audioManager = audioManagerObj.AddComponent<AudioManager>();
+            
+            // AudioManager için gerekli ses kaynaklarını oluştur
+            GameObject musicSourceObj = new GameObject("MusicSource");
+            musicSourceObj.transform.parent = audioManagerObj.transform;
+            AudioSource musicSource = musicSourceObj.AddComponent<AudioSource>();
+            musicSource.loop = true;
+            
+            GameObject sfxSourceObj = new GameObject("SFXSource");
+            sfxSourceObj.transform.parent = audioManagerObj.transform;
+            AudioSource sfxSource = sfxSourceObj.AddComponent<AudioSource>();
+            
+            // AudioManager'a referansları ata
+            audioManager.musicSource = musicSource;
+            audioManager.sfxSource = sfxSource;
+            
+            // Doğrudan yol ile asete erişmeyi deneyelim
+            audioManager.explosionClip = Resources.Load<AudioClip>("Sounds/patlama");
+            
+            // Farklı yollar deneyelim
+            if (audioManager.explosionClip == null)
+            {
+                // Farklı ses yollarını deneyelim
+                string[] pathOptions = {
+                    "patlama",                      // Kök dizinde
+                    "Sounds/patlama",               // Sounds altında
+                    "boosted patlama",              // Alternatif ses
+                    "kamikaze"                      // Diğer bir ses
+                };
+                
+                foreach (string soundPath in pathOptions)
+                {
+                    audioManager.explosionClip = Resources.Load<AudioClip>(soundPath);
+                    if (audioManager.explosionClip != null)
+                    {
+                        Debug.Log($"GameManager: {soundPath} ses efekti yüklendi.");
+                        break;
+                    }
+                }
+            }
+            
+            // Hala bulunamadı ise
+            if (audioManager.explosionClip == null)
+            {
+                Debug.LogWarning("GameManager: Ses efekti yüklenemedi. GameScene'e doğrudan AudioManager ekleyin ve Inspector'dan patlama.wav dosyasını atayın.");
+                
+                // Son çözüm: GUID ile doğrudan erişmeye çalışalım - Editor only
+                #if UNITY_EDITOR
+                try
+                {
+                    // GUID ile patlama.wav dosyasını almayı dene
+                    string guid = "7a287d93ca1134e43a5f9c76ed62dc1e"; // patlama.wav GUID
+                    string assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        audioManager.explosionClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+                        Debug.Log($"GameManager: Ses efekti GUID ile yüklendi: {assetPath}");
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"GameManager: AssetDatabase hatası: {e.Message}");
+                }
+                #endif
+            }
+            
+            DontDestroyOnLoad(audioManagerObj);
+            Debug.Log("GameManager: AudioManager oluşturuldu.");
+        }
+        else
+        {
+            Debug.Log("GameManager: AudioManager zaten var.");
         }
     }
 } 

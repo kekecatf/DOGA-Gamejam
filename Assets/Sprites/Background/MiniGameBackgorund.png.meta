@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      MiniGameBackgorund_0: -4303397935450235239
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

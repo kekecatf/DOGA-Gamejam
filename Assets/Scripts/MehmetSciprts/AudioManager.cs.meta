@@ -9,7 +9,13 @@ MonoImporter:
   - musicSource: {instanceID: 0}
   - sfxSource: {instanceID: 0}
   - menuMusicSource: {instanceID: 0}
+  - lowHealthSource: {instanceID: 0}
   - buttonClickClip: {fileID: 8300000, guid: 2aacd0dae27d25f469fa5b79f6d0a4fd, type: 3}
+  - explosionClip: {fileID: 8300000, guid: 6418b999ea05ac542a09f1eac3496ea8, type: 3}
+  - rocketSfxClip: {fileID: 8300000, guid: f3a3c499ddeb0ed43aca004d63133490, type: 3}
+  - gameMusicClip: {fileID: 8300000, guid: 5a4b3c2d1e8f7a6b9c8d7e6f5a4b3c2d, type: 3}
+  - kamikazeClip: {fileID: 8300000, guid: e0fd6cfe81e6eb6429d417b2a5e7226c, type: 3}
+  - lowHealthClip: {fileID: 8300000, guid: b94e5a7df86c1e345a1b2c3d4e5f6a7b, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

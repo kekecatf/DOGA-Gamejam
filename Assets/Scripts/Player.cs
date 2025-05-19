@@ -450,6 +450,12 @@ public class Player : MonoBehaviour
 
         // Rokete "Rocket" etiketini ata
         rocket.tag = "Rocket";
+        
+        // Roket fırlatma sesi çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayRocketSound();
+        }
 
         // Ekran titreşimi uygula - sadece roket için bir kez titreşim
         if (ScreenShakeManager.Instance != null)
@@ -816,7 +822,7 @@ public class Player : MonoBehaviour
         // Ölüm durumunu ayarla
         isDead = true;
         Debug.Log("Player.Die() çağrıldı. isDead = " + isDead);
-        
+
         // PlayerData null kontrolü
         if (playerData == null)
         {
@@ -831,13 +837,13 @@ public class Player : MonoBehaviour
                 Debug.Log("Die(): Yeni PlayerData oluşturuldu.");
             }
         }
-        
+
         // Oyuncunun daha önce canlanıp canlanmadığını kontrol et
         if (playerData != null && playerData.isPlayerRespawned)
         {
             // İkinci ölüm - Zeplin kontrolüne geç
             Debug.Log("Oyuncu ikinci kez öldü! Kontrol Zeplin'e geçiyor...");
-            
+
             // Zeplin'e bilgi ver
             if (zeplin != null)
             {
@@ -858,29 +864,29 @@ public class Player : MonoBehaviour
         {
             // İlk ölüm - MiniGame sahnesine geç
             Debug.Log("Oyuncu ilk kez öldü! MiniOyun sahnesine geçilecek...");
-            
+
             // playerData.isPlayerRespawned = false; // Değeri değiştirme, MiniGame sonrası true yapılacak
-            
+
             // Verileri kaydet
             if (playerData != null)
             {
                 playerData.SaveValues();
                 Debug.Log("Oyuncu öldü! Veriler kaydedildi. isPlayerRespawned: " + playerData.isPlayerRespawned);
             }
-            
+
             // Health Slider'ı bul ve devre dışı bırak/yok et
             if (healthSlider != null)
             {
                 Destroy(healthSlider.gameObject);
                 Debug.Log("Player Health Slider sahneden kaldırıldı!");
             }
-            
+
             // Ölüm efekti 
             if (damageEffect != null)
             {
                 Instantiate(damageEffect, transform.position, Quaternion.identity);
             }
-            
+
             // Sprite'ı sönükleştir
             if (spriteRenderer != null)
             {
@@ -888,29 +894,33 @@ public class Player : MonoBehaviour
                 color.a = 0.5f; // Yarı saydam yap
                 spriteRenderer.color = color;
             }
-            
+
             // Collider'ı devre dışı bırak (çarpışmaları engellemek için)
             Collider2D collider = GetComponent<Collider2D>();
             if (collider != null)
             {
                 collider.enabled = false;
             }
-            
+
             // Oyun nesnesini yok et (efektlerin oynatılabilmesi için kısa bir süre bekle)
             Destroy(gameObject, 0.5f);
-            
+
             // 0.5 saniye sonra doğrudan sahne geçişi yap
             Debug.Log("MiniOyun sahnesine geçiliyor...");
-            Invoke("LoadMiniGameScene", 0.5f);
+            // Oyuncu öldüğünde
+            StartCoroutine(LoadMiniGameAfterDelay(0.5f));
+
         }
     }
 
     // Doğrudan MiniOyun sahnesini yükle - Invoke ile çağrılacak
-    private void LoadMiniGameScene()
+    private IEnumerator LoadMiniGameAfterDelay(float delay)
     {
-        Debug.Log("MiniOyun sahnesine doğrudan geçiş yapılıyor...");
+        yield return new WaitForSeconds(delay);
+        Debug.Log("MiniOyun sahnesine geçiliyor...");
         SceneManager.LoadScene("MiniOyun");
     }
+
 
     // Çarpışma algılama - Trigger için
     void OnTriggerEnter2D(Collider2D other)
@@ -974,13 +984,13 @@ public class Player : MonoBehaviour
         {
             // Mermi komponenti al
             Bullet bullet = other.GetComponent<Bullet>();
-            
+
             // Eğer düşman mermisiyse hasar ver
             if (bullet != null && bullet.isEnemyBullet)
             {
                 TakeDamage(bullet.damage);
                 Debug.Log("Oyuncu düşman mermisiyle vuruldu! Hasar: " + bullet.damage);
-                
+
                 // Mermiyi yok et
                 Destroy(other.gameObject);
             }
@@ -1035,13 +1045,13 @@ public class Player : MonoBehaviour
         {
             // Mermi komponenti al
             Bullet bullet = collision.gameObject.GetComponent<Bullet>();
-            
+
             // Eğer düşman mermisiyse hasar ver
             if (bullet != null && bullet.isEnemyBullet)
             {
                 TakeDamage(bullet.damage);
                 Debug.Log("Oyuncu düşman mermisiyle vuruldu! (Collision) Hasar: " + bullet.damage);
-                
+
                 // Mermiyi yok et
                 Destroy(collision.gameObject);
             }

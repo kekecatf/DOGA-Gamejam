@@ -118,7 +118,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 2200
+        width: 183
         height: 30
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -126,10 +126,252 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: e73144c793a6c50a0800000000000000
-      internalID: -6891516534653185154
+      spriteID: b51cb6f2dca42ee4681e70e5ffb80837
+      internalID: 120038339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_1
+      rect:
+        serializedVersion: 2
+        x: 183
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1639e82e15a97b349ab25686f08062d9
+      internalID: -1179037970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_2
+      rect:
+        serializedVersion: 2
+        x: 366
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2fbd514b440d0ee4fab187596c3def92
+      internalID: -1216008957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_3
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de9eda020b6b71e4095cad0bc1ff3e15
+      internalID: -925283859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_4
+      rect:
+        serializedVersion: 2
+        x: 732
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46a3e4824921f564a8369cb6cff2800a
+      internalID: -784781698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_5
+      rect:
+        serializedVersion: 2
+        x: 915
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8eadb52a3f1ee184984874c6145dc6a1
+      internalID: -1482523329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_6
+      rect:
+        serializedVersion: 2
+        x: 1098
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d86e47245b8dd7c4a9ff4b5a60096be0
+      internalID: 1359208824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_7
+      rect:
+        serializedVersion: 2
+        x: 1281
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a72128246a398384692385d1cfeacebd
+      internalID: -484854762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_8
+      rect:
+        serializedVersion: 2
+        x: 1464
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca95ccd8fa0efe04794ef4227a4ad1aa
+      internalID: -380138553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_9
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d9891d5fd78bb14cab28eba37d2373b
+      internalID: 539263256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_10
+      rect:
+        serializedVersion: 2
+        x: 1830
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c9f008023d8787479a41fb492b5ca1e
+      internalID: 975945021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mermi-_11
+      rect:
+        serializedVersion: 2
+        x: 2013
+        y: 0
+        width: 183
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4931ece800bfaa468daa648204fd5df
+      internalID: 1850586082
       vertices: []
       indices: 
       edges: []
@@ -138,7 +380,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 98fe31017a4ca4e45a0c6e4204455567
     internalID: 0
     vertices: []
     indices: 
@@ -147,7 +389,19 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Mermi-_0: 120038339
+      Mermi-_1: -1179037970
+      Mermi-_10: 975945021
+      Mermi-_11: 1850586082
+      Mermi-_2: -1216008957
+      Mermi-_3: -925283859
+      Mermi-_4: -784781698
+      Mermi-_5: -1482523329
+      Mermi-_6: 1359208824
+      Mermi-_7: -484854762
+      Mermi-_8: -380138553
+      Mermi-_9: 539263256
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

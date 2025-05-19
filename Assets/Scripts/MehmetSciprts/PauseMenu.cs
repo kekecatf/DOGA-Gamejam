@@ -2,15 +2,28 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using System.Collections; // Eğer coroutine kullanacaksan
+using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour
 {
+    public static bool isPaused = false;
+    
+    public GameObject pauseMenuUI;
+    public GameObject soundSettingsPanel;
     public GameObject pausePanel;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        // Başlangıçta menü kapalı olsun
+        if (pauseMenuUI != null)
+            pauseMenuUI.SetActive(false);
+            
+        // Ses ayarları paneli de kapalı olsun
+        if (soundSettingsPanel != null)
+            soundSettingsPanel.SetActive(false);
+            
+        isPaused = false;
     }
 
     // Update is called once per frame
@@ -18,31 +31,72 @@ public class PauseMenu : MonoBehaviour
     {
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            if (!pausePanel.activeSelf)
-                PauseGame();
+            if (isPaused)
+            {
+                Resume();
+            }
             else
-                ResumeGame();
+            {
+                Pause();
+            }
         }
     }
 
-    public void PauseGame()
+    public void Resume()
     {
-        pausePanel.SetActive(true);
-        Time.timeScale = 0f; // Oyunu durdur
+        // Önce ses ayarları panelini kapat
+        if (soundSettingsPanel != null && soundSettingsPanel.activeSelf)
+            soundSettingsPanel.SetActive(false);
+            
+        // Sonra pause menüsünü kapat
+        if (pauseMenuUI != null)
+            pauseMenuUI.SetActive(false);
+            
+        // Oyunu devam ettir
+        Time.timeScale = 1f;
+        isPaused = false;
     }
 
-    public void ResumeGame()
+    private void Pause()
     {
-        pausePanel.SetActive(false);
-        Time.timeScale = 1f; // Oyunu devam ettir
+        if (pauseMenuUI != null)
+            pauseMenuUI.SetActive(true);
+            
+        // Oyunu durdur
+        Time.timeScale = 0f;
+        isPaused = true;
+    }
+
+    public void OpenSoundSettings()
+    {
+        if (soundSettingsPanel != null)
+        {
+            // Ses ayarları panelini aç/kapat
+            bool isActive = soundSettingsPanel.activeSelf;
+            soundSettingsPanel.SetActive(!isActive);
+            
+            // SoundSettingsPanel bileşeninde TogglePanel metodunu çağır (varsa)
+            SoundSettingsPanel settingsPanel = soundSettingsPanel.GetComponent<SoundSettingsPanel>();
+            if (settingsPanel != null && !isActive)
+            {
+                // Paneli açarken değerleri güncelle
+                // Not: TogglePanel metodu içinde zaten bu işlemler yapılıyor, bu nedenle özel bir metod çağırmaya gerek yok
+            }
+        }
     }
 
     public void QuitGame()
     {
-        Time.timeScale = 1f;
-        Application.Quit();
+        Debug.Log("Oyundan çıkılıyor...");
+        
+        // PlayerPrefs değerlerini kaydet
+        PlayerPrefs.Save();
+        
+        // Editör modundaysa oynatmayı durdur, değilse uygulamadan çık
         #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
         #endif
     }
 

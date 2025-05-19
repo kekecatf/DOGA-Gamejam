@@ -64,6 +64,9 @@ public class GameInitializer : MonoBehaviour
         // Wave Manager (EnemySpawner) oluştur
         EnemySpawner enemySpawner = CheckOrCreateManager<EnemySpawner>("EnemySpawner");
         
+        // ItemDropManager oluştur
+        CreateItemDropManager();
+        
         // Eğer oyuncu bir MiniGame sonrası canlandıysa PlayerRespawner'ı oluştur
         if (PlayerData.Instance != null && PlayerData.Instance.isPlayerRespawned)
         {
@@ -71,6 +74,42 @@ public class GameInitializer : MonoBehaviour
         }
         
         Debug.Log("GameInitializer: Tüm oyun yöneticileri başlatıldı.");
+    }
+    
+    // ItemDropManager oluşturma metodu
+    private void CreateItemDropManager()
+    {
+        // Önce ItemDropManager var mı kontrol et
+        ItemDropManager dropManager = FindObjectOfType<ItemDropManager>();
+        
+        if (dropManager == null)
+        {
+            // ItemDropManager oluştur
+            GameObject managerObj = new GameObject("ItemDropManager");
+            dropManager = managerObj.AddComponent<ItemDropManager>();
+            
+            // ItemPrefab'ı Resources klasöründen yükle
+            GameObject itemPrefab = Resources.Load<GameObject>("ItemPrefab");
+            
+            if (itemPrefab != null)
+            {
+                // Prefabı drop manager'a ata
+                dropManager.itemPrefab = itemPrefab;
+                Debug.Log("GameInitializer: ItemDropManager oluşturuldu ve item prefab atandı.");
+            }
+            else
+            {
+                Debug.LogWarning("GameInitializer: ItemPrefab Resources klasöründe bulunamadı! " +
+                                "Düşman öldürmede item drop aktif olmayacak.");
+            }
+            
+            // DontDestroyOnLoad ile sahne değişiminde korunsun
+            DontDestroyOnLoad(managerObj);
+        }
+        else
+        {
+            Debug.Log("GameInitializer: ItemDropManager zaten var, yenisi oluşturulmadı.");
+        }
     }
     
     // PlayerRespawner oluşturma metodu

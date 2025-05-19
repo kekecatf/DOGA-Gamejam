@@ -24,6 +24,14 @@ public class MainMenuManager : MonoBehaviour
         AudioManager.Instance.StopMusic();
         SceneManager.LoadScene("Hikaye");
     }
+    
+    public void LoadMiniGame()
+    {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayButtonClick();
+        
+        SceneManager.LoadScene("MiniOyun");
+    }
 
     public void QuitGame()
     {

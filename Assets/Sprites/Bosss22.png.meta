@@ -272,7 +272,13 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Bosss22_0: 1258819906952223681
+      Bosss22_1: -6809808173364579757
+      Bosss22_2: -3144853944489405268
+      Bosss22_3: 1866087588562200739
+      Bosss22_4: -7003186036078543282
+      Bosss22_5: 5065546860883287517
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
