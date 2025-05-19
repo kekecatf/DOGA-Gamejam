@@ -1,4 +1,5 @@
-using UnityEngine;using System.Collections;
+using UnityEngine;
+using System.Collections;
 
 public enum EnemyType
 {
@@ -643,6 +644,23 @@ public class Enemy : MonoBehaviour, IDamageable
             {
                 playerData.metalPara += scoreValue;
                 Debug.Log($"{enemyType} düşman öldürüldü! Para kazanıldı: {scoreValue}");
+            }
+        }
+        
+        // Calculate whether to drop an item (20% chance)
+        if (Random.Range(0f, 100f) <= 20f)
+        {
+            // Try to load the item prefab from Resources
+            GameObject itemPrefab = Resources.Load<GameObject>("ItemPrefab");
+            if (itemPrefab != null)
+            {
+                // Spawn the item at the enemy's position
+                GameObject item = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                Debug.Log("Item dropped at position: " + transform.position);
+            }
+            else
+            {
+                Debug.LogWarning("ItemPrefab not found in Resources folder. Create a prefab named 'ItemPrefab' and place it in a Resources folder.");
             }
         }
         
