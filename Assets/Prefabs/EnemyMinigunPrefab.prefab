@@ -243,17 +243,15 @@ MonoBehaviour:
   attackRange: 5
   safeDistance: 4
   bulletPrefab: {fileID: 1307125103824463300, guid: a99fd4387edf29e41abebc9d1e4b38d8, type: 3}
-  rocketPrefab: {fileID: 2671364182073778232, guid: 1d54b5fa6c4456049a83ce73a452621c, type: 3}
   firePoint: {fileID: 38450323700664561}
   fireRate: 2
+  initialStabilizationTime: 1.5
   minigunAttackRange: 20
-  rocketAttackRange: 40
   minigunSafeDistance: 6
-  rocketSafeDistance: 8
+  minAttackDistance: 3
   scoreValue: 25
   deathEffect: {fileID: 716968566986638124, guid: 70f77ce120fbe9647a71494cc1e732a4, type: 3}
   minigunBulletDamage: 5
-  rocketDamage: 30
 --- !u!95 &7433868241250968186
 Animator:
   serializedVersion: 7

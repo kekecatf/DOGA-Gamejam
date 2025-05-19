@@ -19,7 +19,7 @@ public class SettingsManager : MonoBehaviour
         if (AudioManager.Instance != null)
             AudioManager.Instance.PlayButtonClick();
 
-        // Sonra sahne geçişi
-        SceneManager.LoadScene("Ayarlar"); // veya ilgili sahne
+        PlayerPrefs.SetString("AyarlarGelis", "AnaMenu");
+        SceneManager.LoadScene("Ayarlar");
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 // GameInitializer - Oyun başlatıcı script
 // Bu script oyun başladığında gerekli yöneticileri ve bileşenleri oluşturur
@@ -27,11 +28,41 @@ public class GameInitializer : MonoBehaviour
     {
         Debug.Log("GameInitializer: Oyun yöneticileri başlatılıyor...");
         
-        // GameManager oluştur
-        CheckOrCreateManager<GameManager>("GameManager");
+        // Önce PlayerData oluştur (GameManager buna bağlı)
+        PlayerData playerData = CheckOrCreateManager<PlayerData>("PlayerData");
+        if (playerData == null)
+        {
+            Debug.LogError("GameInitializer: PlayerData oluşturulamadı! Diğer yöneticiler oluşturulmayacak.");
+            return;
+        }
+        
+        // PlayerData oluşturulduktan sonra kısa bir bekleme ekle
+        // Bu, diğer bileşenlerin PlayerData'nın varlığını algılamasına yardımcı olur
+        StartCoroutine(DelayedInitialization());
+    }
+    
+    private System.Collections.IEnumerator DelayedInitialization()
+    {
+        // Kısa bir bekleme süresi (Tek bir frame bekle)
+        yield return null;
+        
+        // GameManager oluştur - PlayerData nesnesinin varlığını kontrol et
+        GameManager gameManager = CheckOrCreateManager<GameManager>("GameManager");
+        if (gameManager == null)
+        {
+            Debug.LogError("GameInitializer: GameManager oluşturulamadı!");
+            yield break;
+        }
+        
+        // PlayerData'nın GameManager tarafından bulunduğundan emin ol
+        if (PlayerData.Instance == null)
+        {
+            Debug.LogWarning("GameInitializer: PlayerData singleton bulunamadı, manuel olarak GameManager'a atanacak.");
+            gameManager.GetComponentInChildren<GameManager>().TryInitializePlayerData();
+        }
         
         // Wave Manager (EnemySpawner) oluştur
-        CheckOrCreateManager<EnemySpawner>("EnemySpawner");
+        EnemySpawner enemySpawner = CheckOrCreateManager<EnemySpawner>("EnemySpawner");
         
         Debug.Log("GameInitializer: Tüm oyun yöneticileri başlatıldı.");
     }
@@ -45,6 +76,18 @@ public class GameInitializer : MonoBehaviour
         {
             GameObject managerObj = new GameObject(managerName);
             manager = managerObj.AddComponent<T>();
+            
+            // Eğer oluşturulan bileşen PlayerData ise, sadece bir onaylama mesajı göster
+            // Artık sabit değerler atamıyoruz
+            if (typeof(T) == typeof(PlayerData))
+            {
+                PlayerData playerData = manager as PlayerData;
+                if (playerData != null)
+                {
+                    Debug.Log($"GameInitializer: PlayerData oluşturuldu, Inspector'dan değerleri ayarlayabilirsiniz.");
+                }
+            }
+            
             Debug.Log($"GameInitializer: {managerName} oluşturuldu.");
         }
         

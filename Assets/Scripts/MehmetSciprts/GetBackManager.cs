@@ -5,10 +5,23 @@ using System.Collections;
 
 public class GetBackManager : MonoBehaviour
 {
+    public GameObject geriDonButonu;
+    public GameObject oyunaDevamEtButonu;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        string gelisYeri = PlayerPrefs.GetString("AyarlarGelis", "AnaMenu");
+        if (gelisYeri == "Oynanis")
+        {
+            oyunaDevamEtButonu.SetActive(true);
+            geriDonButonu.SetActive(false);
+        }
+        else
+        {
+            oyunaDevamEtButonu.SetActive(false);
+            geriDonButonu.SetActive(true);
+        }
     }
 
     // Update is called once per frame
@@ -42,5 +55,17 @@ public class GetBackManager : MonoBehaviour
             audioManager.musicSlider.value = audioManager.musicSource.volume;
             audioManager.musicSlider.onValueChanged.AddListener(audioManager.SetMusicVolume);
         }
+    }
+
+    public void GeriDon()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("AnaMenu");
+    }
+
+    public void OyunaDevamEt()
+    {
+        SceneManager.UnloadSceneAsync("Ayarlar");
+        Time.timeScale = 1f;
     }
 }

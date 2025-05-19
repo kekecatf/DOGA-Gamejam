@@ -145,6 +145,10 @@ public class Enemy : MonoBehaviour, IDamageable
                 case EnemyType.Kamikaze:
                     currentHealth = playerData.CalculateEnemyHealth() / 2; // Daha az HP
                     damage = playerData.CalculateKamikazeDamage();
+                    
+                    // Kamikazenin hasarını sınırla
+                    damage = Mathf.Min(damage, 20); // Maksimum 20 hasar
+                    
                     moveSpeed *= 1.3f; // Daha hızlı
                     // Kamikaze için atış hızı yok
                     break;
@@ -187,7 +191,7 @@ public class Enemy : MonoBehaviour, IDamageable
             switch (enemyType)
             {
                 case EnemyType.Kamikaze:
-                    damage = 20;
+                    damage = 10; // Reduced from 20 to 10
                     moveSpeed *= 1.3f; // Daha hızlı
                     // Kamikaze için atış hızı yok
                     break;
@@ -317,8 +321,8 @@ public class Enemy : MonoBehaviour, IDamageable
             // Ateş etme koşulları - hem stabilize olmuş hem de menzilde olmalı ve çok yakın olmamalı
             if (isStabilized && isInFiringRange && isNotTooClose)
             {
-                // Zeplin'e karşı daha sık ateş etsin - 4x daha hızlı
-                float fireRateMultiplier = isTargetingZeplin ? 4.0f : 1.0f;
+                // Zeplin'e karşı daha az sıklıkta ateş etsin - 0.7x daha yavaş
+                float fireRateMultiplier = isTargetingZeplin ? 0.7f : 1.0f;
                 
                 // Ateş et
                 FireMinigun();
@@ -384,11 +388,11 @@ public class Enemy : MonoBehaviour, IDamageable
         // Hasar değerini ayarla
         int bulletDamage = minigunBulletDamage > 0 ? minigunBulletDamage : damage;
         
-        // Zeplin'e karşı hasar ve hız artışı
+        // Zeplin'e karşı hasar ve hız ayarlaması
         if (isTargetingZeplin)
         {
-            bulletDamage = (int)(bulletDamage * 3.0f); // 3x fazla hasar
-            bulletComponent.speed *= 1.5f; // 1.5x daha hızlı
+            bulletDamage = Mathf.FloorToInt(bulletDamage * 0.75f); // Zeplin'e daha az hasar (önceki 3.0f yerine 0.75f)
+            bulletComponent.speed *= 1.25f; // Hızı hafif arttır (önceki 1.5f yerine 1.25f)
         }
         
         bulletComponent.damage = bulletDamage;
@@ -509,13 +513,15 @@ public class Enemy : MonoBehaviour, IDamageable
             }
         }
         // Zeplin'e ulaştıysa
-        else if (Player.isDead && targetTransform.GetComponent<Zeplin>() != null)
+        else if (targetTransform.GetComponent<Zeplin>() != null)
         {
             Zeplin zeplin = targetTransform.GetComponent<Zeplin>();
             if (zeplin != null)
             {
-                zeplin.TakeDamage(damage);
-                Debug.Log("Kamikaze düşman Zeplin'e çarptı ve " + damage + " hasar verdi!");
+                // Zeplin'e daha az hasar verelim
+                int adjustedDamage = Mathf.FloorToInt(damage * 0.5f); // Hasar %50'ye düşürüldü (0.7f yerine 0.5f)
+                zeplin.TakeDamage(adjustedDamage);
+                Debug.Log("Kamikaze düşman Zeplin'e çarptı ve " + adjustedDamage + " hasar verdi! (önceki: " + damage + ")");
             }
         }
         
@@ -681,8 +687,10 @@ public class Enemy : MonoBehaviour, IDamageable
                 Zeplin zeplin = collision.GetComponent<Zeplin>();
                 if (zeplin != null)
                 {
-                    zeplin.TakeDamage(damage);
-                    Debug.Log("Kamikaze düşman Zeplin'e çarptı ve " + damage + " hasar verdi!");
+                    // Zeplin'e daha az hasar verelim
+                    int adjustedDamage = Mathf.FloorToInt(damage * 0.5f); // Hasar %50'ye düşürüldü (0.7f yerine 0.5f)
+                    zeplin.TakeDamage(adjustedDamage);
+                    Debug.Log("Kamikaze düşman Zeplin'e çarptı ve " + adjustedDamage + " hasar verdi! (önceki: " + damage + ")");
                     Die();
                 }
             }
@@ -738,8 +746,20 @@ public class Enemy : MonoBehaviour, IDamageable
             Zeplin zeplin = collision.gameObject.GetComponent<Zeplin>();
             if (zeplin != null)
             {
-                zeplin.TakeDamage(damage);
-                Debug.Log("Düşman Zeplin'e çarptı ve " + damage + " hasar verdi! (OnCollisionEnter2D)");
+                // Zeplin'e daha az hasar verelim
+                int adjustedDamage = damage;
+                
+                if (enemyType == EnemyType.Kamikaze)
+                {
+                    adjustedDamage = Mathf.FloorToInt(damage * 0.5f); // Kamikaze için hasar %50'ye düşürüldü
+                }
+                else
+                {
+                    adjustedDamage = Mathf.FloorToInt(damage * 0.7f); // Diğer düşmanlar için hasar %70'e düşürüldü
+                }
+                
+                zeplin.TakeDamage(adjustedDamage);
+                Debug.Log("Düşman Zeplin'e çarptı ve " + adjustedDamage + " hasar verdi! (önceki: " + damage + ") (OnCollisionEnter2D)");
                 
                 // Kamikaze ise kendini imha et
                 if (enemyType == EnemyType.Kamikaze)

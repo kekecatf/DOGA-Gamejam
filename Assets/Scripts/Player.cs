@@ -815,23 +815,7 @@ public class Player : MonoBehaviour
         // Ölüm durumunu ayarla
         isDead = true;
         
-        Debug.Log("Oyuncu öldü! Kontrol Zeplin'e geçiyor...");
-        
-        // Zeplin'e bilgi ver
-        if (zeplin != null)
-        {
-            zeplin.ActivateZeplinControl();
-        }
-        else
-        {
-            Debug.LogWarning("Zeplin referansı bulunamadı! Kontrol otomatik geçemeyecek.");
-            // Zeplin referansını son bir kez daha bulmayı dene
-            zeplin = FindObjectOfType<Zeplin>();
-            if (zeplin != null)
-            {
-                zeplin.ActivateZeplinControl();
-            }
-        }
+        Debug.Log("Oyuncu öldü! MiniOyun sahnesine geçiliyor...");
         
         // Health Slider'ı bul ve devre dışı bırak/yok et
         if (healthSlider != null)
@@ -842,17 +826,9 @@ public class Player : MonoBehaviour
             // Eğer doğrudan slider'ı yok etmek isteniyorsa:
             Destroy(healthSlider.gameObject);
             Debug.Log("Player Health Slider sahneden kaldırıldı!");
-            
-            // Alternatif olarak, parent objesini gizleme:
-            // if (sliderParent != null)
-            // {
-            //     sliderParent.gameObject.SetActive(false);
-            //     Debug.Log("Player Health Slider paneli gizlendi!");
-            // }
         }
         
         // Oyun nesnesini belirli bir süre sonra yok et (efektlerin oynatılabilmesi için)
-        // Bu süreyi ölüm animasyonunun süresine göre ayarlayabilirsiniz
         Destroy(gameObject, 1f);
         
         // Ölüm efekti eklemek isterseniz
@@ -876,11 +852,28 @@ public class Player : MonoBehaviour
             collider.enabled = false;
         }
         
-        // Burada oyun sonu mantığı eklenebilir, ancak şimdilik sadece 
-        // kontrolü Zeplin'e devrediyoruz, oyun devam edecek
+        // Verileri kaydet
+        if (playerData != null)
+        {
+            playerData.SaveValues();
+            Debug.Log("Oyuncu öldü! Veriler kaydedildi.");
+        }
+        
+        // Kısa bir gecikme sonra MiniOyun sahnesine geç
+        StartCoroutine(LoadMiniGameAfterDelay(1.0f));
         
         // Oyuncu bildirimini göster
-        Debug.LogWarning("Oyuncu öldü! Zeplin kontrolüne geçiliyor!");
+        Debug.LogWarning("Oyuncu öldü! MiniOyun sahnesine geçiliyor!");
+    }
+    
+    // MiniOyun sahnesine geçiş için coroutine
+    private IEnumerator LoadMiniGameAfterDelay(float delay)
+    {
+        // Belirlenen süre kadar bekle
+        yield return new WaitForSeconds(delay);
+        
+        // MiniOyun sahnesine geç
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MiniOyun");
     }
     
     // Çarpışma algılama - Trigger için
@@ -904,7 +897,19 @@ public class Player : MonoBehaviour
             
             if (enemy != null)
             {
-                damage = enemy.GetDamageAmount();
+                // Düşman tipine göre işlem yap
+                if (enemy.enemyType == EnemyType.Kamikaze)
+                {
+                    damage = 15; // Kamikaze düşmanı için hasar değeri
+                    Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek!");
+                    Destroy(other.gameObject);
+                }
+                else if (enemy.enemyType == EnemyType.Minigun)
+                {
+                    damage = 10; // Minigun düşmanı çarpışma hasarı
+                    Debug.Log("Minigun düşman oyuncuya çarptı! Hasar uygulandı, ama düşman yok edilmedi.");
+                    // Minigun düşmanı yok edilmiyor, sadece hasar veriyor
+                }
                 
                 // Hasar uygulamadan önce log
                 Debug.Log("Düşman Player'a çarpmak üzere (Trigger). Düşman tipi: " + enemy.enemyType + ", Hasar: " + damage);
@@ -912,13 +917,6 @@ public class Player : MonoBehaviour
             
             // Oyuncuya hasar ver
             TakeDamage(damage);
-            
-            // Kamikaze düşmanlarının çarpınca yok edilmesi
-            if (enemy != null && enemy.enemyType == EnemyType.Kamikaze)
-            {
-                Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek!");
-                Destroy(other.gameObject);
-            }
         }
         
         // Düşman roketi ile çarpışma
@@ -933,6 +931,18 @@ public class Player : MonoBehaviour
                 // Roketi patlat veya yok et
                 Destroy(other.gameObject);
             }
+        }
+        
+        // Düşman mermisi ile çarpışma
+        if (other.CompareTag("EnemyBullet"))
+        {
+            // EnemyMinigun mermisi için sabit 5 hasar değeri
+            int bulletDamage = 5;
+            TakeDamage(bulletDamage);
+            Debug.Log("Oyuncu düşman mermisiyle vuruldu! Hasar: " + bulletDamage);
+            
+            // Mermiyi yok et
+            Destroy(other.gameObject);
         }
     }
     
@@ -957,7 +967,19 @@ public class Player : MonoBehaviour
             
             if (enemy != null)
             {
-                damage = enemy.GetDamageAmount();
+                // Düşman tipine göre işlem yap
+                if (enemy.enemyType == EnemyType.Kamikaze)
+                {
+                    damage = 15; // Kamikaze düşmanı için hasar değeri
+                    Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek! (Collision)");
+                    Destroy(collision.gameObject);
+                }
+                else if (enemy.enemyType == EnemyType.Minigun)
+                {
+                    damage = 10; // Minigun düşmanı çarpışma hasarı
+                    Debug.Log("Minigun düşman oyuncuya çarptı! Hasar uygulandı, ama düşman yok edilmedi. (Collision)");
+                    // Minigun düşmanı yok edilmiyor, sadece hasar veriyor
+                }
                 
                 // Hasar uygulamadan önce log
                 Debug.Log("Düşman Player'a çarptı (Collision). Düşman tipi: " + enemy.enemyType + ", Hasar: " + damage);
@@ -965,13 +987,6 @@ public class Player : MonoBehaviour
             
             // Oyuncuya hasar ver
             TakeDamage(damage);
-            
-            // Kamikaze düşmanlarının çarpınca yok edilmesi
-            if (enemy != null && enemy.enemyType == EnemyType.Kamikaze)
-            {
-                Debug.Log("Kamikaze düşman oyuncuya çarptı ve yok edilecek! (Collision)");
-                Destroy(collision.gameObject);
-            }
         }
     }
     

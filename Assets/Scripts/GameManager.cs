@@ -34,6 +34,9 @@ public class GameManager : MonoBehaviour
             
             Debug.Log("GameManager oluşturuldu. Veriler sıfırlanıyor...");
             ResetGameStats();
+            
+            // PlayerData değerlerini güncelleme metodu
+            UpdatePlayerDataValues();
         }
         else
         {
@@ -49,6 +52,9 @@ public class GameManager : MonoBehaviour
         
         // Sahne değişim olayını dinle
         SceneManager.sceneLoaded += OnSceneLoaded;
+        
+        // PlayerData değerlerini güncelleme metodu
+        UpdatePlayerDataValues();
     }
     
     private void OnDestroy()
@@ -152,5 +158,48 @@ public class GameManager : MonoBehaviour
     {
         ResetGameStats();
         SceneManager.LoadScene("AnaMenu");
+    }
+    
+    // PlayerData değerlerini güncelleme metodu
+    public void UpdatePlayerDataValues()
+    {
+        PlayerData playerData = FindObjectOfType<PlayerData>();
+        if (playerData != null)
+        {
+            // Not: Artık ApplyBalancedValues çağrılmıyor
+            // Bu sayede Inspector'dan ayarlanan değerler korunuyor
+            Debug.Log("GameManager: PlayerData bulundu, değerler korunuyor.");
+        }
+        else
+        {
+            Debug.LogError("PlayerData bulunamadı!");
+            TryInitializePlayerData();
+        }
+    }
+    
+    // PlayerData'nın eksik olması durumunda yeniden oluşturma denemesi
+    public void TryInitializePlayerData()
+    {
+        if (FindObjectOfType<PlayerData>() == null)
+        {
+            Debug.Log("GameManager: PlayerData yeniden oluşturuluyor...");
+            GameObject playerDataObj = new GameObject("PlayerData");
+            PlayerData newPlayerData = playerDataObj.AddComponent<PlayerData>();
+            
+            // Artık sabit bir değer atamıyoruz, varsayılan değerler korunacak
+            
+            DontDestroyOnLoad(playerDataObj);
+            
+            if (newPlayerData != null)
+            {
+                Debug.Log("GameManager: PlayerData başarıyla yeniden oluşturuldu.");
+                Debug.Log("GameManager: PlayerData varsayılan değerlerle oluşturuldu.");
+                UpdatePlayerDataValues();
+            }
+            else
+            {
+                Debug.LogError("GameManager: PlayerData oluşturma başarısız oldu!");
+            }
+        }
     }
 } 

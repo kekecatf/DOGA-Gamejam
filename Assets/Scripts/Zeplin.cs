@@ -109,8 +109,13 @@ public class Zeplin : MonoBehaviour
             return;
         }
         
-        // Maksimum sağlık değerini kaydet
+        // FORCE zeplinSaglik to 1000 for consistency
+        playerData.zeplinSaglik = 1000;
+        Debug.Log("Zeplin: playerData.zeplinSaglik = 1000 olarak zorlandı!");
+        
+        // Maksimum sağlık değerini kaydet, fakat sağlık değerini değiştirme
         maxHealth = playerData.zeplinSaglik;
+        Debug.Log($"Zeplin: maxHealth = {maxHealth}, zeplinSaglik = {playerData.zeplinSaglik}");
         
         // UI elemanlarını güncelle
         UpdateUI();
@@ -583,6 +588,23 @@ public class Zeplin : MonoBehaviour
             }
         }
         
+        // maxHealth ve zeplinSaglik arasında farklılık varsa, maxHealth değerini güncelle
+        if (maxHealth != playerData.zeplinSaglik && playerData.zeplinSaglik > 0)
+        {
+            Debug.Log($"Zeplin: maxHealth ({maxHealth}) ve zeplinSaglik ({playerData.zeplinSaglik}) arasında fark var. maxHealth güncelleniyor.");
+            maxHealth = playerData.zeplinSaglik;
+            UpdateUI();
+        }
+        
+        // Negatif veya sıfır sağlık kontrolü
+        if (playerData.zeplinSaglik <= 0)
+        {
+            Debug.LogError($"Zeplin: zeplinSaglik zaten negatif veya sıfır ({playerData.zeplinSaglik}). Varsayılan değer kullanılıyor.");
+            playerData.zeplinSaglik = 1000; // DEFAULT_ZEPLIN_SAGLIK
+            maxHealth = playerData.zeplinSaglik;
+            UpdateUI();
+        }
+        
         // Önceki sağlık durumunu kaydet
         int previousHealth = playerData.zeplinSaglik;
         
@@ -597,6 +619,11 @@ public class Zeplin : MonoBehaviour
         else
         {
             Debug.Log($"Zeplin'e {damage} hasar uygulandı! Önceki Sağlık: {previousHealth}, Yeni Sağlık: {playerData.zeplinSaglik}");
+            
+            // PlayerPrefs'e kaydet
+            PlayerPrefs.SetInt("zeplinSaglik", playerData.zeplinSaglik);
+            PlayerPrefs.Save();
+            Debug.Log($"Zeplin: Yeni zeplinSaglik değeri ({playerData.zeplinSaglik}) PlayerPrefs'e kaydedildi.");
         }
         
         // Hasar efekti göster (eğer varsa)

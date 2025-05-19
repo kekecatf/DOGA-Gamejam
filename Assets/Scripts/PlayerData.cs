@@ -5,14 +5,14 @@ public class PlayerData : MonoBehaviour
 {
     // Başlangıç değerleri - Sıfırlamalar için kullanılacak
     private const int DEFAULT_METAL_PARA = 500;
-    private const int DEFAULT_ZEPLIN_SAGLIK = 100;
+    private const int DEFAULT_ZEPLIN_SAGLIK = 1000;
     private const int DEFAULT_ANA_GEMI_SAGLIK = 100;
     
     // Mevcut değerler
-    public int metalPara = DEFAULT_METAL_PARA;
+    public int metalPara = 500;
 
     [Header("Zeplin Ayarları")]
-    public int zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
+    public int zeplinSaglik = 1000;
     public int zeplinSaglikLevel = 0;
 
     public int zeplinMinigunDamage = 10;
@@ -26,7 +26,7 @@ public class PlayerData : MonoBehaviour
     public float zeplinRoketDelay = 2.0f;
 
     [Header("Oyuncu Ayarları")]
-    public int anaGemiSaglik = DEFAULT_ANA_GEMI_SAGLIK;
+    public int anaGemiSaglik = 100;
     public int anaGemiSaglikLevel = 0;
 
     public int anaGemiMinigunDamage = 5;
@@ -49,13 +49,13 @@ public class PlayerData : MonoBehaviour
     
     // Düşman tipleri için hasarlar
     [Header("Düşman Hasar Ayarları")]
-    public int enemyKamikazeDamage = 20;  // Kamikaze düşmanların verdiği hasar
-    public int enemyMinigunDamage = 5;    // Minigun düşmanların mermi başına verdiği hasar
-    public int enemyRocketDamage = 30;    // Roket düşmanların roket başına verdiği hasar
+    public int enemyKamikazeDamage = 10;  // Kamikaze düşmanların verdiği hasar
+    public int enemyMinigunDamage = 3;    // Minigun düşmanların mermi başına verdiği hasar
+    public int enemyRocketDamage = 20;    // Roket düşmanların roket başına verdiği hasar
     
-    public float enemyKamikazeDamageMultiplier = 2.0f;  // Kamikaze hasar çarpanı
-    public float enemyMinigunDamageMultiplier = 0.5f;   // Minigun hasar çarpanı
-    public float enemyRocketDamageMultiplier = 3.0f;    // Roket hasar çarpanı
+    public float enemyKamikazeDamageMultiplier = 0.8f;  // Kamikaze hasar çarpanı
+    public float enemyMinigunDamageMultiplier = 0.3f;   // Minigun hasar çarpanı
+    public float enemyRocketDamageMultiplier = 1.5f;    // Roket hasar çarpanı
     
     [Header("Düşman Atış Hızı Ayarları")]
     public float enemyMinigunFireRate = 2.0f;     // Minigun düşmanlarının temel atış hızı (saniyede atış sayısı)
@@ -76,8 +76,16 @@ public class PlayerData : MonoBehaviour
             // Identify as a persistent object for restart functionality
             gameObject.tag = "PersistentObject";
             
-            // İlk başlangıçta verileri sıfırla
-            ResetAllData();
+            // Hatalı PlayerPrefs değerlerini temizleme (bir defalık)
+            ResetPlayerPrefs();
+            
+            // İlk başlangıçta verileri sıfırlama işlemi iptal edildi
+            // Inspector'daki değerlerin korunması için ResetAllData çağrılmıyor
+            
+            // Kaydedilmiş değerleri yükle (varsa)
+            LoadSavedValues();
+            
+            Debug.Log("PlayerData Singleton oluşturuldu. Inspector'daki mevcut değerler korunuyor.");
         }
         else
         {
@@ -85,6 +93,66 @@ public class PlayerData : MonoBehaviour
             Debug.Log("Mevcut bir PlayerData zaten var. Bu kopya yok ediliyor.");
             Destroy(gameObject);
         }
+    }
+    
+    // Hatalı PlayerPrefs değerlerini sıfırla
+    private void ResetPlayerPrefs()
+    {
+        // PlayerPrefs'te mevcut bir değer varsa ve değer anormal ise
+        if (PlayerPrefs.HasKey("zeplinSaglik"))
+        {
+            int savedHealth = PlayerPrefs.GetInt("zeplinSaglik");
+            
+            // Değer negatif veya çok düşükse
+            if (savedHealth < 0 || savedHealth == -32) // Özellikle -32 değeri kontrol ediliyor
+            {
+                Debug.LogWarning($"Hatalı zeplinSaglik değeri ({savedHealth}) temizleniyor ve varsayılan değer ({DEFAULT_ZEPLIN_SAGLIK}) ayarlanıyor.");
+                PlayerPrefs.DeleteKey("zeplinSaglik");
+                PlayerPrefs.SetInt("zeplinSaglik", DEFAULT_ZEPLIN_SAGLIK);
+                PlayerPrefs.Save();
+            }
+        }
+    }
+    
+    // Kaydedilmiş değerleri PlayerPrefs'ten yükle
+    private void LoadSavedValues()
+    {
+        // İlk kez mi çalışıyor kontrolü
+        bool isFirstRun = !PlayerPrefs.HasKey("zeplinSaglik");
+        
+        // IMPORTANT: Force zeplinSaglik to always be 1000
+        // This ensures consistent behavior regardless of PlayerPrefs
+        zeplinSaglik = 1000;
+        
+        // Save this value to PlayerPrefs for consistency
+        PlayerPrefs.SetInt("zeplinSaglik", 1000);
+        PlayerPrefs.Save();
+        
+        Debug.Log("PlayerData: zeplinSaglik değeri her zaman 1000 olarak ayarlandı!");
+        
+        // NOTE: We're skipping the usual PlayerPrefs loading logic for zeplinSaglik
+        
+        // Diğer değerleri de ihtiyaca göre buraya ekleyebilirsiniz
+    }
+    
+    // Değerleri PlayerPrefs'e kaydet
+    public void SaveValues()
+    {
+        // Negatif değer kontrolü
+        if (zeplinSaglik <= 0)
+        {
+            Debug.LogWarning($"Negatif zeplinSaglik değeri ({zeplinSaglik}) tespit edildi. Varsayılan değer ({DEFAULT_ZEPLIN_SAGLIK}) kaydediliyor.");
+            zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
+        }
+        
+        // zeplinSaglik değerini kaydet
+        PlayerPrefs.SetInt("zeplinSaglik", zeplinSaglik);
+        
+        // Diğer değerleri de ihtiyaca göre buraya ekleyebilirsiniz
+        
+        // Değişiklikleri kaydet
+        PlayerPrefs.Save();
+        Debug.Log($"PlayerData: Değerler kaydedildi. zeplinSaglik = {zeplinSaglik}");
     }
 
     // Tüm verileri sıfırla (yeniden başlatmada kullanılır)
@@ -94,7 +162,8 @@ public class PlayerData : MonoBehaviour
         metalPara = DEFAULT_METAL_PARA;
         
         // Zeplin değerleri sıfırlama
-        zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
+        // NOT: zeplinSaglik değeri korunacak şekilde değiştirildi
+        // zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK; // Bu satır artık çalıştırılmayacak
         zeplinSaglikLevel = 0;
         zeplinMinigunDamage = 10;
         zeplinMinigunLevel = 0;
@@ -122,7 +191,39 @@ public class PlayerData : MonoBehaviour
         enemyDifficultyMultiplier = 1.0f;
         enemyFireRateMultiplier = 1.0f;
         
-        Debug.Log("PlayerData tüm değerler sıfırlandı!");
+        // Düşman hasar değerleri - kamikaze ve diğer düşmanlar için hasar ayarları
+        enemyKamikazeDamage = 10;
+        enemyMinigunDamage = 3;
+        enemyRocketDamage = 20;
+        enemyKamikazeDamageMultiplier = 0.8f;
+        enemyMinigunDamageMultiplier = 0.3f;
+        enemyRocketDamageMultiplier = 1.5f;
+        
+        Debug.Log("PlayerData tüm değerler sıfırlandı (zeplinSaglik hariç)!");
+    }
+
+    // İsteğe bağlı olarak çağrılabilecek bir özellik değerlerini yeniden ayarlama fonksiyonu ekleyelim
+    public void ApplyBalancedValues()
+    {
+        // NOT: Inspector'da ayarlanan değerlerin otomatik olarak sıfırlanması önlendi
+        // Sadece manuel olarak ResetAllData() çağrıldığında değerler sıfırlanacak
+        
+        // ApplyBalancedValues artık değerleri değiştirmiyor,
+        // konfigürasyon için sadece GameBalancer sınıfı kullanılmalı
+        
+        Debug.Log("PlayerData: Inspector'dan ayarlanan değerler korundu!");
+    }
+    
+    // Tüm PlayerPrefs değerlerini silmeye yarayan metot
+    public void ClearAllPlayerPrefs()
+    {
+        PlayerPrefs.DeleteAll();
+        Debug.Log("PlayerData: Tüm PlayerPrefs değerleri silindi! Oyun yeniden başlatıldığında varsayılan değerler kullanılacak.");
+        
+        // Varsayılan değeri hemen ayarlayalım ve sağlık değerini düzeltelim
+        zeplinSaglik = DEFAULT_ZEPLIN_SAGLIK;
+        PlayerPrefs.SetInt("zeplinSaglik", DEFAULT_ZEPLIN_SAGLIK);
+        PlayerPrefs.Save();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -136,6 +237,25 @@ public class PlayerData : MonoBehaviour
     void Update()
     {
         
+    }
+
+    // Inspector'da değerler değiştiğinde çağrılır
+    private void OnValidate()
+    {
+        // Inspector'da yapılan değişiklikleri kaydet
+        if (Application.isPlaying)
+        {
+            Debug.Log("PlayerData: Inspector üzerinde değişiklik algılandı, değerler kaydediliyor...");
+            SaveValues();
+        }
+    }
+    
+    // Nesne yok edildiğinde çağrılır (oyun kapanırken veya sahne değişiminde)
+    private void OnDestroy()
+    {
+        // Değerleri kaydet
+        SaveValues();
+        Debug.Log("PlayerData: Nesne yok edilirken değerler kaydedildi.");
     }
 
     // Düşman zorluğunu oyuncu seviyesine göre güncelle

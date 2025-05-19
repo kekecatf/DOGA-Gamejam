@@ -5,6 +5,10 @@ using TMPro;
 
 public class EnemySpawner : MonoBehaviour
 {
+    // Add a flag to control debug messages
+    [Header("Debug Settings")]
+    public bool showDebugMessages = false;
+    
     [System.Serializable]
     public class EnemySettings
     {
@@ -72,6 +76,27 @@ public class EnemySpawner : MonoBehaviour
     
     private void Start()
     {
+        // Initialize EnemySettings if they are null
+        if (kamikazePrefab == null)
+        {
+            kamikazePrefab = new EnemySettings();
+            kamikazePrefab.prefab = Resources.Load<GameObject>("Enemies/KamikazeEnemy");
+            if (kamikazePrefab.prefab == null && showDebugMessages)
+            {
+                Debug.LogWarning("No KamikazeEnemy prefab in Resources folder. Game will continue with available prefabs.");
+            }
+        }
+        
+        if (minigunPrefab == null)
+        {
+            minigunPrefab = new EnemySettings();
+            minigunPrefab.prefab = Resources.Load<GameObject>("Enemies/MinigunEnemy");
+            if (minigunPrefab.prefab == null && showDebugMessages)
+            {
+                Debug.LogWarning("No MinigunEnemy prefab in Resources folder. Game will continue with available prefabs.");
+            }
+        }
+        
         // Varsayılan spawn bölgelerini ekle (eğer henüz eklenmemişse)
         if (useCustomSpawnAreas && spawnAreas.Count == 0)
         {
@@ -108,9 +133,24 @@ public class EnemySpawner : MonoBehaviour
     
     private void InitializeEnemySettings()
     {
-        // Her düşman tipinin ilk spawn zamanını ayarla
-        kamikazePrefab.nextSpawnTime = Time.time + Random.Range(kamikazePrefab.minSpawnInterval, kamikazePrefab.maxSpawnInterval);
-        minigunPrefab.nextSpawnTime = Time.time + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval);
+        // Add null checks before accessing prefabs
+        if (kamikazePrefab != null)
+        {
+            kamikazePrefab.nextSpawnTime = Time.time + Random.Range(kamikazePrefab.minSpawnInterval, kamikazePrefab.maxSpawnInterval);
+        }
+        else if (showDebugMessages)
+        {
+            Debug.LogWarning("kamikazePrefab not assigned. Skipping initialization.");
+        }
+        
+        if (minigunPrefab != null)
+        {
+            minigunPrefab.nextSpawnTime = Time.time + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval);
+        }
+        else if (showDebugMessages)
+        {
+            Debug.LogWarning("minigunPrefab not assigned. Skipping initialization.");
+        }
     }
     
     private void Update()
@@ -201,6 +241,19 @@ public class EnemySpawner : MonoBehaviour
     
     private void StartNextWave()
     {
+        // Check if there are any valid enemy prefabs before starting a wave
+        bool hasValidKamikaze = kamikazePrefab != null && kamikazePrefab.prefab != null;
+        bool hasValidMinigun = minigunPrefab != null && minigunPrefab.prefab != null;
+        
+        if (!hasValidKamikaze && !hasValidMinigun)
+        {
+            if (showDebugMessages)
+            {
+                Debug.LogWarning("No valid enemy prefabs available. Cannot start wave.");
+            }
+            return;
+        }
+        
         currentWave++;
         totalEnemiesInWave = CalculateEnemiesForWave(currentWave);
         spawnedEnemiesInWave = 0;
@@ -240,33 +293,72 @@ public class EnemySpawner : MonoBehaviour
         float timeFactor = 1.0f + (currentTime - gameStartTime) * difficultyScaling / 100f;
         
         // Her düşman tipini kontrol et ve spawn et
-        if (currentTime >= kamikazePrefab.nextSpawnTime && kamikazePrefab.currentCount < kamikazePrefab.maxCount * timeFactor)
+        if (kamikazePrefab != null && kamikazePrefab.prefab != null)
         {
-            SpawnEnemy(kamikazePrefab);
-            // Bir sonraki spawn zamanını ayarla
-            kamikazePrefab.nextSpawnTime = currentTime + Random.Range(kamikazePrefab.minSpawnInterval, kamikazePrefab.maxSpawnInterval) / timeFactor;
+            if (currentTime >= kamikazePrefab.nextSpawnTime && kamikazePrefab.currentCount < kamikazePrefab.maxCount * timeFactor)
+            {
+                SpawnEnemy(kamikazePrefab);
+                // Bir sonraki spawn zamanını ayarla
+                kamikazePrefab.nextSpawnTime = currentTime + Random.Range(kamikazePrefab.minSpawnInterval, kamikazePrefab.maxSpawnInterval) / timeFactor;
+            }
         }
         
-        if (currentTime >= minigunPrefab.nextSpawnTime && minigunPrefab.currentCount < minigunPrefab.maxCount * timeFactor)
+        if (minigunPrefab != null && minigunPrefab.prefab != null)
         {
-            SpawnEnemy(minigunPrefab);
-            // Bir sonraki spawn zamanını ayarla
-            minigunPrefab.nextSpawnTime = currentTime + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval) / timeFactor;
+            if (currentTime >= minigunPrefab.nextSpawnTime && minigunPrefab.currentCount < minigunPrefab.maxCount * timeFactor)
+            {
+                SpawnEnemy(minigunPrefab);
+                // Bir sonraki spawn zamanını ayarla
+                minigunPrefab.nextSpawnTime = currentTime + Random.Range(minigunPrefab.minSpawnInterval, minigunPrefab.maxSpawnInterval) / timeFactor;
+            }
         }
     }
     
     private void SpawnRandomEnemy()
     {
-        // Ağırlıklı rastgele seçim yap
-        float totalWeight = kamikazePrefab.spawnWeight + minigunPrefab.spawnWeight;
-        float randomValue = Random.Range(0, totalWeight);
+        // Ağırlıklı rastgele seçim için toplam ağırlık hesapla
+        float totalWeight = 0;
+        bool hasValidEnemies = false;
         
-        // Hangi düşman tipi spawn edilecek?
-        if (randomValue < kamikazePrefab.spawnWeight)
+        // Check each enemy type to see if at least one is valid
+        if (kamikazePrefab != null && kamikazePrefab.prefab != null && kamikazePrefab.currentCount < kamikazePrefab.maxCount)
         {
-            SpawnEnemy(kamikazePrefab);
+            totalWeight += kamikazePrefab.spawnWeight;
+            hasValidEnemies = true;
         }
-        else
+        
+        if (minigunPrefab != null && minigunPrefab.prefab != null && minigunPrefab.currentCount < minigunPrefab.maxCount)
+        {
+            totalWeight += minigunPrefab.spawnWeight;
+            hasValidEnemies = true;
+        }
+        
+        // If no valid enemies, exit early
+        if (!hasValidEnemies)
+        {
+            if (showDebugMessages)
+            {
+                Debug.LogWarning("No valid enemy prefabs available to spawn.");
+            }
+            return;
+        }
+        
+        // Rastgele bir değer seç
+        float randomValue = Random.Range(0, totalWeight);
+        float currentWeight = 0;
+        
+        // Enemies to check - only proceed if they're valid
+        if (kamikazePrefab != null && kamikazePrefab.prefab != null && kamikazePrefab.currentCount < kamikazePrefab.maxCount)
+        {
+            currentWeight += kamikazePrefab.spawnWeight;
+            if (randomValue <= currentWeight)
+            {
+                SpawnEnemy(kamikazePrefab);
+                return;
+            }
+        }
+        
+        if (minigunPrefab != null && minigunPrefab.prefab != null && minigunPrefab.currentCount < minigunPrefab.maxCount)
         {
             SpawnEnemy(minigunPrefab);
         }
@@ -274,35 +366,36 @@ public class EnemySpawner : MonoBehaviour
     
     private void SpawnEnemy(EnemySettings enemySettings)
     {
-        // Düşman tipini belirle
-        string enemyType = DetermineEnemyType(enemySettings);
-        
-        // Ön hazırlık kontrolü
-        GameObject prefabInstance = enemySettings.prefab;
-        if (prefabInstance == null)
+        // Validate enemy settings and prefab
+        if (enemySettings == null || enemySettings.prefab == null)
         {
-            Debug.LogError($"{enemyType} düşman prefabı null! Spawn edilemiyor.");
+            if (showDebugMessages)
+            {
+                Debug.LogWarning("Attempted to spawn a null enemy prefab.");
+            }
             return;
         }
         
-        // Spawn pozisyonu belirle
-        Vector2 spawnPosition = GetRandomSpawnPosition();
+        // Spawn pozisyonu al
+        Vector2 spawnPos = GetRandomSpawnPosition();
         
-        // Düşmanı spawn et
-        GameObject enemy = Instantiate(enemySettings.prefab, spawnPosition, Quaternion.identity);
+        // Düşmanı oluştur
+        GameObject enemy = Instantiate(enemySettings.prefab, spawnPos, Quaternion.identity);
         
-        // Spawn edilen düşmanı bu spawner'a bağla (isteğe bağlı)
-        enemy.transform.parent = transform;
-        
-        // Aktif düşman sayısını arttır
-        enemySettings.currentCount++;
-        
-        // Düşman yok edildiğinde sayacı azaltmak için bir bileşen ekle
+        // EnemyTracker bileşeni ekle (takip için)
         EnemyTracker tracker = enemy.AddComponent<EnemyTracker>();
         tracker.spawner = this;
-        tracker.enemyType = enemyType;
         
-        Debug.Log($"{enemyType} düşmanı spawn edildi. Konum: {spawnPosition}");
+        // Düşman tipini belirle (tracker için)
+        tracker.enemyType = DetermineEnemyType(enemySettings);
+        
+        // Aktif düşman sayısını artır
+        enemySettings.currentCount++;
+        
+        if (showDebugMessages)
+        {
+            Debug.Log($"Düşman oluşturuldu: {tracker.enemyType}, Konum: {spawnPos}, Aktif Sayı: {enemySettings.currentCount}");
+        }
     }
     
     private Vector2 GetRandomSpawnPosition()
@@ -399,28 +492,40 @@ public class EnemySpawner : MonoBehaviour
     
     private void UpdateEnemyCounts()
     {
-        // Sahnedeki düşmanları say
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        
-        // Her düşman tipinin sayısını sıfırla (null kontrolü ile)
-        if (kamikazePrefab != null) kamikazePrefab.currentCount = 0;
-        if (minigunPrefab != null) minigunPrefab.currentCount = 0;
-        
-        // Düşmanları tipine göre say
-        foreach (GameObject enemy in enemies)
+        try
         {
-            Enemy enemyComponent = enemy.GetComponent<Enemy>();
-            if (enemyComponent != null)
+            // Sahnedeki düşmanları say
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            
+            // Her düşman tipinin sayısını sıfırla (null kontrolü ile)
+            if (kamikazePrefab != null) kamikazePrefab.currentCount = 0;
+            if (minigunPrefab != null) minigunPrefab.currentCount = 0;
+            
+            // Düşmanları tipine göre say
+            foreach (GameObject enemy in enemies)
             {
-                switch (enemyComponent.enemyType)
+                if (enemy == null) continue;
+                
+                Enemy enemyComponent = enemy.GetComponent<Enemy>();
+                if (enemyComponent != null)
                 {
-                    case EnemyType.Kamikaze:
-                        if (kamikazePrefab != null) kamikazePrefab.currentCount++;
-                        break;
-                    case EnemyType.Minigun:
-                        if (minigunPrefab != null) minigunPrefab.currentCount++;
-                        break;
+                    switch (enemyComponent.enemyType)
+                    {
+                        case EnemyType.Kamikaze:
+                            if (kamikazePrefab != null) kamikazePrefab.currentCount++;
+                            break;
+                        case EnemyType.Minigun:
+                            if (minigunPrefab != null) minigunPrefab.currentCount++;
+                            break;
+                    }
                 }
+            }
+        }
+        catch (System.Exception e)
+        {
+            if (showDebugMessages)
+            {
+                Debug.LogWarning($"Error in UpdateEnemyCounts: {e.Message}");
             }
         }
     }
@@ -439,8 +544,20 @@ public class EnemySpawner : MonoBehaviour
     private string DetermineEnemyType(EnemySettings settings)
     {
         if (settings == null) return "Bilinmeyen";
-        if (kamikazePrefab != null && settings == kamikazePrefab) return "Kamikaze";
-        if (minigunPrefab != null && settings == minigunPrefab) return "Minigun";
+        
+        try
+        {
+            if (kamikazePrefab != null && settings == kamikazePrefab) return "Kamikaze";
+            if (minigunPrefab != null && settings == minigunPrefab) return "Minigun";
+        }
+        catch (System.Exception e)
+        {
+            if (showDebugMessages)
+            {
+                Debug.LogWarning($"Error in DetermineEnemyType: {e.Message}");
+            }
+        }
+        
         return "Bilinmeyen";
     }
 }
@@ -453,27 +570,40 @@ public class EnemyTracker : MonoBehaviour
     
     private void OnDestroy()
     {
-        // Spawner hala varsa sayacı azalt
-        if (spawner != null)
+        try
         {
-            // Düşman tipine göre sayacı azalt
-            switch (enemyType)
+            // Spawner hala varsa sayacı azalt
+            if (spawner != null)
             {
-                case "Kamikaze":
-                    if (spawner.kamikazePrefab != null) 
-                        spawner.kamikazePrefab.currentCount--;
-                    break;
-                case "Minigun":
-                    if (spawner.minigunPrefab != null)
-                        spawner.minigunPrefab.currentCount--;
-                    break;
+                // Düşman tipine göre sayacı azalt
+                if (!string.IsNullOrEmpty(enemyType))
+                {
+                    switch (enemyType)
+                    {
+                        case "Kamikaze":
+                            if (spawner.kamikazePrefab != null) 
+                                spawner.kamikazePrefab.currentCount--;
+                            break;
+                        case "Minigun":
+                            if (spawner.minigunPrefab != null)
+                                spawner.minigunPrefab.currentCount--;
+                            break;
+                    }
+                    
+                    // Dalgadaki öldürülen düşman sayısını arttır (eğer oyun objesinin yok edilme sebebi ölüm ise)
+                    // Not: Scene destroy olduğunda da OnDestroy çağrılacağı için, safAgeChecker ve Application.isPlaying kontrolü ekledim
+                    if (gameObject != null && gameObject.scene.isLoaded && Application.isPlaying && !spawner.isWaveBreak)
+                    {
+                        spawner.killedEnemiesInWave++;
+                    }
+                }
             }
-            
-            // Dalgadaki öldürülen düşman sayısını arttır (eğer oyun objesinin yok edilme sebebi ölüm ise)
-            // Not: Scene destroy olduğunda da OnDestroy çağrılacağı için, safAgeChecker ve Application.isPlaying kontrolü ekledim
-            if (gameObject.scene.isLoaded && Application.isPlaying && !spawner.isWaveBreak)
+        }
+        catch (System.Exception e)
+        {
+            if (spawner != null && spawner.showDebugMessages)
             {
-                spawner.killedEnemiesInWave++;
+                Debug.LogWarning($"Error in EnemyTracker.OnDestroy: {e.Message}");
             }
         }
     }

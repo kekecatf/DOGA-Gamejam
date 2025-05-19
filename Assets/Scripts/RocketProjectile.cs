@@ -313,89 +313,132 @@ public class RocketProjectile : MonoBehaviour
     
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // *** ÖNEMLİ: Kendi kaynağımız olan Zeplin'le çarpışmayı engelle
-        if (!isEnemyRocket && sourceTransform != null && other.transform == sourceTransform)
-        {
-            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Trigger): " + other.gameObject.name);
-            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
-        }
-        
-        Debug.Log("Roket trigger ile çarpışma: " + other.gameObject.name + " (Tag: " + other.tag + ")");
-        
-        // Patlama sürecindeyse gereksiz çarpışmaları önle
-        if (isExploding) return;
-        
-        // Kendimizi yok etmeyelim (oyuncu roketi oyuncuya, düşman roketi düşmana çarpmasın)
-        if ((isEnemyRocket && other.CompareTag("Enemy")) || 
-            (!isEnemyRocket && other.CompareTag("Player")))
+        // Düşman roketlerinin, düşmana çarpmasını önle
+        if (isEnemyRocket && other.CompareTag("Enemy"))
         {
             return;
         }
         
-        // Roketler birbirine çarpmasın
-        if (other.CompareTag("Rocket"))
+        // Dost roketler oyuncuya zarar vermez
+        if (!isEnemyRocket && other.CompareTag("Player"))
         {
             return;
         }
         
-        // Özellikle Zeplin ile çarpışma kontrolü
-        if (isEnemyRocket && other.GetComponent<Zeplin>() != null)
+        // Düşman roketler
+        if (isEnemyRocket)
         {
-            // Zeplin'e roketi direkt çarptırınca patlasın ve hasar versin
+            // Oyuncuya çarpma
+            Player player = other.GetComponent<Player>();
+            if (player != null)
+            {
+                player.TakeDamage(damage);
+                Debug.Log("Düşman roketi Player'a direkt çarptı! (Trigger) Hasar: " + damage);
+                
+                // Patlama efekti
+                Explode();
+                
+                return;
+            }
+            
+            // Zeplin'e çarpma
             Zeplin zeplin = other.GetComponent<Zeplin>();
             if (zeplin != null)
             {
-                Debug.Log("Düşman roketi direkt Zeplin'e çarptı! (Trigger) Hasar: " + damage);
-                zeplin.TakeDamage(damage);
+                // Yeni metodu kullan
+                OnHitZeplin(zeplin);
+                return;
             }
         }
         
-        // Patlama oluştur
-        Explode();
+        // Dost roketler (oyuncu roketleri)
+        else
+        {
+            // Düşmana çarpma
+            Enemy enemy = other.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+                Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Trigger) Hasar: " + damage);
+                
+                // Patlama efekti
+                Explode();
+                
+                return;
+            }
+        }
+        
+        // Diğer engellere çarpma
+        if (other.CompareTag("Ground") || other.CompareTag("Obstacle"))
+        {
+            Debug.Log("Roket zemine veya engele çarptı!");
+            Explode();
+        }
     }
     
-    // Fiziksel çarpışmalar için
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // *** ÖNEMLİ: Kendi kaynağımız olan Zeplin'le çarpışmayı engelle
-        if (!isEnemyRocket && sourceTransform != null && collision.transform == sourceTransform)
-        {
-            Debug.Log("Kendi Zeplin'imizle çarpışma engellendi (Collision): " + collision.gameObject.name);
-            return; // İşlemi sonlandır, kendi Zeplin'imize zarar vermeyiz
-        }
-        
-        Debug.Log("Roket collision ile çarpışma: " + collision.gameObject.name + " (Tag: " + collision.gameObject.tag + ")");
-        
-        // Patlama sürecindeyse gereksiz çarpışmaları önle
-        if (isExploding) return;
-        
-        // Kendimizi yok etmeyelim (oyuncu roketi oyuncuya, düşman roketi düşmana çarpmasın)
-        if ((isEnemyRocket && collision.gameObject.CompareTag("Enemy")) || 
-            (!isEnemyRocket && collision.gameObject.CompareTag("Player")))
+        // Düşman roketlerinin, düşmana çarpmasını önle
+        if (isEnemyRocket && collision.gameObject.CompareTag("Enemy"))
         {
             return;
         }
         
-        // Roketler birbirine çarpmasın
-        if (collision.gameObject.CompareTag("Rocket"))
+        // Dost roketler oyuncuya zarar vermez
+        if (!isEnemyRocket && collision.gameObject.CompareTag("Player"))
         {
             return;
         }
         
-        // Özellikle Zeplin ile çarpışma kontrolü
-        if (isEnemyRocket && collision.gameObject.GetComponent<Zeplin>() != null)
+        // Düşman roketler
+        if (isEnemyRocket)
         {
-            // Zeplin'e roketi direkt çarptırınca patlasın ve hasar versin
+            // Oyuncuya çarpma
+            Player player = collision.gameObject.GetComponent<Player>();
+            if (player != null)
+            {
+                player.TakeDamage(damage);
+                Debug.Log("Düşman roketi direkt Player'a çarptı! (Collision) Hasar: " + damage);
+                
+                // Patlama efekti
+                Explode();
+                
+                return;
+            }
+            
+            // Zeplin'e çarpma
             Zeplin zeplin = collision.gameObject.GetComponent<Zeplin>();
             if (zeplin != null)
             {
-                Debug.Log("Düşman roketi direkt Zeplin'e çarptı! (Collision) Hasar: " + damage);
-                zeplin.TakeDamage(damage);
+                // Yeni metodu kullan
+                OnHitZeplin(zeplin);
+                return;
             }
         }
         
-        // Patlama oluştur
-        Explode();
+        // Dost roketler (oyuncu roketleri)
+        else
+        {
+            // Düşmana çarpma
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+                Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Collision) Hasar: " + damage);
+                
+                // Patlama efekti
+                Explode();
+                
+                return;
+            }
+        }
+        
+        // Diğer engellere çarpma
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Obstacle"))
+        {
+            Debug.Log("Roket zemine veya engele çarptı!");
+            Explode();
+        }
     }
     
     private void Explode()
@@ -546,5 +589,66 @@ public class RocketProjectile : MonoBehaviour
         }
         
         return rocketComponent;
+    }
+
+    public void OnHitZeplin(Zeplin zeplin)
+    {
+        if (zeplin != null)
+        {
+            // Zeplin için hasarı azalt
+            int adjustedDamage = Mathf.FloorToInt(damage * 0.6f); // Hasarı %60'a düşür
+            zeplin.TakeDamage(adjustedDamage);
+            Debug.Log("Düşman roketi Zeplin'e " + adjustedDamage + " hasar verdi! (Orijinal hasar: " + damage + ")");
+        }
+        
+        // Patlama efekti
+        if (explosionEffect != null)
+        {
+            GameObject explosion = Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            // 1.5 saniye sonra patlama efektini yok et
+            Destroy(explosion, 1.5f);
+        }
+        
+        // Roketi yok et
+        Destroy(gameObject);
+    }
+
+    public void HandleHit(GameObject targetObject)
+    {
+        if (targetObject == null) return;
+        
+        // Düşman roketi
+        if (isEnemyRocket)
+        {
+            // Oyuncuya çarpma
+            Player player = targetObject.GetComponent<Player>();
+            if (player != null)
+            {
+                player.TakeDamage(damage);
+                Debug.Log("Oyuncuya düşman raketiyle " + damage + " hasar verildi!");
+                return;
+            }
+            
+            // Zeplin'e çarpma
+            Zeplin zeplin = targetObject.GetComponent<Zeplin>();
+            if (zeplin != null)
+            {
+                // Yeni metodu kullan
+                OnHitZeplin(zeplin);
+                return;
+            }
+        }
+        // Oyuncu roketi
+        else
+        {
+            // Düşmana çarpma
+            Enemy enemy = targetObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+                Debug.Log("Düşmana roketle " + damage + " hasar verildi!");
+                return;
+            }
+        }
     }
 } 
