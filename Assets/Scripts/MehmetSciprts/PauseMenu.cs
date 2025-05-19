@@ -29,7 +29,8 @@ public class PauseMenu : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        // ESC tuşuna basıldığında menu açılıp kapanır
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (isPaused)
             {
@@ -48,6 +49,10 @@ public class PauseMenu : MonoBehaviour
         if (soundSettingsPanel != null && soundSettingsPanel.activeSelf)
             soundSettingsPanel.SetActive(false);
             
+        // PausePanel'i kapat
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+            
         // Sonra pause menüsünü kapat
         if (pauseMenuUI != null)
             pauseMenuUI.SetActive(false);
@@ -56,11 +61,23 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
     }
+    
+    // ResumeGame metodu, UI buttonu buna referans verdiği için
+    public void ResumeGame()
+    {
+        // Resume metodunu çağır
+        Resume();
+    }
 
     private void Pause()
     {
+        // PauseMenuUI'yi aktif et
         if (pauseMenuUI != null)
             pauseMenuUI.SetActive(true);
+            
+        // PausePanel'i aktif et
+        if (pausePanel != null)
+            pausePanel.SetActive(true);
             
         // Oyunu durdur
         Time.timeScale = 0f;

@@ -734,19 +734,27 @@ public class Player : MonoBehaviour
 
         // Mermi firePoint rotasyonu ile oluşturulur - böylece her zaman firePoint'in +X yönünde ilerler
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-
+        
         // Mermi bileşenini al
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
         if (bulletComponent != null)
         {
             // Sadece sprite'ın görünümünü ayarla, hareket etkilenmesin
             bulletComponent.SetDirection(isFacingLeft);
-
+            
             // Debug log
             Debug.Log("Mermi oluşturuldu, her zaman firePoint +X yönünde ilerleyecek");
         }
-
-        // Ekran titreşimini kaldırıldı - sadece roket için titreşim olacak
+        
+        // Minigun ses efektini çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMinigunSound();
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager bulunamadı! Ses çalınamadı.");
+        }
     }
 
     // Oyuncuya hasar verme metodu

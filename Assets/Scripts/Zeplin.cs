@@ -417,6 +417,16 @@ public class Zeplin : MonoBehaviour
         // Mermi oluştur - DÜNYADAKİ pozisyon ve rotasyon ile (OFFSET UYGULANMIŞ)
         GameObject bullet = Instantiate(bulletPrefab, spawnPosition, bulletRotation);
         
+        // Minigun ses efektini çal
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMinigunSound();
+        }
+        else
+        {
+            Debug.LogWarning("AudioManager bulunamadı! Zeplin minigun sesi çalınamadı.");
+        }
+        
         // Mermi bileşenini al ve yön ayarla
         Bullet bulletComponent = bullet.GetComponent<Bullet>();
         if (bulletComponent != null)

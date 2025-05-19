@@ -17,6 +17,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip gameMusicClip; // Oyun müziği
     public AudioClip kamikazeClip; // Kamikaze ses efekti
     public AudioClip lowHealthClip; // Düşük can sesi (uçak sesi)
+    public AudioClip minigunClip; // Minigun ateş sesi
 
     // Ses seviyesi ayarları
     [Header("Ses Seviyeleri")]
@@ -36,6 +37,8 @@ public class AudioManager : MonoBehaviour
     public float buttonVolume = 0.5f; // Buton ses seviyesi
     [Range(0f, 1f)]
     public float lowHealthVolume = 0.5f; // Düşük can ses seviyesi
+    [Range(0f, 1f)]
+    public float minigunVolume = 0.6f; // Minigun ses seviyesi
 
     // Düşük can ayarları
     [Header("Düşük Can Ayarları")]
@@ -55,6 +58,7 @@ public class AudioManager : MonoBehaviour
     private const string KAMIKAZE_VOLUME_KEY = "kamikazeVolume";
     private const string BUTTON_VOLUME_KEY = "buttonVolume";
     private const string LOW_HEALTH_VOLUME_KEY = "lowHealthVolume";
+    private const string MINIGUN_VOLUME_KEY = "minigunVolume";
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -74,6 +78,7 @@ public class AudioManager : MonoBehaviour
         TryLoadGameMusicClip();
         TryLoadKamikazeClip();
         TryLoadLowHealthClip();
+        TryLoadMinigunClip();
         
         // Sahne değişim olayını dinle
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -160,6 +165,7 @@ public class AudioManager : MonoBehaviour
         kamikazeVolume = PlayerPrefs.GetFloat(KAMIKAZE_VOLUME_KEY, 0.8f);
         buttonVolume = PlayerPrefs.GetFloat(BUTTON_VOLUME_KEY, 0.5f);
         lowHealthVolume = PlayerPrefs.GetFloat(LOW_HEALTH_VOLUME_KEY, 0.5f);
+        minigunVolume = PlayerPrefs.GetFloat(MINIGUN_VOLUME_KEY, 0.6f);
         
         // AudioSource ses seviyelerini ayarla
         if (musicSource != null)
@@ -378,6 +384,36 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    private void TryLoadMinigunClip()
+    {
+        // Eğer ses zaten yüklüyse işlem yapmaya gerek yok
+        if (minigunClip != null)
+            return;
+        
+        // Farklı ses yollarını dene
+        string[] pathOptions = {
+            "Sounds/minigun orta",   // Yeni yol: Resources/Sounds/minigun orta
+            "minigun orta",          // Eski yol: Resources/minigun orta
+            "Sounds/minigun",        // Alternatif yol: Resources/Sounds/minigun
+            "minigun"                // Alternatif yol: Resources/minigun
+        };
+        
+        foreach (string path in pathOptions)
+        {
+            minigunClip = Resources.Load<AudioClip>(path);
+            if (minigunClip != null)
+            {
+                Debug.Log($"AudioManager: {path} minigun ses efekti başarıyla yüklendi.");
+                break;
+            }
+        }
+        
+        if (minigunClip == null)
+        {
+            Debug.LogWarning("AudioManager: Minigun ses efekti bulunamadı!");
+        }
+    }
+
     // Ana ses seviyesini ayarlar ve kaydeder
     public void SetMasterVolume(float volume)
     {
@@ -471,6 +507,14 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"Düşük can ses seviyesi: {lowHealthVolume:F2}");
     }
 
+    // Minigun ses seviyesini ayarla
+    public void SetMinigunVolume(float volume)
+    {
+        minigunVolume = Mathf.Clamp01(volume);
+        PlayerPrefs.SetFloat(MINIGUN_VOLUME_KEY, minigunVolume);
+        Debug.Log($"Minigun ses seviyesi: {minigunVolume:F2}");
+    }
+
     void Awake()
     {
         if (Instance == null)
@@ -492,10 +536,12 @@ public class AudioManager : MonoBehaviour
             // Ses kliplerini başlangıçta yüklemeyi dene
             TryLoadExplosionClip();
             TryLoadRocketClip();
+            TryLoadMinigunClip();
             
             // Debug bilgisi
             Debug.Log("AudioManager.Awake: explosionClip " + (explosionClip != null ? "yüklendi" : "yüklenemedi"));
             Debug.Log("AudioManager.Awake: rocketSfxClip " + (rocketSfxClip != null ? "yüklendi" : "yüklenemedi"));
+            Debug.Log("AudioManager.Awake: minigunClip " + (minigunClip != null ? "yüklendi" : "yüklenemedi"));
         }
         else
         {
@@ -819,5 +865,55 @@ public class AudioManager : MonoBehaviour
     {
         StopMusic();
         StopLowHealthSound();
+    }
+
+    // Minigun ateş etme sesini çalma metodu
+    public void PlayMinigunSound()
+    {
+        Debug.Log("PlayMinigunSound çağrıldı - sfxSource: " + (sfxSource != null ? "var" : "yok") + 
+                  ", minigunClip: " + (minigunClip != null ? "var" : "yok"));
+                  
+        if (sfxSource != null && minigunClip != null)
+        {
+            // Minigun sesi için özel ses seviyesi
+            float volume = minigunVolume * sfxVolume * masterVolume;
+            Debug.Log($"Minigun sesi çalınıyor. Ses seviyesi: {volume:F2}");
+            sfxSource.PlayOneShot(minigunClip, volume);
+        }
+        else if (sfxSource != null)
+        {
+            Debug.Log("minigunClip bulunamadı, Resources'dan yüklemeye çalışılıyor...");
+            // Eğer minigunClip null ise, Resources'dan yüklemeyi dene
+            string[] pathOptions = {
+                "Sounds/minigun orta",   // Resources/Sounds/minigun orta
+                "minigun orta",          // Resources/minigun orta
+                "Sounds/minigun",        // Resources/Sounds/minigun
+                "minigun"                // Resources/minigun
+            };
+            
+            AudioClip clip = null;
+            
+            foreach (string path in pathOptions)
+            {
+                Debug.Log($"Deneniyor: {path}");
+                clip = Resources.Load<AudioClip>(path);
+                if (clip != null)
+                {
+                    Debug.Log($"AudioManager: {path} minigun ses efekti yüklendi ve çalınıyor.");
+                    // Minigun sesi için özel ses seviyesi
+                    float volume = minigunVolume * sfxVolume * masterVolume;
+                    sfxSource.PlayOneShot(clip, volume);
+                    
+                    // Bir sonraki kullanım için minigunClip'e atayalım
+                    minigunClip = clip;
+                    break;
+                }
+            }
+            
+            if (clip == null)
+            {
+                Debug.LogWarning("AudioManager: Minigun ses efekti bulunamadı! Hiçbir ses çalınamadı.");
+            }
+        }
     }
 }
