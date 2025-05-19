@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 2054734873335646362}
   - component: {fileID: 6775288714192794213}
   - component: {fileID: 5169869182616863572}
+  - component: {fileID: 2853427333913699990}
   m_Layer: 0
   m_Name: Boss
-  m_TagString: Untagged
+  m_TagString: Boss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,7 +33,8 @@ Transform:
   m_LocalPosition: {x: 20.445538, y: -1.3583522, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
-  m_Children: []
+  m_Children:
+  - {fileID: 3720470247599449550}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &606259543406905525
@@ -185,3 +187,65 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &2853427333913699990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3244843660626771609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6098b036715c5548b63b80371c5ac13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyType: 0
+  moveSpeed: 3
+  rotationSpeed: 5
+  attackRange: 5
+  safeDistance: 4
+  bulletPrefab: {fileID: 1307125103824463300, guid: a99fd4387edf29e41abebc9d1e4b38d8, type: 3}
+  firePoint: {fileID: 3720470247599449550}
+  fireRate: 2
+  initialStabilizationTime: 1.5
+  minigunAttackRange: 8
+  minigunSafeDistance: 6
+  minAttackDistance: 3
+  scoreValue: 25
+  deathEffect: {fileID: 716968566986638124, guid: 70f77ce120fbe9647a71494cc1e732a4, type: 3}
+  minigunBulletDamage: 5
+  kamikazeSpawnInterval: 5
+  minigunFireRate: 0.5
+  maxHealth: 500
+  kamikazePrefab: {fileID: 2901197028966878299, guid: af0307415a598764cb57b8c556f24746, type: 3}
+--- !u!1 &4862633823126641377
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3720470247599449550}
+  m_Layer: 0
+  m_Name: FirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3720470247599449550
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4862633823126641377}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.579, y: -0.059, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4854071296881600920}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

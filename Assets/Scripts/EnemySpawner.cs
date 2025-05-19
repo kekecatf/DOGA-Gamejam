@@ -24,6 +24,7 @@ public class EnemySpawner : MonoBehaviour
     [Header("Düşman Prefabları")]
     public EnemySettings kamikazePrefab; // Kamikaze düşmanı
     public EnemySettings minigunPrefab; // Minigun düşmanı
+    public GameObject bossPrefab; // Boss prefabı
     
     [Header("Spawn Ayarları")]
     public float playAreaWidth = 15f; // Oyun alanı genişliği
@@ -255,14 +256,28 @@ public class EnemySpawner : MonoBehaviour
         }
         
         currentWave++;
-        totalEnemiesInWave = CalculateEnemiesForWave(currentWave);
+        
+        // Son wave'de boss spawn et (sabit 5. wave yerine)
+        if (currentWave == maxWaves && bossPrefab != null)
+        {
+            SpawnBoss();
+            totalEnemiesInWave = 1; // Sadece boss var
+        }
+        else
+        {
+            totalEnemiesInWave = CalculateEnemiesForWave(currentWave);
+        }
+        
         spawnedEnemiesInWave = 0;
         killedEnemiesInWave = 0;
         
         Debug.Log($"Dalga {currentWave}/{maxWaves} başlıyor! Düşman sayısı: {totalEnemiesInWave}");
         
-        // Dalga düşmanlarını spawn et
-        StartCoroutine(SpawnWaveEnemies(totalEnemiesInWave));
+        // Dalga düşmanlarını spawn et (boss wave'i değilse)
+        if (currentWave != maxWaves)
+        {
+            StartCoroutine(SpawnWaveEnemies(totalEnemiesInWave));
+        }
     }
     
     private int CalculateEnemiesForWave(int waveNumber)
@@ -559,6 +574,26 @@ public class EnemySpawner : MonoBehaviour
         }
         
         return "Bilinmeyen";
+    }
+    
+    private void SpawnBoss()
+    {
+        if (bossPrefab == null)
+        {
+            Debug.LogError("Boss prefabı atanmamış!");
+            return;
+        }
+        
+        // Boss'u rastgele bir konumda spawn et (normal düşmanlarla aynı spawn mantığını kullan)
+        Vector2 spawnPos = GetRandomSpawnPosition();
+        GameObject boss = Instantiate(bossPrefab, spawnPos, Quaternion.identity);
+        
+        // EnemyTracker bileşeni ekle
+        EnemyTracker tracker = boss.AddComponent<EnemyTracker>();
+        tracker.spawner = this;
+        tracker.enemyType = "Boss";
+        
+        Debug.Log($"Boss spawn edildi! Son dalga: {currentWave}/{maxWaves}");
     }
 }
 

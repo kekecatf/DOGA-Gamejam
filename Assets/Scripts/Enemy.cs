@@ -38,21 +38,21 @@ public class Enemy : MonoBehaviour, IDamageable
     public float minAttackDistance = 3f;   // Minimum saldırı mesafesi - çok yakınsa ateş etmez
     
     [Header("Hedef")]
-    private Vector2 targetPosition = Vector2.zero;  // Hedef pozisyonu
-    private Transform targetTransform; // Hedef transform
+    protected Vector2 targetPosition = Vector2.zero;  // Hedef pozisyonu
+    protected Transform targetTransform; // Hedef transform değişkenini protected yapalım
     
-    private SpriteRenderer spriteRenderer;
-    private PlayerData playerData;
+    protected SpriteRenderer spriteRenderer;
+    protected PlayerData playerData;
     
-    private int currentHealth;
-    private int damage;
+    protected int currentHealth = 100;
+    protected int damage = 10;
     public int scoreValue = 25;
     public GameObject deathEffect;    // Ölüm efekti (isteğe bağlı)
     
     [Header("Hasar Ayarları")]
     public int minigunBulletDamage = 5;  // Minigun mermisinin verdiği hasar
     
-    private void Start()
+    protected virtual void Start()
     {
         // Spawn zamanını kaydet
         spawnTime = Time.time;
@@ -99,10 +99,10 @@ public class Enemy : MonoBehaviour, IDamageable
         if (firePoint == null)
         {
             // FirePoint yoksa oluştur
-            GameObject newFirePoint = new GameObject("FirePoint");
-            newFirePoint.transform.parent = transform;
-            newFirePoint.transform.localPosition = new Vector3(0.5f, 0, 0); // Düşmanın önünde
-            firePoint = newFirePoint.transform;
+            GameObject firePointObj = new GameObject("FirePoint");
+            firePointObj.transform.SetParent(transform);
+            firePointObj.transform.localPosition = new Vector3(0.5f, 0, 0); // Sağa doğru 0.5 birim
+            firePoint = firePointObj.transform;
         }
         
         // Death Effect kontrolü
@@ -212,7 +212,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
     
-    private void Update()
+    protected virtual void Update()
     {
         // Check if enemy has fallen below y=-100
         if (transform.position.y < -100f)
@@ -465,7 +465,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
     
-    private void MoveTowardsTarget()
+    protected virtual void MoveTowardsTarget()
     {
         if (targetTransform == null) return;
         
@@ -537,8 +537,7 @@ public class Enemy : MonoBehaviour, IDamageable
         Die();
     }
     
-    // Düşmana hasar verme metodu (Bullet tarafından çağrılacak)
-    public void TakeDamage(int damageAmount)
+    public virtual void TakeDamage(int damageAmount)
     {
         // Sağlık değerini azalt
         currentHealth -= damageAmount;
@@ -557,7 +556,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
     
-    void Die()
+    protected virtual void Die()
     {
         // Add Rigidbody2D for falling physics
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
@@ -868,5 +867,21 @@ public class Enemy : MonoBehaviour, IDamageable
     public void SetHealth(int health)
     {
         currentHealth = health;
+    }
+
+    protected virtual void Fire()
+    {
+        if (bulletPrefab != null && firePoint != null)
+        {
+            // Mermiyi oluştur
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            
+            // Mermi bileşenini bul ve hasarı ayarla
+            Bullet bulletComponent = bullet.GetComponent<Bullet>();
+            if (bulletComponent != null)
+            {
+                bulletComponent.damage = minigunBulletDamage;
+            }
+        }
     }
 } 

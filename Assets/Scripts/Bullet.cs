@@ -259,8 +259,9 @@ public class Bullet : MonoBehaviour
                 Debug.Log("Oyuncuya düşman mermisiyle (collision) " + damage + " hasar verildi!");
             }
             
-            // Mermiyi yok et
-            Destroy(gameObject);
+            // Mermiyi hemen yok et
+            DestroyBullet();
+            return;
         }
         // Zeplin ile çarpışma - tag veya component ile kontrol et
         else if (collision.gameObject.CompareTag("Zeplin") || collision.gameObject.GetComponent<Zeplin>() != null)
@@ -277,8 +278,9 @@ public class Bullet : MonoBehaviour
                 Debug.LogWarning("Zeplin etiketi var ama Zeplin bileşeni bulunamadı! (collision)");
             }
             
-            // Mermiyi yok et
-            Destroy(gameObject);
+            // Mermiyi hemen yok et
+            DestroyBullet();
+            return;
         }
         // Diğer objelerle çarpışma
         else
@@ -372,8 +374,9 @@ public class Bullet : MonoBehaviour
                 Debug.Log("Oyuncuya düşman mermisiyle " + damage + " hasar verildi!");
             }
             
-            // Mermiyi yok et
-            Destroy(gameObject);
+            // Mermiyi hemen yok et
+            DestroyBullet();
+            return;
         }
         // Zeplin ile çarpışma - tag veya component ile kontrol et
         else if (other.CompareTag("Zeplin") || other.GetComponent<Zeplin>() != null)
@@ -390,8 +393,9 @@ public class Bullet : MonoBehaviour
                 Debug.LogWarning("Zeplin etiketi var ama Zeplin bileşeni bulunamadı!");
             }
             
-            // Mermiyi yok et
-            Destroy(gameObject);
+            // Mermiyi hemen yok et
+            DestroyBullet();
+            return;
         }
         // Diğer objelerle çarpışma (duvarlar, engeller vb.)
         else if (!other.isTrigger) // Sadece fiziksel nesnelerle çarpışma durumunda
@@ -399,6 +403,40 @@ public class Bullet : MonoBehaviour
             // Mermiyi yok et
             Destroy(gameObject);
             Debug.Log("Düşman mermisi bir nesneye çarptı: " + other.name);
+        }
+    }
+    
+    // Mermiyi hemen yok etmek için yardımcı metot
+    private void DestroyBullet()
+    {
+        // Eğer mermi hala varsa yok et
+        if (gameObject != null)
+        {
+            // Collider'ı devre dışı bırak
+            Collider2D collider = GetComponent<Collider2D>();
+            if (collider != null)
+            {
+                collider.enabled = false;
+            }
+            
+            // Rigidbody'yi devre dışı bırak
+            Rigidbody2D rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.simulated = false;
+            }
+            
+            // Sprite'ı gizle
+            SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+            if (renderer != null)
+            {
+                renderer.enabled = false;
+            }
+            
+            // Hemen yok et
+            Destroy(gameObject);
+            Debug.Log("Düşman mermisi hemen yok edildi!");
         }
     }
 } 

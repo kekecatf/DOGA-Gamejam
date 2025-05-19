@@ -70,7 +70,7 @@ public class PauseMenu : MonoBehaviour
     public void OpenSoundSettings()
     {
         if (soundSettingsPanel != null)
-        {
+    {
             // Ses ayarları panelini aç/kapat
             bool isActive = soundSettingsPanel.activeSelf;
             soundSettingsPanel.SetActive(!isActive);
@@ -94,7 +94,7 @@ public class PauseMenu : MonoBehaviour
         
         // Editör modundaysa oynatmayı durdur, değilse uygulamadan çık
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+        UnityEditor.EditorApplication.isPlaying = false;
         #else
             Application.Quit();
         #endif

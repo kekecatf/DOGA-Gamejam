@@ -442,7 +442,7 @@ public class AudioManager : MonoBehaviour
         PlayerPrefs.SetFloat(ROCKET_VOLUME_KEY, rocketVolume);
         Debug.Log($"Roket ses seviyesi: {rocketVolume:F2}");
     }
-    
+
     // Kamikaze ses seviyesini ayarlar ve kaydeder
     public void SetKamikazeVolume(float volume)
     {
@@ -739,8 +739,8 @@ public class AudioManager : MonoBehaviour
     public void StopMusic()
     {
         if (musicSource != null && musicSource.isPlaying)
-        {
-            musicSource.Stop();
+    {
+        musicSource.Stop();
             Debug.Log("AudioManager: Müzik durduruldu.");
         }
         

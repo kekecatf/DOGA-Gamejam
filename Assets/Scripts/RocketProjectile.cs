@@ -314,7 +314,7 @@ public class RocketProjectile : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Düşman roketlerinin, düşmana çarpmasını önle
-        if (isEnemyRocket && other.CompareTag("Enemy"))
+        if (isEnemyRocket && (other.CompareTag("Enemy") || other.CompareTag("Boss")))
         {
             return;
         }
@@ -355,16 +355,19 @@ public class RocketProjectile : MonoBehaviour
         else
         {
             // Düşmana çarpma
-            Enemy enemy = other.GetComponent<Enemy>();
-            if (enemy != null)
+            if (other.CompareTag("Enemy") || other.CompareTag("Boss"))
             {
-                enemy.TakeDamage(damage);
-                Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Trigger) Hasar: " + damage);
-                
-                // Patlama efekti
-                Explode();
-                
-                return;
+                Enemy enemy = other.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(damage);
+                    Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Trigger) Hasar: " + damage);
+                    
+                    // Patlama efekti
+                    Explode();
+                    
+                    return;
+                }
             }
         }
         
@@ -379,7 +382,7 @@ public class RocketProjectile : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // Düşman roketlerinin, düşmana çarpmasını önle
-        if (isEnemyRocket && collision.gameObject.CompareTag("Enemy"))
+        if (isEnemyRocket && (collision.gameObject.CompareTag("Enemy") || collision.gameObject.CompareTag("Boss")))
         {
             return;
         }
@@ -420,16 +423,19 @@ public class RocketProjectile : MonoBehaviour
         else
         {
             // Düşmana çarpma
-            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-            if (enemy != null)
+            if (collision.gameObject.CompareTag("Enemy") || collision.gameObject.CompareTag("Boss"))
             {
-                enemy.TakeDamage(damage);
-                Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Collision) Hasar: " + damage);
-                
-                // Patlama efekti
-                Explode();
-                
-                return;
+                Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(damage);
+                    Debug.Log("Oyuncu roketi düşmana direkt çarptı! (Collision) Hasar: " + damage);
+                    
+                    // Patlama efekti
+                    Explode();
+                    
+                    return;
+                }
             }
         }
         
@@ -486,7 +492,7 @@ public class RocketProjectile : MonoBehaviour
             if (hitCollider == null) continue;
             
             // Kendimize hasar vermeyelim
-            if ((isEnemyRocket && hitCollider.CompareTag("Enemy")) || 
+            if ((isEnemyRocket && (hitCollider.CompareTag("Enemy") || hitCollider.CompareTag("Boss"))) || 
                 (!isEnemyRocket && hitCollider.CompareTag("Player")))
             {
                 continue;
@@ -517,7 +523,7 @@ public class RocketProjectile : MonoBehaviour
             // Oyuncu roketi ise düşmanlara hasar ver
             else 
             {
-                if (hitCollider.CompareTag("Enemy"))
+                if (hitCollider.CompareTag("Enemy") || hitCollider.CompareTag("Boss"))
                 {
                     Enemy enemy = hitCollider.GetComponent<Enemy>();
                     if (enemy != null)

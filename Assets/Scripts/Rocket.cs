@@ -95,14 +95,20 @@ public class Rocket : MonoBehaviour
     
     void FindClosestEnemy()
     {
-        // Tüm düşmanları bul
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        // Tüm düşmanları bul (Enemy ve Boss taglarını ara)
+        GameObject[] enemiesWithEnemyTag = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject[] enemiesWithBossTag = GameObject.FindGameObjectsWithTag("Boss");
+        
+        // Her iki tag'e sahip düşmanları birleştir
+        List<GameObject> allEnemies = new List<GameObject>();
+        allEnemies.AddRange(enemiesWithEnemyTag);
+        allEnemies.AddRange(enemiesWithBossTag);
         
         float closestDistance = Mathf.Infinity;
         GameObject closestEnemy = null;
         
         // En yakın düşmanı bul
-        foreach (GameObject enemy in enemies)
+        foreach (GameObject enemy in allEnemies)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
             if (distance < closestDistance)
@@ -137,7 +143,7 @@ public class Rocket : MonoBehaviour
         }
         
         // Düşman ile çarpışma kontrolü
-        if (other.CompareTag("Enemy"))
+        if (other.CompareTag("Enemy") || other.CompareTag("Boss"))
         {
             HandleEnemyHit(other);
         }
@@ -159,7 +165,7 @@ public class Rocket : MonoBehaviour
         }
         
         // Düşman ile çarpışma kontrolü
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy") || collision.gameObject.CompareTag("Boss"))
         {
             HandleEnemyHit(collision.collider);
         }
@@ -221,35 +227,28 @@ public class Rocket : MonoBehaviour
     
     void Explode()
     {
-        // Patlama alanındaki tüm collider'ları bul
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+        // Patlama alanındaki tüm düşmanları bul
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
         
-        foreach (Collider2D hit in colliders)
+        foreach (Collider2D hitCollider in hitColliders)
         {
-            // Düşmanlara hasar ver
-            if (hit.CompareTag("Enemy"))
+            // Eğer bu düşmana zaten doğrudan hasar verildiyse, tekrar hasar verme
+            if (damagedEnemies.Contains(hitCollider))
             {
-                // Eğer bu düşmana zaten doğrudan hasar verildiyse, tekrar hasar verme
-                if (damagedEnemies.Contains(hit))
-                {
-                    Debug.Log("Bu düşmana zaten doğrudan hasar verildi, patlama hasarı atlanıyor: " + hit.name);
-                    continue;
-                }
-                
-                Enemy enemy = hit.GetComponent<Enemy>();
+                continue;
+            }
+            
+            // Düşmanlara hasar ver (Enemy ve Boss taglerini kontrol et)
+            if (hitCollider.CompareTag("Enemy") || hitCollider.CompareTag("Boss"))
+            {
+                Enemy enemy = hitCollider.GetComponent<Enemy>();
                 if (enemy != null)
                 {
-                    // Uzaklığa göre hasar hesapla (merkezde tam hasar, kenarlarda daha az)
-                    float distance = Vector2.Distance(transform.position, hit.transform.position);
-                    float damagePercent = 1f - (distance / explosionRadius);
-                    int calculatedDamage = Mathf.RoundToInt(playerData.anaGemiRoketDamage * damagePercent);
+                    // Alan hasarını daha az ver (örneğin 70% kadar)
+                    int areaDamage = Mathf.RoundToInt(playerData.anaGemiRoketDamage * 0.7f);
+                    enemy.TakeDamage(areaDamage);
                     
-                    // Minimum hasar garantisi
-                    calculatedDamage = Mathf.Max(calculatedDamage, playerData.anaGemiRoketDamage / 4);
-                    
-                    // Hasarı uygula
-                    enemy.TakeDamage(calculatedDamage);
-                    Debug.Log("Roket patlaması " + hit.name + " düşmanına " + calculatedDamage + " hasar verdi!");
+                    Debug.Log("Roket patlamasıyla düşmana hasar verildi: " + hitCollider.name + ", " + areaDamage + " hasar!");
                 }
             }
         }
