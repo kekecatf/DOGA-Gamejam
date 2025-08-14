@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "GameJam.sln"
+    "dotnet.defaultSolution": "Doga-GameJam.sln"
 }
